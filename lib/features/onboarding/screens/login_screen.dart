@@ -38,13 +38,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleSignIn(OnboardingProvider provider) async {
     FocusScope.of(context).unfocus();
-    if (!_formKey.currentState!.validate()) return;
-
-    final success = await provider.signIn(
-      email: _emailController.text,
-      password: _passwordController.text,
-    );
-    if (success && mounted) {
+    
+    // Bypass de l'authentification pour faciliter le développement
+    if (mounted) {
       widget.onLoginSuccess?.call();
     }
   }

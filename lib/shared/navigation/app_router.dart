@@ -8,6 +8,7 @@ import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/rewards_screen.dart';
 import '../../features/onboarding/screens/ambassador_intro_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
+import 'main_navigation_screen.dart';
 
 /// Ajoutez votre écran ici dès qu'il est prêt (une ligne par GoRoute).
 /// Chacun ajoute SA ligne — évitez de reformater tout le fichier pour
@@ -38,7 +39,7 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.dashboard,
-      builder: (context, state) => const DashboardScreen(),
+      builder: (context, state) => const MainNavigationScreen(),
     ),
     GoRoute(
       path: AppRoutes.share,
