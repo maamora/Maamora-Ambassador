@@ -13,4 +13,6 @@ class AppRoutes {
   static const String rewards = '/rewards';
   static const String notifications = '/notifications'; // phase 2
   static const String admin = '/admin'; // phase 2
+  static const String community = '/community';
+  static const String pickup = '/pickup';
 }

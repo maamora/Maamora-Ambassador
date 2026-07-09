@@ -9,6 +9,8 @@ import '../../features/leaderboard_rewards/screens/rewards_screen.dart';
 import '../../features/onboarding/screens/ambassador_intro_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
 import 'main_navigation_screen.dart';
+import '../../features/community/screens/community_screen.dart';
+import '../../features/pickup/screens/pickup_screen.dart';
 
 /// Ajoutez votre écran ici dès qu'il est prêt (une ligne par GoRoute).
 /// Chacun ajoute SA ligne — évitez de reformater tout le fichier pour
@@ -52,6 +54,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.rewards,
       builder: (context, state) => const RewardsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.community,
+      builder: (context, state) => const CommunityScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.pickup,
+      builder: (context, state) => const PickupScreen(),
     ),
   ],
 );
