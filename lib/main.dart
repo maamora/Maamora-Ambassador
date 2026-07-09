@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/constants/api_constants.dart';
 import 'shared/theme/app_theme.dart';
 import 'shared/navigation/app_router.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: ApiConstants.supabaseUrl,
+    anonKey: ApiConstants.supabaseAnonKey,
+  );
+
   runApp(const AmbassadorsApp());
 }
 

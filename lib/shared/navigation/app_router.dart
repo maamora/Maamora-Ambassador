@@ -12,7 +12,7 @@ import '../../features/leaderboard_rewards/screens/rewards_screen.dart';
 /// limiter les conflits Git avec les autres.
 final GoRouter appRouter = GoRouter(
   navigatorKey: NavigationService.navigatorKey,
-  initialLocation: AppRoutes.signUp,
+  initialLocation: AppRoutes.dashboard, // Changed to dashboard for testing
   routes: [
     GoRoute(
       path: AppRoutes.signUp,
