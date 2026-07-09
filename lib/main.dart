@@ -1,8 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/constants/api_constants.dart';
 import 'shared/theme/app_theme.dart';
 import 'shared/navigation/app_router.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'firebase_options.dart';
 
-void main() {
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+//   runApp(const AmbassadorsApp());
+// }
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: ApiConstants.supabaseUrl,
+    anonKey: ApiConstants.supabaseAnonKey,
+  );
+
   runApp(const AmbassadorsApp());
 }
 
