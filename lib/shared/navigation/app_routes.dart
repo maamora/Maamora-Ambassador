@@ -4,7 +4,9 @@
 class AppRoutes {
   AppRoutes._();
 
+  static const String introAmbassador = '/intro-ambassador';
   static const String signUp = '/sign-up';
+  static const String login = '/login';
   static const String dashboard = '/dashboard';
   static const String share = '/share';
   static const String leaderboard = '/leaderboard';
