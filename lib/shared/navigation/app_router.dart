@@ -17,7 +17,9 @@ import '../../features/pickup/screens/pickup_screen.dart';
 /// limiter les conflits Git avec les autres.
 final GoRouter appRouter = GoRouter(
   navigatorKey: NavigationService.navigatorKey,
-  initialLocation: AppRoutes.introAmbassador,
+  // TEMP: previewing the Leaderboard screen directly. Revert to
+  // AppRoutes.introAmbassador before merging.
+  initialLocation: AppRoutes.leaderboard,
   routes: [
     GoRoute(
       path: AppRoutes.introAmbassador,
