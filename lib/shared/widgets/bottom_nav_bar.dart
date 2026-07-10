@@ -34,6 +34,10 @@ class BottomNavBar extends StatelessWidget {
           label: 'Rewards',
         ),
         BottomNavigationBarItem(
+          icon: Icon(Icons.emoji_events),
+          label: 'Leaderboard',
+        ),
+        BottomNavigationBarItem(
           icon: Icon(Icons.people_outline),
           activeIcon: Icon(Icons.people),
           label: 'Community',

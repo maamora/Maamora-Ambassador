@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/rewards_screen.dart';
+import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
 import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -19,6 +20,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _pages = [
     const DashboardScreen(),
     const RewardsScreen(),
+    const LeaderboardScreen(),
     const CommunityScreen(),
     const PickupScreen(),
   ];
