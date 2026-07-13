@@ -38,27 +38,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleSignIn(OnboardingProvider provider) async {
     FocusScope.of(context).unfocus();
-    
+
     // Bypass de l'authentification pour faciliter le développement
     if (mounted) {
       widget.onLoginSuccess?.call();
     }
   }
 
-  Future<void> _handleForgotPassword(OnboardingProvider provider) async {
-    final email = _emailController.text.trim();
-    if (provider.validateEmail(email) != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Entrez votre email d\'abord')),
-      );
-      return;
-    }
-    await provider.sendPasswordResetEmail(email);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Email de réinitialisation envoyé')),
-    );
-  }
+  // Future<void> _handleForgotPassword(OnboardingProvider provider) async {
+  //   final email = _emailController.text.trim();
+  //   if (provider.validateEmail(email) != null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Entrez votre email d\'abord')),
+  //     );
+  //     return;
+  //   }
+  //   await provider.sendPasswordResetEmail(email);
+  //   if (!mounted) return;
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('Email de réinitialisation envoyé')),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
