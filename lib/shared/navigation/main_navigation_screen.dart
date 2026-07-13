@@ -1,3 +1,4 @@
+import 'package:ambassadors/features/onboarding/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/rewards_screen.dart';
@@ -21,6 +22,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const RewardsScreen(),
     const CommunityScreen(),
     const PickupScreen(),
+    const ProfileScreen(),
   ];
 
   void _onTabTapped(int index) {
@@ -32,10 +34,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
@@ -47,16 +46,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 // Placeholder temporaire pour les écrans non encore créés
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
-  
+
   const _PlaceholderScreen({required this.title});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(title), centerTitle: true),
       body: Center(
         child: Text(
           '$title Screen\n(En cours de construction)',
