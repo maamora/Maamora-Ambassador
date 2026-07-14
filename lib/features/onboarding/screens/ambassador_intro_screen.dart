@@ -72,16 +72,7 @@ class AmbassadorIntroScreen extends StatelessWidget {
       height: 56,
       child: Stack(
         alignment: Alignment.center,
-        children: [
-          // Align(
-          //   alignment: Alignment.centerLeft,
-          //   // child: IconButton(
-          //   //   icon: const Icon(Icons.arrow_back, color: AppColors.onBackground),
-          //   //   onPressed: () => Navigator.of(context).maybePop(),
-          //   // ),
-          // ),
-          Text('Become an ambassador', style: AppTheme.headlineSm),
-        ],
+        children: [Text('Become an ambassador', style: AppTheme.headlineSm)],
       ),
     );
   }

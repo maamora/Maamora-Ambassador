@@ -1,3 +1,4 @@
+import 'package:ambassadors/features/onboarding/screens/email_verification_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/navigation/navigation_service.dart';
 import 'app_routes.dart';
@@ -29,9 +30,29 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.signUp,
       builder: (context, state) => SignUpScreen(
         onGoToLogin: () => context.go(AppRoutes.login),
-        onSignUpSuccess: () => context.go(AppRoutes.dashboard),
+        // 1. On passe l'email saisi au callback de succès
+        onSignUpSuccess: (email) =>
+            context.go('${AppRoutes.verifyEmail}?email=$email'),
       ),
     ),
+    GoRoute(
+      path: AppRoutes.verifyEmail,
+      builder: (context, state) {
+        // 2. On récupère l'email depuis les paramètres de recherche (?email=...)
+        final email = state.uri.queryParameters['email'] ?? '';
+        return EmailVerificationScreen(
+          email: email,
+          onGoToLogin: () => context.go(AppRoutes.login),
+        );
+      },
+    ),
+    // GoRoute(
+    //   path: AppRoutes.signUp,
+    //   builder: (context, state) => SignUpScreen(
+    //     onGoToLogin: () => context.go(AppRoutes.login),
+    //     onSignUpSuccess: () => context.go(AppRoutes.dashboard),
+    //   ),
+    // ),
     GoRoute(
       path: AppRoutes.login,
       builder: (context, state) => LoginScreen(
