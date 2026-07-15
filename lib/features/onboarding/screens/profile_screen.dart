@@ -265,13 +265,6 @@ class ProfileScreen extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  // Échanger → écran Rewards & Redemption (Dev 4). On
-                  // transmet le solde déjà chargé ici (Supabase, via
-                  // ProfileProvider) pour que Rewards affiche le même
-                  // nombre plutôt qu'un solde factice séparé — voir le
-                  // point signalé #5 dans rewards_screen.dart pour le
-                  // détail (Profile = Supabase réel, Rewards = mock tant
-                  // que l'état partagé n'existe pas).
                   context.push(AppRoutes.rewards, extra: int.tryParse(points));
                 },
                 style: TextButton.styleFrom(

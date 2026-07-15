@@ -7,85 +7,15 @@ import '../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../shared/widgets/shared_app_bar.dart';
 import '../widgets/redemption_confirmation_sheet.dart';
 
-// Dev 4 — Rewards & Redemption (converti depuis le mockup Stitch "Rewards
-// & Redemption Screen"), même approche que leaderboard_screen.dart.
-//
-// STRUCTURE : contrairement à Leaderboard, cet écran n'est PAS dans
-// l'IndexedStack de MainNavigationScreen (voir main_navigation_screen.dart
-// — seuls Dashboard/Groups/Leaderboard/Products/Profile y sont). Il n'est
-// aujourd'hui accessible que via la route standalone AppRoutes.rewards
-// ('/rewards', voir app_router.dart), poussée par-dessus le shell
-// principal — donc pas de Scaffold parent qui fournit SharedAppBar /
-// SharedBottomNavBar ici. C'est pour ça que CET écran les instancie
-// lui-même (Leaderboard ne le fait pas, puisqu'il est déjà dans le shell).
-// C'est bien la réutilisation demandée ("reuse... rather than
-// recreating") : mêmes composants, pas une copie.
-//
-// DONNÉES : MockDataService.mockCurrentAmbassador (points réels), même
-// convention que Leaderboard. TODO(Dev4): brancher sur Supabase une fois
-// disponible.
-//
-// LANGUE : cet écran a été traduit en français (initialement livré en
-// anglais, calqué sur le mockup Stitch) pour matcher Profile, qui est en
-// français, suite à la décision d'Anas — ne pas repasser en anglais sans
-// vérifier. Note : Dashboard (l'onglet Home) est encore en anglais lui
-// aussi ("Current Balance", "My Active Groups"...) donc l'app reste
-// mélangée au-delà de ce seul écran ; hors scope ici.
-//
-// ── 4 points signalés plutôt que devinés ──
-// 1) "+$45.00 Value" du mockup est un montant en dur — exactement ce que
-//    le brief interdit (feature #6 : aucun montant tant que le fondateur
-//    n'a pas confirmé). Remplacé par un libellé neutre ("taux de
-//    conversion à confirmer") plutôt qu'un chiffre inventé.
-// 2) Bouton "Échanger en espèces" : ouvre désormais la vraie feuille de
-//    confirmation (widgets/redemption_confirmation_sheet.dart), avec le
-//    montant/valeur calculés à partir du solde réel de cet écran — voir
-//    les points signalés dans ce fichier pour ce qui reste factice
-//    (méthode, destination, soumission). "Get Promo Code" reste un
-//    SnackBar temporaire : le prompt ne précisait pas de destination pour
-//    ce bouton-là.
-// 3) Section "Your Tier Perks" du mockup : PAS reprise. Elle n'est pas
-//    dans la liste de requirements de ce screen, et son contenu n'est
-//    backé par aucune donnée réelle (pas de modèle "perks"). Pire : le
-//    mockup affiche "Unlock at Platinum Status (20,000 pts)" alors que
-//    Tier.platinum.minPoints = 4000 dans notre modèle actuel — un vrai
-//    conflit de données, pas juste un détail manquant. À reprendre une
-//    fois le contenu/les seuils confirmés avec l'équipe.
-// 4) SharedBottomNavBar attend un currentIndex correspondant à un onglet
-//    du shell (0..4), mais "Rewards" n'en est pas un. currentIndex est mis
-//    à -1 (aucun onglet actif) et chaque tap renvoie vers
-//    AppRoutes.dashboard (Home) : MainNavigationScreen ne permet pas
-//    aujourd'hui d'ouvrir directement sur un onglet précis (son
-//    _currentIndex est un State local, pas piloté de l'extérieur), donc
-//    on ne peut pas re-router précisément vers "Groups"/"Products"/
-//    "Profile" depuis ici sans un mécanisme partagé en plus (state
-//    provider, ou paramètre d'index initial sur la route).
-// 5) initialPoints (ajouté pour le bouton "Échanger" du Profile) :
-//    Profile lit son solde de points depuis Supabase en direct
-//    (ProfileProvider → table "ambassadors"), alors que cet écran lit
-//    MockDataService (donnée factice). Ce ne sont PAS la même source. En
-//    attendant le vrai state partagé (core/services/
-//    ambassador_state_provider.dart, prévu par le brief mais pas encore
-//    construit — bloqué sur l'Attribution de Yassine), on fait transiter
-//    la valeur réelle déjà chargée par Profile via l'argument de route
-//    (state.extra dans app_router.dart), pour ne pas afficher un 2ᵉ solde
-//    différent juste après que l'utilisateur a vu le vrai. Si l'écran est
-//    ouvert autrement (navigation directe, pas encore de point d'entrée
-//    aujourd'hui), on retombe sur MockDataService comme avant.
-// 6) Feuille de confirmation (widgets/redemption_confirmation_sheet.dart) :
-//    le "Montant" qu'elle affiche vient du solde réel de cet écran (pas
-//    un 2ᵉ chiffre inventé), mais "Méthode" et "Destination" restent des
-//    textes fixes — Ambassador n'a ni mode de paiement ni RIB en base.
-//    Et surtout : "Confirmer" ne fait qu'un délai simulé (_submitRedemption
-//    ci-dessous), rien n'est réellement soumis ni déduit du solde — voir
-//    ce fichier + le fichier de la feuille pour le détail complet.
+// Dev 4 — Rewards & Redemption. Not in MainNavigationScreen's IndexedStack
+// (standalone route), so it instantiates SharedAppBar/SharedBottomNavBar
+// itself instead of getting them from a shell.
 
-const int _mockPointsPerDh = 10; // TODO(Dev4): confirmer le vrai taux (brief #6).
+const int _mockPointsPerDh = 10; // TODO(Dev4): confirm real rate (brief #6).
 
 class RewardsScreen extends StatelessWidget {
   const RewardsScreen({super.key, this.initialPoints});
 
-  /// Solde réel transmis par l'écran appelant (voir point signalé #5).
   final int? initialPoints;
 
   @override
@@ -159,13 +89,7 @@ class RewardsScreen extends StatelessWidget {
   }
 
   Future<void> _submitRedemption(int points) async {
-    // TODO(Dev4): remplacer par un vrai appel Supabase (ex: RPC
-    // "redeem_points" ou une future table de redemptions) + déduire le
-    // solde via le futur core/services/ambassador_state_provider.dart
-    // (état partagé, pas encore construit, bloqué sur l'Attribution de
-    // Yassine — voir point signalé #5/#6 en haut de ce fichier). Pour
-    // l'instant : aucun des deux n'existe, donc ceci ne fait que simuler
-    // une latence réseau sans rien persister ni déduire.
+    // TODO(Dev4): replace with real Supabase call + ambassador_state_provider.dart.
     await Future.delayed(const Duration(milliseconds: 900));
   }
 
@@ -322,10 +246,6 @@ String _formatThousands(int value) {
   return buffer.toString();
 }
 
-// Tokens Material 3 du mockup Stitch — mêmes valeurs que dans
-// leaderboard_screen.dart / dashboard_screen.dart (voir le flag #1 posé
-// sur Leaderboard : app_colors.dart existe mais n'est pas ce que les
-// écrans réellement livrés utilisent).
 const Color _primary = Color(0xFF9A4600);
 const Color _primaryContainer = Color(0xFFFB7701);
 const Color _surface = Color(0xFFFFF8F5);

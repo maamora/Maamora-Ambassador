@@ -1,33 +1,8 @@
 import 'package:flutter/material.dart';
 
-// Dev 4 — Feuille de confirmation "Échanger en espèces" (mockup Stitch
-// "Confirm Redemption Sheet"), ouverte depuis rewards_screen.dart via
-// showModalBottomSheet — pas de Stack/scrim/"fixed" manuels comme dans
-// l'export HTML brut : showModalBottomSheet gère déjà le fond assombri et
-// l'animation d'entrée/sortie, donc pas besoin de les reconstruire.
-//
-// Ce widget est volontairement "bête" (pure présentation) : les 4 lignes
-// de détail (montant, méthode, valeur, destination) ET la logique de
-// soumission (onConfirm) lui sont passées par l'appelant, qui est le seul
-// à connaître le vrai solde de l'ambassadeur — voir rewards_screen.dart.
-//
-// ── Points signalés plutôt que devinés ──
-// 1) onConfirm ne fait RIEN de réel aujourd'hui. Il n'existe ni table/RPC
-//    Supabase pour un "cash-out", ni état ambassadeur partagé et mutable
-//    (core/services/ambassador_state_provider.dart, prévu par le brief
-//    mais pas encore construit, bloqué sur l'Attribution de Yassine). Le
-//    bouton "Confirmer" simule donc une soumission (spinner + délai) sans
-//    rien déduire ni persister — voir _submitRedemption dans
-//    rewards_screen.dart pour le détail. À ne pas présenter comme
-//    fonctionnel en démo sans le préciser.
-// 2) "Destination" (RIB) est un texte fixe inventé — le modèle Ambassador
-//    n'a aucun champ pour un compte bancaire. Afficher un faux numéro de
-//    compte dans un flux qui parle d'argent réel dépasse le simple détail
-//    technique : il faudra un vrai champ profil (+ un vrai écran de
-//    saisie/vérification) avant d'exposer ça à de vrais ambassadeurs.
-// 3) "Méthode" (Virement bancaire) est fixe aussi, faute d'un champ "mode
-//    de paiement préféré" sur Ambassador — même limitation que #2, mais
-//    sans donnée financière inventée donc moins critique.
+// Dev 4 — Confirm Redemption sheet, opened via showModalBottomSheet from
+// rewards_screen.dart. Pure presentation: detail rows + onConfirm are
+// passed in by the caller, which owns the real balance.
 
 class RedemptionConfirmationSheet extends StatefulWidget {
   const RedemptionConfirmationSheet({
@@ -44,10 +19,7 @@ class RedemptionConfirmationSheet extends StatefulWidget {
   final String valueLabel;
   final String destination;
 
-  /// Appelé quand l'utilisateur confirme. Lève une exception en cas
-  /// d'échec (affichée via SnackBar) ; sinon la feuille se ferme d'elle
-  /// même et renvoie `true` à l'appelant (voir showModalBottomSheet<bool>
-  /// dans rewards_screen.dart).
+  // Throw on failure (shown via SnackBar); on success the sheet pops `true`.
   final Future<void> Function() onConfirm;
 
   @override
@@ -220,9 +192,6 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-// Tokens Material 3 du mockup Stitch — mêmes valeurs que rewards_screen.dart
-// / leaderboard_screen.dart (même flag déjà posé ailleurs : app_colors.dart
-// existe mais n'est pas ce que les écrans réellement livrés utilisent).
 const Color _surface = Color(0xFFFFF8F5);
 const Color _surfaceContainerLow = Color(0xFFFFF1EA);
 const Color _onSurface = Color(0xFF251912);
