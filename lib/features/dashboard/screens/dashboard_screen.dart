@@ -1,360 +1,318 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
-import '../../../models/models.dart';
-import '../../../shared/theme/app_colors.dart';
-import '../../../shared/widgets/tier_badge.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; // ⚠️ ajoutez cet import en haut du fichier
+import 'package:google_fonts/google_fonts.dart';
+import 'dart:math';
 
+// ==========================================
+// Colors based on the user's design system
+// ==========================================
+const Color _primary = Color(0xFF9A4600);
+const Color _primaryContainer = Color(0xFFFB7701);
+const Color _onPrimaryContainer = Color(0xFF592600);
+const Color _surface = Color(0xFFFFF8F5);
+const Color _surfaceContainerLowest = Color(0xFFFFFFFF);
+const Color _surfaceContainerHigh = Color(0xFFFBE3D8);
+const Color _surfaceVariant = Color(0xFFF6DED2);
+const Color _onBackground = Color(0xFF251912);
+const Color _onSurfaceVariant = Color(0xFF584236);
+const Color _outlineVariant = Color(0xFFE0C0B0);
+const Color _tertiaryContainer = Color(0xFF00A4FC);
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-
-    const Color beigeBackground = Color(0xFFFDF8F0);
-    const Color cardBackground = Color(0xFFFAECD6);
-    const Color primaryRed = Color(0xFFCC4A33);
-    const Color textDark = Color(0xFF222222);
-
     return Scaffold(
-      backgroundColor: beigeBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: textDark),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Ambassador',
-          style: TextStyle(
-            color: textDark,
-            fontWeight: FontWeight.w900,
-            fontSize: 22,
-            fontStyle: FontStyle.italic,
+      backgroundColor: _surface,
+      body: const SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _BalanceCard(),
+              SizedBox(height: 32),
+              _ActiveGroupsSection(),
+              SizedBox(height: 32),
+              _RecentActivitySection(),
+              SizedBox(height: 24),
+            ],
           ),
-        ),
-        centerTitle: true,
-        actions: [
-  IconButton(
-    icon: const Icon(Icons.more_horiz, color: textDark),
-    onPressed: () async {
-      final supabase = Supabase.instance.client;
-      try {
-        final test = await supabase.from('ambassadors').select();
-        print('✅ Supabase connecté, résultat: $test');
-      } catch (e) {
-        print('❌ Erreur Supabase: $e');
-      }
-    },
-  ),
-],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Current Level Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardBackground,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: textDark, width: 1.5),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x1A000000),
-                    offset: Offset(0, 2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Current level',
-                        style: TextStyle(color: textDark.withValues(alpha: 0.6), fontSize: 12),
-                      ),
-                      Text(
-                        'This week',
-                        style: TextStyle(color: textDark.withValues(alpha: 0.6), fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.military_tech, color: AppColors.tierSilver, size: 28),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Silver · Lvl 4',
-                            style: TextStyle(
-                              color: textDark,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 22,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Text(
-                        '+ 340 DH',
-                        style: TextStyle(
-                          color: primaryRed,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 24,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Progress Bar
-                  Container(
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: textDark, width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 35,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: primaryRed,
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                          ),
-                        ),
-                        const Expanded(flex: 15, child: SizedBox()),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        '35 / 50 buyers to 🏅 Gold',
-                        style: TextStyle(color: textDark, fontSize: 12, fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        '+ 200 DH bonus',
-                        style: TextStyle(color: textDark.withValues(alpha: 0.6), fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Weekly goals Title
-            const Text(
-              'Weekly goals',
-              style: TextStyle(
-                color: textDark,
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: 12),
-            
-            // Goals List
-            _buildGoalCard(
-              title: 'Organize 3 group buys',
-              reward: '+50 DH',
-              progress: 0.6,
-              isCompleted: false,
-              primaryRed: primaryRed,
-              textDark: textDark,
-            ),
-            const SizedBox(height: 10),
-            _buildGoalCard(
-              title: 'Bring 5 new buyers',
-              reward: '+80 DH',
-              progress: 1.0,
-              isCompleted: true,
-              primaryRed: primaryRed,
-              textDark: textDark,
-            ),
-            const SizedBox(height: 10),
-            _buildGoalCard(
-              title: 'Run Saturday pickup',
-              reward: '+30 DH',
-              progress: 0.0,
-              isCompleted: false,
-              primaryRed: primaryRed,
-              textDark: textDark,
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Next payout
-            CustomPaint(
-              painter: DashedBorderPainter(color: textDark),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Next payout — Mon',
-                          style: TextStyle(
-                            color: textDark,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'cash · ambassador meetup',
-                          style: TextStyle(
-                            color: textDark.withValues(alpha: 0.6),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Text(
-                      '340 DH',
-                      style: TextStyle(
-                        color: primaryRed,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 24,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // CTA Button
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryRed,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: textDark, width: 1.5),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Invite a neighbor →',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildGoalCard({
-    required String title,
-    required String reward,
-    required double progress,
-    required bool isCompleted,
-    required Color primaryRed,
-    required Color textDark,
-  }) {
+}
+
+class _BalanceCard extends StatelessWidget {
+  const _BalanceCard();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: textDark, width: 1.5),
-        boxShadow: const [
+        color: _surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0D000000),
-            offset: Offset(0, 2),
-            blurRadius: 2,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Text(
+            'Current Balance',
+            style: GoogleFonts.inter(
+              color: _onSurfaceVariant,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '12,450 pts',
+            style: GoogleFonts.plusJakartaSans(
+              color: _primaryContainer,
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: _surfaceVariant,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.star, color: _tertiaryContainer, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  'Platinum Tier',
+                  style: GoogleFonts.inter(
+                    color: _onBackground,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const _ProgressDonut(),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProgressDonut extends StatelessWidget {
+  const _ProgressDonut();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 110,
+      height: 110,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CustomPaint(
+            size: const Size(110, 110),
+            painter: _DonutChartPainter(
+              progress: 0.75,
+              backgroundColor: _surfaceVariant,
+              progressColor: _primaryContainer,
+              strokeWidth: 10.0,
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                '75%',
+                style: GoogleFonts.inter(
+                  color: _onBackground,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              Row(
-                children: [
-                  Text(
-                    reward,
-                    style: TextStyle(
-                      color: isCompleted ? const Color(0xFF4A90E2) : textDark.withValues(alpha: 0.5),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                  if (isCompleted) ...[
-                    const SizedBox(width: 4),
-                    const Icon(Icons.check, size: 16, color: Color(0xFF4A90E2)),
-                  ]
-                ],
+              Text(
+                'to Diamond',
+                style: GoogleFonts.inter(
+                  color: _onSurfaceVariant,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Container(
-            height: 10,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(5),
-              border: Border.all(color: textDark, width: 1),
+        ],
+      ),
+    );
+  }
+}
+
+class _DonutChartPainter extends CustomPainter {
+  final double progress;
+  final Color backgroundColor;
+  final Color progressColor;
+  final double strokeWidth;
+
+  _DonutChartPainter({
+    required this.progress,
+    required this.backgroundColor,
+    required this.progressColor,
+    required this.strokeWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+
+    final Paint backgroundPaint = Paint()
+      ..color = backgroundColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+
+    canvas.drawCircle(center, radius, backgroundPaint);
+
+    final Paint progressPaint = Paint()
+      ..color = progressColor
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = strokeWidth;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2,
+      2 * pi * progress,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _DonutChartPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
+}
+
+class _ActiveGroupsSection extends StatelessWidget {
+  const _ActiveGroupsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'My Active Groups',
+          style: GoogleFonts.plusJakartaSans(
+            color: _onBackground,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 135, // Increased from 120 to provide more breathing room and avoid overflow
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: 2, // Dummy count for UI showcase
+            separatorBuilder: (context, index) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              return const _GroupCard();
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupCard extends StatelessWidget {
+  const _GroupCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: 80,
+              height: 80,
+              color: _surfaceVariant,
+              // Utilisation d'un conteneur coloré avec icône pour simuler l'image du produit
+              child: const Icon(Icons.image_outlined, color: _outlineVariant, size: 32),
             ),
-            child: Row(
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min, // Added to prevent overflow
               children: [
-                if (progress > 0)
-                  Expanded(
-                    flex: (progress * 100).toInt(),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isCompleted ? primaryRed : const Color(0xFFE59866),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
+                Text(
+                  'Summer Hydration\nCampaign',
+                  style: GoogleFonts.inter(
+                    color: _onBackground,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Ends in 3 days',
+                  style: GoogleFonts.inter(
+                    color: _onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _primaryContainer,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'CONFIRMED',
+                    style: GoogleFonts.inter(
+                      color: _surfaceContainerLowest,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                if (progress < 1.0)
-                  Expanded(
-                    flex: ((1 - progress) * 100).toInt(),
-                    child: const SizedBox(),
-                  ),
+                ),
               ],
             ),
           ),
@@ -364,41 +322,144 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-class DashedBorderPainter extends CustomPainter {
-  final Color color;
-
-  DashedBorderPainter({required this.color});
+class _RecentActivitySection extends StatelessWidget {
+  const _RecentActivitySection();
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    const double dashWidth = 5;
-    const double dashSpace = 4;
-    final RRect rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(12),
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Activity',
+              style: GoogleFonts.plusJakartaSans(
+                color: _onBackground,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            TextButton(
+              onPressed: () {},
+              style: TextButton.styleFrom(
+                foregroundColor: _primaryContainer,
+              ),
+              child: Text(
+                'View All',
+                style: GoogleFonts.inter(
+                  color: _primaryContainer,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        const _ActivityTile(
+          title: 'Order #4892',
+          subtitle: '2 items • Today, 10:42 AM',
+          points: '+450 pts',
+          icon: Icons.shopping_bag_outlined,
+          iconColor: _primaryContainer,
+          iconBackgroundColor: _surface,
+        ),
+        const SizedBox(height: 12),
+        const _ActivityTile(
+          title: 'Joined Group',
+          subtitle: 'Fitness Essentials • Yesterday',
+          icon: Icons.people_outline,
+          iconColor: _onBackground,
+          iconBackgroundColor: _surfaceVariant,
+        ),
+      ],
     );
-
-    Path path = Path()..addRRect(rrect);
-    Path dashPath = Path();
-
-    for (PathMetric measurePath in path.computeMetrics()) {
-      double distance = 0.0;
-      while (distance < measurePath.length) {
-        dashPath.addPath(
-          measurePath.extractPath(distance, distance + dashWidth),
-          Offset.zero,
-        );
-        distance += dashWidth + dashSpace;
-      }
-    }
-    canvas.drawPath(dashPath, paint);
   }
+}
+
+class _ActivityTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String? points;
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBackgroundColor;
+
+  const _ActivityTile({
+    required this.title,
+    required this.subtitle,
+    this.points,
+    required this.icon,
+    required this.iconColor,
+    required this.iconBackgroundColor,
+  });
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: iconBackgroundColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    color: _onBackground,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    color: _onSurfaceVariant,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (points != null) ...[
+            const SizedBox(width: 8),
+            Text(
+              points!,
+              style: GoogleFonts.inter(
+                color: _primaryContainer,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ]
+        ],
+      ),
+    );
+  }
 }
