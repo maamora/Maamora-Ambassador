@@ -16,24 +16,6 @@ class ProfileScreen extends StatelessWidget {
         builder: (context, provider, child) {
           return Scaffold(
             backgroundColor: const Color(0xFFF8F9FA),
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              centerTitle: true,
-              // leading: IconButton(
-              //   icon: const Icon(Icons.arrow_back, color: Color(0xFF584236)),
-              //   onPressed: () => Navigator.of(context).pop(),
-              // ),
-              title: const Text(
-                'Profil',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A2433),
-                ),
-              ),
-            ),
             body: _buildBody(context, provider),
           );
         },

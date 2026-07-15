@@ -1,11 +1,11 @@
 import 'package:ambassadors/features/onboarding/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
-import '../../features/leaderboard_rewards/screens/rewards_screen.dart';
+import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
 import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
-
+import '../widgets/shared_app_bar.dart';
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
@@ -19,9 +19,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   // Liste des pages pour l'IndexedStack
   final List<Widget> _pages = [
     const DashboardScreen(),
-    const RewardsScreen(),
-    const CommunityScreen(),
-    const PickupScreen(),
+    const _PlaceholderScreen(title: 'Groups'), // Remplace temporairement CommunityScreen
+    const LeaderboardScreen(),
+    const _PlaceholderScreen(title: 'Products'), // Remplace temporairement PickupScreen
     const ProfileScreen(),
   ];
 
@@ -31,11 +31,33 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     });
   }
 
+  String _getTitle(int index) {
+    switch (index) {
+      case 0:
+        return 'MAAMORA';
+      case 1:
+        return 'GROUPS';
+      case 2:
+        return 'LEADERBOARD';
+      case 3:
+        return 'PRODUCTS';
+      case 4:
+        return 'PROFILE';
+      default:
+        return 'MAAMORA';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: SharedAppBar(
+        title: _getTitle(_currentIndex),
+        hasNotification: true, // Placeholder ou condition réelle
+        onAvatarTap: () => _onTabTapped(4), // Redirige vers l'onglet Profile
+      ),
       body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: BottomNavBar(
+      bottomNavigationBar: SharedBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
       ),
@@ -52,7 +74,6 @@ class _PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title), centerTitle: true),
       body: Center(
         child: Text(
           '$title Screen\n(En cours de construction)',
