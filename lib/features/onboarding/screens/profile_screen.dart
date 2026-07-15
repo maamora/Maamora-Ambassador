@@ -72,7 +72,7 @@ class ProfileScreen extends StatelessWidget {
             ordersCount: provider.ordersCount.toString(),
           ),
           const SizedBox(height: 16),
-          _buildRewardsSection(points: points),
+          _buildRewardsSection(context, points: points),
           const SizedBox(height: 16),
           _buildAccountDetails(name: name, code: referralCode, email: email),
           const SizedBox(height: 16),
@@ -210,7 +210,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRewardsSection({required String points}) {
+  Widget _buildRewardsSection(BuildContext context, {required String points}) {
     return _SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,7 +264,16 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Échanger → écran Rewards & Redemption (Dev 4). On
+                  // transmet le solde déjà chargé ici (Supabase, via
+                  // ProfileProvider) pour que Rewards affiche le même
+                  // nombre plutôt qu'un solde factice séparé — voir le
+                  // point signalé #5 dans rewards_screen.dart pour le
+                  // détail (Profile = Supabase réel, Rewards = mock tant
+                  // que l'état partagé n'existe pas).
+                  context.push(AppRoutes.rewards, extra: int.tryParse(points));
+                },
                 style: TextButton.styleFrom(
                   foregroundColor: const Color(0xFFFB7701),
                   padding: EdgeInsets.zero,

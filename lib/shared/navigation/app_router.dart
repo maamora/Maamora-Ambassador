@@ -74,7 +74,11 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.rewards,
-      builder: (context, state) => const RewardsScreen(),
+      // state.extra porte le solde de points réel transmis par l'écran
+      // appelant (ex: bouton "Échanger" du Profile) — voir le point
+      // signalé #5 dans rewards_screen.dart.
+      builder: (context, state) =>
+          RewardsScreen(initialPoints: state.extra as int?),
     ),
     GoRoute(
       path: AppRoutes.community,
