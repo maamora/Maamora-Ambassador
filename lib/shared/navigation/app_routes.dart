@@ -16,4 +16,7 @@ class AppRoutes {
   static const String admin = '/admin'; // phase 2
   static const String community = '/community';
   static const String pickup = '/pickup';
+  static const String productDetail = '/product-detail';
+  static const String ambassadorShop = '/ambassador-shop';
+  static const String orderDetails = '/order-details';
 }

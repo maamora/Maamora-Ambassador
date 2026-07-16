@@ -2,8 +2,8 @@ import 'package:ambassadors/features/onboarding/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
-import '../../features/community/screens/community_screen.dart';
-import '../../features/pickup/screens/pickup_screen.dart';
+import '../../features/groups/screens/my_groups_screen.dart';
+import '../../features/shop/screens/products_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/shared_app_bar.dart';
 class MainNavigationScreen extends StatefulWidget {
@@ -19,9 +19,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   // Liste des pages pour l'IndexedStack
   final List<Widget> _pages = [
     const DashboardScreen(),
-    const _PlaceholderScreen(title: 'Groups'), // Remplace temporairement CommunityScreen
+    const MyGroupsScreen(), // Remplace temporairement CommunityScreen
     const LeaderboardScreen(),
-    const _PlaceholderScreen(title: 'Products'), // Remplace temporairement PickupScreen
+    const ProductsScreen(), // Remplace temporairement PickupScreen
     const ProfileScreen(),
   ];
 
@@ -65,22 +65,3 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-// Placeholder temporaire pour les écrans non encore créés
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text(
-          '$title Screen\n(En cours de construction)',
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 18, color: Colors.grey),
-        ),
-      ),
-    );
-  }
-}

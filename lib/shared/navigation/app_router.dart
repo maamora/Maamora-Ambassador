@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/navigation/navigation_service.dart';
 import 'app_routes.dart';
 import '../../features/onboarding/screens/sign_up_screen.dart';
-import '../../features/dashboard/screens/dashboard_screen.dart';
+
 import '../../features/share/screens/share_screen.dart';
 import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/rewards_screen.dart';
@@ -12,6 +12,9 @@ import '../../features/onboarding/screens/login_screen.dart';
 import 'main_navigation_screen.dart';
 import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
+import '../../features/groups/screens/order_details_screen.dart';
+import '../../features/shop/screens/product_detail_screen.dart';
+import '../../features/shop/screens/ambassador_shop_screen.dart';
 
 /// Ajoutez votre écran ici dès qu'il est prêt (une ligne par GoRoute).
 /// Chacun ajoute SA ligne — évitez de reformater tout le fichier pour
@@ -85,6 +88,18 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.pickup,
       builder: (context, state) => const PickupScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.productDetail,
+      builder: (context, state) => const ProductDetailScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.ambassadorShop,
+      builder: (context, state) => const AmbassadorShopScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.orderDetails,
+      builder: (context, state) => const OrderDetailsScreen(),
     ),
   ],
 );
