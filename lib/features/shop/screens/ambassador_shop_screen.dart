@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../../../models/models.dart';
+import '../../share/providers/share_product_provider.dart';
 
 const Color _primaryContainer = Color(0xFFFB7701);
 const Color _surface = Color(0xFFFFF8F5);
@@ -7,11 +11,16 @@ const Color _surfaceContainerLowest = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF251912);
 const Color _onSurfaceVariant = Color(0xFF584236);
 
-class AmbassadorShopScreen extends StatelessWidget {
-  const AmbassadorShopScreen({super.key});
+
+
+class AmbassadorShopScreen extends ConsumerWidget {
+  final Product product;
+
+  const AmbassadorShopScreen({super.key, required this.product});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shareState = ref.watch(shareProductProvider(product));
     return Scaffold(
       backgroundColor: _surfaceContainerLowest,
       appBar: AppBar(
@@ -46,7 +55,9 @@ class AmbassadorShopScreen extends StatelessWidget {
                       width: double.infinity,
                       color: const Color(0xFFF4EDE4),
                       child: Image.network(
-                        'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=800&q=80',
+                        product.imageUrl.isNotEmpty
+                            ? product.imageUrl
+                            : 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=800&q=80',
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -71,7 +82,7 @@ class AmbassadorShopScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'PulseRunner Pro Smartwatch',
+                      product.name,
                       style: GoogleFonts.plusJakartaSans(
                         color: _onBackground,
                         fontSize: 22,
@@ -170,7 +181,7 @@ class AmbassadorShopScreen extends StatelessWidget {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: '245 ',
+                                text: '${shareState.productGroup?.compteurActuel ?? 0} ',
                                 style: GoogleFonts.inter(
                                   color: _onBackground,
                                   fontSize: 16,
@@ -178,7 +189,7 @@ class AmbassadorShopScreen extends StatelessWidget {
                                 ),
                               ),
                               TextSpan(
-                                text: '/ 100 Joined',
+                                text: '/ ${shareState.productGroup?.seuilMin ?? 5} Joined',
                                 style: GoogleFonts.inter(
                                   color: _onSurfaceVariant,
                                   fontSize: 14,
@@ -189,7 +200,9 @@ class AmbassadorShopScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Target Smashed!',
+                          ((shareState.productGroup?.compteurActuel ?? 0) >= (shareState.productGroup?.seuilMin ?? 5))
+                              ? 'Target Smashed!'
+                              : '${(shareState.productGroup?.seuilMin ?? 5) - (shareState.productGroup?.compteurActuel ?? 0)} more to unlock!',
                           style: GoogleFonts.inter(
                             color: _primaryContainer,
                             fontSize: 14,
@@ -201,9 +214,11 @@ class AmbassadorShopScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
-                      child: const LinearProgressIndicator(
-                        value: 1.0, // Over 100%, so full width
-                        backgroundColor: Color(0xFFFBE3D8),
+                      child: LinearProgressIndicator(
+                        value: (shareState.productGroup?.seuilMin ?? 5) > 0 
+                            ? ((shareState.productGroup?.compteurActuel ?? 0) / (shareState.productGroup?.seuilMin ?? 5)).clamp(0.0, 1.0)
+                            : 0.0,
+                        backgroundColor: const Color(0xFFFBE3D8),
                         color: _primaryContainer,
                         minHeight: 8,
                       ),
@@ -222,7 +237,7 @@ class AmbassadorShopScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                '\$129',
+                                '\$${(product.price * 0.85).toStringAsFixed(2)}',
                                 style: GoogleFonts.plusJakartaSans(
                                   color: _onBackground,
                                   fontSize: 32,
@@ -232,7 +247,7 @@ class AmbassadorShopScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                '\$249',
+                                '\$${product.price.toStringAsFixed(2)}',
                                 style: GoogleFonts.inter(
                                   color: _onSurfaceVariant,
                                   fontSize: 18,
@@ -365,12 +380,18 @@ class AmbassadorShopScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: shareState.referralUrl == null
+                      ? null
+                      : () {
+                          Share.share(
+                            'Découvrez ${product.name} et rejoignez mon groupe pour une réduction de 15% ! ${shareState.referralUrl}',
+                          );
+                        },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Join Now',
+                        shareState.isLoading ? 'Génération...' : 'Partager le lien',
                         style: GoogleFonts.inter(
                           color: Colors.white,
                           fontSize: 18,
@@ -378,7 +399,8 @@ class AmbassadorShopScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                      if (!shareState.isLoading)
+                        const Icon(Icons.share, color: Colors.white, size: 20),
                     ],
                   ),
                 ),

@@ -21,7 +21,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const DashboardScreen(),
     const MyGroupsScreen(), // Remplace temporairement CommunityScreen
     const LeaderboardScreen(),
-    const ProductsScreen(), // Remplace temporairement PickupScreen
+    const ProductsScreen(), // Products Screen
     const ProfileScreen(),
   ];
 

@@ -1,0 +1,143 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/services/mock_data_service.dart';
+import '../../../../models/models.dart';
+import '../data/repositories/share_repository.dart';
+import 'product_catalog_provider.dart';
+
+class ShareProductState {
+  final bool isLoading;
+  final String? errorMessage;
+  final Ambassador? ambassador;
+  final ProductGroup? productGroup;
+  final ReferralLink? referralLink;
+  final String? referralUrl;
+
+  const ShareProductState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.ambassador,
+    this.productGroup,
+    this.referralLink,
+    this.referralUrl,
+  });
+
+  ShareProductState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    Ambassador? ambassador,
+    ProductGroup? productGroup,
+    ReferralLink? referralLink,
+    String? referralUrl,
+  }) {
+    return ShareProductState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      ambassador: ambassador ?? this.ambassador,
+      productGroup: productGroup ?? this.productGroup,
+      referralLink: referralLink ?? this.referralLink,
+      referralUrl: referralUrl ?? this.referralUrl,
+    );
+  }
+}
+
+final shareProductProvider = StateNotifierProvider.family<ShareProductNotifier, ShareProductState, Product>(
+  (ref, product) {
+    final repository = ref.watch(shareRepositoryProvider);
+    return ShareProductNotifier(repository, product);
+  },
+);
+
+class ShareProductNotifier extends StateNotifier<ShareProductState> {
+  final ShareRepository _repository;
+  final Product _product;
+  RealtimeChannel? _realtimeChannel;
+
+  ShareProductNotifier(this._repository, this._product) : super(const ShareProductState()) {
+    initialize();
+  }
+
+  Future<void> initialize() async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+
+      // 1. Fetch current ambassador or fallback to mock
+      Ambassador? ambassador;
+      try {
+        ambassador = await _repository.fetchCurrentAmbassador();
+      } catch (_) {}
+      ambassador ??= MockDataService.mockCurrentAmbassador;
+
+      // 2. Build Referral URL & Link record
+      ReferralLink? link;
+      try {
+        link = await _repository.getOrCreateReferralLink(
+          productId: _product.id,
+          ambassadorId: ambassador.id,
+          ambassadorCode: ambassador.referralCode,
+        );
+      } catch (_) {}
+
+      final referralUrl = _repository.buildReferralUrl(
+        productId: _product.id,
+        ambassadorCode: ambassador.referralCode,
+      );
+
+      // 3. Product Group logic (if product is grouped or has group campaign)
+      ProductGroup? group;
+      try {
+        group = await _repository.getOrCreateProductGroup(
+          productId: _product.id,
+          ambassadorId: ambassador.id,
+          prixGroupe: _product.price * 0.85, // 15% discount for group buy
+          seuilMin: 5,
+        );
+
+        // 4. Realtime updates subscription on product group
+        _subscribeToRealtimeGroupUpdates(group.id);
+      } catch (e) {
+        // Mock group fallback for dev testing if DB tables are empty
+        group = ProductGroup(
+          id: 'grp_${_product.id}',
+          productId: _product.id,
+          ambassadorId: ambassador.id,
+          seuilMin: 5,
+          compteurActuel: 3,
+          statut: 'active',
+          prixGroupe: _product.price * 0.85,
+        );
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        ambassador: ambassador,
+        productGroup: group,
+        referralLink: link,
+        referralUrl: referralUrl,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Erreur lors de l\'initialisation du partage: $e',
+      );
+    }
+  }
+
+  void _subscribeToRealtimeGroupUpdates(String groupId) {
+    _realtimeChannel?.unsubscribe();
+    _realtimeChannel = _repository.subscribeToProductGroup(
+      groupId: groupId,
+      onData: (updatedGroup) {
+        if (mounted) {
+          state = state.copyWith(productGroup: updatedGroup);
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _realtimeChannel?.unsubscribe();
+    super.dispose();
+  }
+}

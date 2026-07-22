@@ -3,8 +3,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/navigation/navigation_service.dart';
 import 'app_routes.dart';
 import '../../features/onboarding/screens/sign_up_screen.dart';
+import '../../models/models.dart';
 
-import '../../features/share/screens/share_screen.dart';
+
 import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/rewards_screen.dart';
 import '../../features/onboarding/screens/ambassador_intro_screen.dart';
@@ -67,10 +68,7 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.dashboard,
       builder: (context, state) => const MainNavigationScreen(),
     ),
-    GoRoute(
-      path: AppRoutes.share,
-      builder: (context, state) => const ShareScreen(),
-    ),
+
     GoRoute(
       path: AppRoutes.leaderboard,
       builder: (context, state) => const LeaderboardScreen(),
@@ -95,7 +93,7 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.ambassadorShop,
-      builder: (context, state) => const AmbassadorShopScreen(),
+      builder: (context, state) => AmbassadorShopScreen(product: state.extra as Product),
     ),
     GoRoute(
       path: AppRoutes.orderDetails,
