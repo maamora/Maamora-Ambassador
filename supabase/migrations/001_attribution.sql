@@ -14,6 +14,8 @@ alter table products add column points_value int4 not null default 10;
 
 alter table products add column seuil_min int4 not null default 5;
 
+alter table products add column prix_groupe numeric;
+
 -- ====== 2. Table product_groups ======
 create table product_groups (
   id uuid primary key default gen_random_uuid(),
@@ -45,6 +47,13 @@ begin
     from products
     where id = new.product_id;
   end if;
+
+  if new.prix_groupe is null then
+    select prix_groupe into new.prix_groupe
+    from products
+    where id = new.product_id;
+  end if;
+
   return new;
 end;
 $$ language plpgsql;
@@ -57,6 +66,8 @@ execute function set_group_seuil_from_product();
 -- ====== 5. Trigger: incrémentation du compteur + déblocage du groupe ======
 create or replace function increment_group_counter()
 returns trigger as $$
+declare
+  grp_prix numeric;
 begin
   if new.group_id is not null then
     update product_groups
@@ -67,7 +78,19 @@ begin
           else statut
         end
     where id = new.group_id;
+
+    select prix_groupe into grp_prix
+    from product_groups
+    where id = new.group_id and statut = 'débloqué';
+
+    if grp_prix is not null then
+      update orders
+      set status = 'ready',
+          amount = grp_prix
+      where group_id = new.group_id and status = 'pending';
+    end if;
   end if;
+
   return new;
 end;
 $$ language plpgsql;
