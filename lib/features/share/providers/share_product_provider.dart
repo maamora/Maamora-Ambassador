@@ -61,12 +61,21 @@ class ShareProductNotifier extends StateNotifier<ShareProductState> {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);
 
-      // 1. Fetch current ambassador or fallback to mock
+      // 1. Fetch current ambassador
       Ambassador? ambassador;
       try {
         ambassador = await _repository.fetchCurrentAmbassador();
-      } catch (_) {}
-      ambassador ??= MockDataService.mockCurrentAmbassador;
+      } catch (e) {
+        print('Error fetching ambassador: $e');
+      }
+
+      if (ambassador == null) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Veuillez vous connecter pour créer un groupe.',
+        );
+        return;
+      }
 
       // 2. Build Referral URL & Link record
       ReferralLink? link;
@@ -95,17 +104,13 @@ class ShareProductNotifier extends StateNotifier<ShareProductState> {
 
         // 4. Realtime updates subscription on product group
         _subscribeToRealtimeGroupUpdates(group.id);
-      } catch (e) {
-        // Mock group fallback for dev testing if DB tables are empty
-        group = ProductGroup(
-          id: 'grp_${_product.id}',
-          productId: _product.id,
-          ambassadorId: ambassador.id,
-          seuilMin: 5,
-          compteurActuel: 3,
-          statut: 'active',
-          prixGroupe: _product.price * 0.85,
+      } catch (e, stack) {
+        print('Error creating group: $e\n$stack');
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Erreur lors de la création du groupe.',
         );
+        return;
       }
 
       state = state.copyWith(

@@ -14,7 +14,6 @@ import 'main_navigation_screen.dart';
 import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
 import '../../features/groups/screens/order_details_screen.dart';
-import '../../features/shop/screens/product_detail_screen.dart';
 import '../../features/shop/screens/ambassador_shop_screen.dart';
 
 /// Ajoutez votre écran ici dès qu'il est prêt (une ligne par GoRoute).
@@ -86,10 +85,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.pickup,
       builder: (context, state) => const PickupScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.productDetail,
-      builder: (context, state) => const ProductDetailScreen(),
     ),
     GoRoute(
       path: AppRoutes.ambassadorShop,

@@ -23,15 +23,10 @@ class ProductCatalogNotifier extends AsyncNotifier<List<Product>> {
 
   Future<List<Product>> fetchCatalog() async {
     try {
-      final products = await _repository.fetchProducts();
-      if (products.isEmpty) {
-        // Fallback to mock data if table is currently empty in dev
-        return MockDataService.mockCatalog;
-      }
-      return products;
+      return await _repository.fetchProducts();
     } catch (e) {
-      // Return mock catalog on connection error for uninterrupted UI testing
-      return MockDataService.mockCatalog;
+      print('Error fetching products: $e');
+      return [];
     }
   }
 
