@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/api_constants.dart';
 import 'shared/theme/app_theme.dart';
@@ -15,7 +16,7 @@ Future<void> main() async {
     anonKey: ApiConstants.supabaseAnonKey,
   );
 
-  runApp(const AmbassadorsApp());
+  runApp(const ProviderScope(child: AmbassadorsApp()));
 }
 
 class AmbassadorsApp extends StatelessWidget {

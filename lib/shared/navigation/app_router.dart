@@ -3,8 +3,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/navigation/navigation_service.dart';
 import 'app_routes.dart';
 import '../../features/onboarding/screens/sign_up_screen.dart';
+import '../../models/models.dart';
 
-import '../../features/share/screens/share_screen.dart';
+
 import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/rewards_screen.dart';
 import '../../features/onboarding/screens/ambassador_intro_screen.dart';
@@ -13,7 +14,6 @@ import 'main_navigation_screen.dart';
 import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
 import '../../features/groups/screens/order_details_screen.dart';
-import '../../features/shop/screens/product_detail_screen.dart';
 import '../../features/shop/screens/ambassador_shop_screen.dart';
 
 /// Ajoutez votre écran ici dès qu'il est prêt (une ligne par GoRoute).
@@ -67,10 +67,7 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.dashboard,
       builder: (context, state) => const MainNavigationScreen(),
     ),
-    GoRoute(
-      path: AppRoutes.share,
-      builder: (context, state) => const ShareScreen(),
-    ),
+
     GoRoute(
       path: AppRoutes.leaderboard,
       builder: (context, state) => const LeaderboardScreen(),
@@ -90,12 +87,8 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const PickupScreen(),
     ),
     GoRoute(
-      path: AppRoutes.productDetail,
-      builder: (context, state) => const ProductDetailScreen(),
-    ),
-    GoRoute(
       path: AppRoutes.ambassadorShop,
-      builder: (context, state) => const AmbassadorShopScreen(),
+      builder: (context, state) => AmbassadorShopScreen(product: state.extra as Product),
     ),
     GoRoute(
       path: AppRoutes.orderDetails,
