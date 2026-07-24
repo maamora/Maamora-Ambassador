@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/navigation/app_routes.dart';
+import '../../share/providers/product_catalog_provider.dart';
+import '../../share/widgets/product_image_widget.dart';
 
 const Color _surface = Color(0xFFFFF8F5);
 const Color _surfaceContainerLowest = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF251912);
 const Color _onSurfaceVariant = Color(0xFF584236);
 
-class ProductsScreen extends StatelessWidget {
+class ProductsScreen extends ConsumerWidget {
   const ProductsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final catalogAsync = ref.watch(productCatalogProvider);
+
     return Scaffold(
       backgroundColor: _surface,
       body: SafeArea(
@@ -22,35 +27,70 @@ class ProductsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              Text(
-                'Products',
-                style: GoogleFonts.plusJakartaSans(
-                  color: _onBackground,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Products',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: _onBackground,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh, color: _onSurfaceVariant),
+                    onPressed: () => ref.read(productCatalogProvider.notifier).refresh(),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.75,
-                  children: [
-                    _ProductGridItem(
-                      imageUrl: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80',
-                      title: 'Vital Glow Serum',
-                      price: '\$45.00',
-                      onTap: () => context.push(AppRoutes.productDetail),
+                child: catalogAsync.when(
+                  data: (products) {
+                    if (products.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No products available',
+                          style: GoogleFonts.inter(color: _onSurfaceVariant),
+                        ),
+                      );
+                    }
+                    return GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.75,
+                      ),
+                      itemCount: products.length,
+                      itemBuilder: (context, index) {
+                        final product = products[index];
+                        return _ProductGridItem(
+                          imageUrl: product.imageUrl,
+                          title: product.name,
+                          price: '${product.price.toStringAsFixed(0)} DH',
+                          onTap: () => context.push(AppRoutes.ambassadorShop, extra: product),
+                        );
+                      },
+                    );
+                  },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: Color(0xFFFB7701)),
+                  ),
+                  error: (err, stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Failed to load products', style: GoogleFonts.inter(color: Colors.red)),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () => ref.read(productCatalogProvider.notifier).refresh(),
+                          child: const Text('Retry'),
+                        ),
+                      ],
                     ),
-                    _ProductGridItem(
-                      imageUrl: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=400&q=80',
-                      title: 'PulseRunner Pro Smartwatch',
-                      price: '\$249.00',
-                      onTap: () => context.push(AppRoutes.ambassadorShop),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -84,7 +124,7 @@ class _ProductGridItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -94,13 +134,10 @@ class _ProductGridItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: ClipRRect(
+              child: ProductImageWidget(
+                imageUrl: imageUrl,
+                width: double.infinity,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
               ),
             ),
             Padding(
