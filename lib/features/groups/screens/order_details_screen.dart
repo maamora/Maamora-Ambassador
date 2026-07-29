@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/my_groups_provider.dart';
 
 const Color _primaryContainer = Color(0xFFFB7701);
 const Color _surface = Color(0xFFFFF8F5);
@@ -8,8 +9,10 @@ const Color _onBackground = Color(0xFF251912);
 const Color _onSurfaceVariant = Color(0xFF584236);
 const Color _outlineVariant = Color(0xFFE0C0B0);
 
+
 class OrderDetailsScreen extends StatelessWidget {
-  const OrderDetailsScreen({super.key});
+  final GroupWithProduct groupData;
+  const OrderDetailsScreen({super.key, required this.groupData});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +34,7 @@ class OrderDetailsScreen extends StatelessWidget {
               ),
             ),
             Text(
-              'Order #PRW-8472-X',
+              'Order #${groupData.group.id.substring(0, 8).toUpperCase()}',
               style: GoogleFonts.inter(
                 color: _onSurfaceVariant,
                 fontSize: 14,
@@ -46,9 +49,9 @@ class OrderDetailsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              const _ProductCard(),
+              _ProductCard(groupData: groupData),
               const SizedBox(height: 16),
-              const _FulfillmentStatusCard(),
+              _FulfillmentStatusCard(groupData: groupData),
             ],
           ),
         ),
@@ -58,7 +61,8 @@ class OrderDetailsScreen extends StatelessWidget {
 }
 
 class _ProductCard extends StatelessWidget {
-  const _ProductCard();
+  final GroupWithProduct groupData;
+  const _ProductCard({required this.groupData});
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +85,19 @@ class _ProductCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=100&q=80',
-                  height: 80,
-                  width: 80,
-                  fit: BoxFit.cover,
-                ),
+                child: groupData.productImageUrl.isNotEmpty
+                    ? Image.network(
+                        groupData.productImageUrl,
+                        height: 80,
+                        width: 80,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        height: 80,
+                        width: 80,
+                        color: _outlineVariant,
+                        child: const Icon(Icons.image_not_supported),
+                      ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -94,7 +105,7 @@ class _ProductCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'PRO RUNNER WATCH',
+                      groupData.productName.toUpperCase(),
                       style: GoogleFonts.inter(
                         color: _onBackground,
                         fontSize: 14,
@@ -103,7 +114,7 @@ class _ProductCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Qty: 1',
+                      'Group: ${groupData.group.compteurActuel}/${groupData.group.seuilMin} members',
                       style: GoogleFonts.inter(
                         color: _onSurfaceVariant,
                         fontSize: 14,
@@ -112,7 +123,7 @@ class _ProductCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '\$129.00',
+                      '${groupData.group.prixGroupe?.toStringAsFixed(2) ?? groupData.productPrice.toStringAsFixed(2)} DH',
                       style: GoogleFonts.plusJakartaSans(
                         color: _primaryContainer,
                         fontSize: 20,
@@ -205,7 +216,8 @@ class _ProductCard extends StatelessWidget {
 }
 
 class _FulfillmentStatusCard extends StatelessWidget {
-  const _FulfillmentStatusCard();
+  final GroupWithProduct groupData;
+  const _FulfillmentStatusCard({required this.groupData});
 
   @override
   Widget build(BuildContext context) {
@@ -235,23 +247,25 @@ class _FulfillmentStatusCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const _StatusTimeline(
-            title: 'Order Pending',
-            subtitle: 'Oct 24, 09:41 AM',
+          _StatusTimeline(
+            title: 'Group Created',
+            subtitle: 'Waiting for members',
             isCompleted: true,
             isLast: false,
           ),
-          const _StatusTimeline(
-            title: 'Confirmed',
-            subtitle: 'Oct 24, 11:20 AM',
-            isCompleted: false,
-            isActive: true,
+          _StatusTimeline(
+            title: 'Group Confirmed',
+            subtitle: groupData.group.isUnlocked ? 'Goal Reached' : 'Pending Members',
+            isCompleted: groupData.group.isUnlocked,
+            isActive: !groupData.group.isUnlocked,
             isLast: false,
-            messageBox: 'Payment verified and order is being prepared for shipment.',
+            messageBox: groupData.group.isUnlocked
+                ? 'Group threshold reached. Order is being processed.'
+                : 'Need ${groupData.group.seuilMin - groupData.group.compteurActuel} more members to unlock group price.',
           ),
-          const _StatusTimeline(
+          _StatusTimeline(
             title: 'Delivered',
-            subtitle: 'Estimated: Oct 28',
+            subtitle: 'Estimated: -',
             isCompleted: false,
             isLast: true,
           ),

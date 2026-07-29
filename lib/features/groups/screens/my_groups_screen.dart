@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/navigation/app_routes.dart';
 import '../providers/my_groups_provider.dart';
+import '../widgets/invite_to_group_bottom_sheet.dart';
 
 // Colors matched with dashboard
 const Color _primaryContainer = Color(0xFFFB7701);
@@ -95,7 +96,12 @@ class MyGroupsScreen extends ConsumerWidget {
                           isUnlocked: g.group.isUnlocked,
                           prixGroupe: g.group.prixGroupe,
                           originalPrice: g.productPrice,
-                          onTap: () => context.push(AppRoutes.orderDetails),
+                          onTap: () => context.push(AppRoutes.orderDetails, extra: g),
+                          onInvite: () => InviteToGroupBottomSheet.show(
+                            context,
+                            groupData: g,
+                            referralUrl: null, // TODO: pass referralUrl from share provider if available
+                          ),
                         );
                       },
                     );
@@ -141,6 +147,7 @@ class _GroupOrderCard extends StatelessWidget {
   final double? prixGroupe;
   final double originalPrice;
   final VoidCallback onTap;
+  final VoidCallback onInvite;
 
   const _GroupOrderCard({
     required this.imageUrl,
@@ -153,6 +160,7 @@ class _GroupOrderCard extends StatelessWidget {
     required this.originalPrice,
     this.prixGroupe,
     required this.onTap,
+    required this.onInvite,
   });
 
   @override
@@ -319,6 +327,31 @@ class _GroupOrderCard extends StatelessWidget {
                   ),
                 ],
               ),
+            // ── Invite Button ───────────────────────────────────────────
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: _primaryContainer, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: onInvite,
+                icon: const Icon(Icons.group_add_outlined,
+                    color: _primaryContainer, size: 20),
+                label: Text(
+                  'Invite Friends',
+                  style: GoogleFonts.inter(
+                    color: _primaryContainer,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

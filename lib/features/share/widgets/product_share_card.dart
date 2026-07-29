@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../models/models.dart';
-import '../providers/share_product_provider.dart';
+import '../providers/create_group_provider.dart';
 import '../services/native_share_service.dart';
 import 'group_progress_bar.dart';
 import 'product_image_widget.dart';
@@ -17,7 +17,7 @@ class ProductShareCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final shareState = ref.watch(shareProductProvider(product));
+    final shareState = ref.watch(createGroupProvider(product));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

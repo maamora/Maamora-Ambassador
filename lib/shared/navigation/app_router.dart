@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:ambassadors/features/onboarding/screens/email_verification_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/navigation/navigation_service.dart';
@@ -15,6 +16,7 @@ import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
 import '../../features/groups/screens/order_details_screen.dart';
 import '../../features/shop/screens/ambassador_shop_screen.dart';
+import '../../features/groups/providers/my_groups_provider.dart';
 
 /// Ajoutez votre écran ici dès qu'il est prêt (une ligne par GoRoute).
 /// Chacun ajoute SA ligne — évitez de reformater tout le fichier pour
@@ -92,7 +94,16 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.orderDetails,
-      builder: (context, state) => const OrderDetailsScreen(),
+      builder: (context, state) {
+        final groupData = state.extra as GroupWithProduct?;
+        if (groupData == null) {
+          // Fallback in case of hot reload while on the page, or missing data
+          return const Scaffold(body: Center(child: Text('Error: Group data is missing. Please go back and try again.')));
+        }
+        return OrderDetailsScreen(
+          groupData: groupData,
+        );
+      },
     ),
   ],
 );

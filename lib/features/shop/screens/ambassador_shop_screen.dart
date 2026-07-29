@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../models/models.dart';
-import '../../share/providers/share_product_provider.dart';
+import '../../share/providers/create_group_provider.dart';
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
 const Color _kOrange = Color(0xFFFB7701);
@@ -22,7 +21,7 @@ class AmbassadorShopScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final shareState = ref.watch(shareProductProvider(product));
+    final shareState = ref.watch(createGroupProvider(product));
     final group = shareState.productGroup;
     final int current = group?.compteurActuel ?? 0;
     final int target = group?.seuilMin ?? 5;
@@ -152,7 +151,7 @@ class AmbassadorShopScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFE5E5),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
@@ -187,8 +186,7 @@ class AmbassadorShopScreen extends ConsumerWidget {
 
                   const SizedBox(height: 24),
 
-                  // ── Action Buttons ───────────────────────────────────────
-                  // "Join Group" = share the referral link so others join
+                  // ── Create Group CTA ────────────────────────────────────────────
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -200,12 +198,19 @@ class AmbassadorShopScreen extends ConsumerWidget {
                         ),
                         elevation: 4,
                       ),
-                      onPressed: shareState.isLoading || shareState.referralUrl == null
+                      onPressed: shareState.isLoading
                           ? null
                           : () {
-                              Share.share(
-                                '🎉 Rejoignez mon groupe pour ${product.name} et économisez $discountPct% ! '
-                                '${shareState.referralUrl}',
+                              // Refresh provider — triggers getOrCreateProductGroup again
+                              ref.read(createGroupProvider(product).notifier).initialize();
+                              
+                              // Navigate to My Groups (Assuming context.go(AppRoutes.dashboard) or similar)
+                              // For now, we'll just show a snackbar since we are on the product page.
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Group created/refreshed successfully! Check My Groups.'),
+                                  backgroundColor: Colors.green,
+                                ),
                               );
                             },
                       child: shareState.isLoading
@@ -218,46 +223,13 @@ class AmbassadorShopScreen extends ConsumerWidget {
                               ),
                             )
                           : Text(
-                              'Join Group',
+                              'Create Group',
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // "Start New Group" = explicit create (force new group creation)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: _kOnSurfaceVariant),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      onPressed: shareState.isLoading
-                          ? null
-                          : () {
-                              // Refresh provider — triggers getOrCreateProductGroup again
-                              // and opens share dialogue once referralUrl is ready
-                              ref
-                                  .read(shareProductProvider(product).notifier)
-                                  .initialize();
-                            },
-                      child: Text(
-                        'Start New Group',
-                        style: GoogleFonts.inter(
-                          color: _kOnSurfaceVariant,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
                     ),
                   ),
 

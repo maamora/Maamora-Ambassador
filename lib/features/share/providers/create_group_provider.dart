@@ -5,7 +5,7 @@ import '../../../../models/models.dart';
 import '../data/repositories/share_repository.dart';
 import 'product_catalog_provider.dart';
 
-class ShareProductState {
+class CreateGroupState {
   final bool isLoading;
   final String? errorMessage;
   final Ambassador? ambassador;
@@ -13,7 +13,7 @@ class ShareProductState {
   final ReferralLink? referralLink;
   final String? referralUrl;
 
-  const ShareProductState({
+  const CreateGroupState({
     this.isLoading = false,
     this.errorMessage,
     this.ambassador,
@@ -22,7 +22,7 @@ class ShareProductState {
     this.referralUrl,
   });
 
-  ShareProductState copyWith({
+  CreateGroupState copyWith({
     bool? isLoading,
     String? errorMessage,
     Ambassador? ambassador,
@@ -30,7 +30,7 @@ class ShareProductState {
     ReferralLink? referralLink,
     String? referralUrl,
   }) {
-    return ShareProductState(
+    return CreateGroupState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       ambassador: ambassador ?? this.ambassador,
@@ -41,19 +41,19 @@ class ShareProductState {
   }
 }
 
-final shareProductProvider = StateNotifierProvider.family<ShareProductNotifier, ShareProductState, Product>(
+final createGroupProvider = StateNotifierProvider.family<CreateGroupNotifier, CreateGroupState, Product>(
   (ref, product) {
     final repository = ref.watch(shareRepositoryProvider);
-    return ShareProductNotifier(repository, product);
+    return CreateGroupNotifier(repository, product);
   },
 );
 
-class ShareProductNotifier extends StateNotifier<ShareProductState> {
+class CreateGroupNotifier extends StateNotifier<CreateGroupState> {
   final ShareRepository _repository;
   final Product _product;
   RealtimeChannel? _realtimeChannel;
 
-  ShareProductNotifier(this._repository, this._product) : super(const ShareProductState()) {
+  CreateGroupNotifier(this._repository, this._product) : super(const CreateGroupState()) {
     initialize();
   }
 
