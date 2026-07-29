@@ -17,8 +17,8 @@ class ProductGroup {
     this.prixGroupe,
   });
 
-  bool get isUnlocked => statut == 'unlocked' || statut == 'completed' || compteurActuel >= seuilMin;
-  bool get isActive => statut == 'active' && !isUnlocked;
+  bool get isUnlocked => statut == 'débloqué' || compteurActuel >= seuilMin;
+  bool get isActive => statut == 'en_attente' && !isUnlocked;
   double get progressRatio => seuilMin > 0 ? (compteurActuel / seuilMin).clamp(0.0, 1.0) : 0.0;
 
   factory ProductGroup.fromJson(Map<String, dynamic> json) {

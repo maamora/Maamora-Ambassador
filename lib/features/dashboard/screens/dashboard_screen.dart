@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:math';
+
+import '../../../shared/widgets/points_card.dart';
 
 // ==========================================
 // Colors based on the user's design system
@@ -30,7 +31,7 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _BalanceCard(),
+              PointsCard(),
               SizedBox(height: 32),
               _ActiveGroupsSection(),
               SizedBox(height: 32),
@@ -45,166 +46,7 @@ class DashboardScreen extends StatelessWidget {
 
 }
 
-class _BalanceCard extends StatelessWidget {
-  const _BalanceCard();
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: _surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Current Balance',
-            style: GoogleFonts.inter(
-              color: _onSurfaceVariant,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '12,450 pts',
-            style: GoogleFonts.plusJakartaSans(
-              color: _primaryContainer,
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _surfaceVariant,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.star, color: _tertiaryContainer, size: 16),
-                const SizedBox(width: 6),
-                Text(
-                  'Platinum Tier',
-                  style: GoogleFonts.inter(
-                    color: _onBackground,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          const _ProgressDonut(),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProgressDonut extends StatelessWidget {
-  const _ProgressDonut();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 110,
-      height: 110,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CustomPaint(
-            size: const Size(110, 110),
-            painter: _DonutChartPainter(
-              progress: 0.75,
-              backgroundColor: _surfaceVariant,
-              progressColor: _primaryContainer,
-              strokeWidth: 10.0,
-            ),
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '75%',
-                style: GoogleFonts.inter(
-                  color: _onBackground,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
-                'to Diamond',
-                style: GoogleFonts.inter(
-                  color: _onSurfaceVariant,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DonutChartPainter extends CustomPainter {
-  final double progress;
-  final Color backgroundColor;
-  final Color progressColor;
-  final double strokeWidth;
-
-  _DonutChartPainter({
-    required this.progress,
-    required this.backgroundColor,
-    required this.progressColor,
-    required this.strokeWidth,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    final Paint backgroundPaint = Paint()
-      ..color = backgroundColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-
-    canvas.drawCircle(center, radius, backgroundPaint);
-
-    final Paint progressPaint = Paint()
-      ..color = progressColor
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = strokeWidth;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      2 * pi * progress,
-      false,
-      progressPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _DonutChartPainter oldDelegate) {
-    return oldDelegate.progress != progress;
-  }
-}
 
 class _ActiveGroupsSection extends StatelessWidget {
   const _ActiveGroupsSection();

@@ -7,7 +7,7 @@ import '../services/native_share_service.dart';
 import 'group_progress_bar.dart';
 import 'product_image_widget.dart';
 
-class ProductShareCard extends ConsumerWidget {
+class ProductShareCard extends ConsumerStatefulWidget {
   final Product product;
 
   const ProductShareCard({
@@ -16,8 +16,21 @@ class ProductShareCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final shareState = ref.watch(createGroupProvider(product));
+  ConsumerState<ProductShareCard> createState() => _ProductShareCardState();
+}
+
+class _ProductShareCardState extends ConsumerState<ProductShareCard> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(createGroupProvider(widget.product).notifier).loadExisting();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final shareState = ref.watch(createGroupProvider(widget.product));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -39,7 +52,7 @@ class ProductShareCard extends ConsumerWidget {
           Stack(
             children: [
               ProductImageWidget(
-                imageUrl: product.imageUrl,
+                imageUrl: widget.product.imageUrl,
                 height: 180,
                 width: double.infinity,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -66,7 +79,7 @@ class ProductShareCard extends ConsumerWidget {
                       const Icon(Icons.stars_rounded, color: Colors.white, size: 16),
                       const SizedBox(width: 4),
                       Text(
-                        '+${product.pointsValue} pts / vente',
+                        '+${widget.product.pointsValue} pts / vente',
                         style: GoogleFonts.plusJakartaSans(
                           color: Colors.white,
                           fontSize: 12,
@@ -77,7 +90,7 @@ class ProductShareCard extends ConsumerWidget {
                   ),
                 ),
               ),
-              if (product.isGrouped)
+              if (widget.product.isGrouped)
                 Positioned(
                   top: 12,
                   left: 12,
@@ -112,7 +125,7 @@ class ProductShareCard extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        product.name,
+                        widget.product.name,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
@@ -123,7 +136,7 @@ class ProductShareCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${product.price.toStringAsFixed(0)} DH',
+                      '${widget.product.price.toStringAsFixed(0)} DH',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
@@ -203,7 +216,7 @@ class ProductShareCard extends ConsumerWidget {
                               ? null
                               : () {
                                   NativeShareService.shareReferralLink(
-                                    productName: product.name,
+                                    productName: widget.product.name,
                                     referralUrl: shareState.referralUrl!,
                                   );
                                 },

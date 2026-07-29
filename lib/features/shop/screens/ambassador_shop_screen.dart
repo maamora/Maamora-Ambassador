@@ -14,23 +14,36 @@ const Color _kOutlineVariant = Color(0xFFE0C0B0);
 const Color _kSurfaceContainer = Color(0xFFFBE3D8);
 const Color _kSurfaceContainerHigh = Color(0xFFFBE3D8);
 
-class AmbassadorShopScreen extends ConsumerWidget {
+class AmbassadorShopScreen extends ConsumerStatefulWidget {
   final Product product;
 
   const AmbassadorShopScreen({super.key, required this.product});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final shareState = ref.watch(createGroupProvider(product));
+  ConsumerState<AmbassadorShopScreen> createState() => _AmbassadorShopScreenState();
+}
+
+class _AmbassadorShopScreenState extends ConsumerState<AmbassadorShopScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(createGroupProvider(widget.product).notifier).loadExisting();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final shareState = ref.watch(createGroupProvider(widget.product));
     final group = shareState.productGroup;
     final int current = group?.compteurActuel ?? 0;
     final int target = group?.seuilMin ?? 5;
     final int remaining = (target - current).clamp(0, target);
     final double progress = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
     final bool isUnlocked = group?.isUnlocked ?? false;
-    final double groupPrice = group?.prixGroupe ?? product.price * 0.85;
+    final double groupPrice = group?.prixGroupe ?? widget.product.price * 0.85;
     final int discountPct =
-        product.price > 0 ? ((1 - groupPrice / product.price) * 100).round() : 15;
+        widget.product.price > 0 ? ((1 - groupPrice / widget.product.price) * 100).round() : 15;
 
     return Scaffold(
       backgroundColor: _kSurface,
@@ -92,9 +105,9 @@ class AmbassadorShopScreen extends ConsumerWidget {
                 ),
               ),
               clipBehavior: Clip.hardEdge,
-              child: product.imageUrl.isNotEmpty
+              child: widget.product.imageUrl.isNotEmpty
                   ? Image.network(
-                      product.imageUrl,
+                      widget.product.imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           const Icon(Icons.image_not_supported_outlined,
@@ -113,7 +126,7 @@ class AmbassadorShopScreen extends ConsumerWidget {
                 children: [
                   // ── Product Header ───────────────────────────────────────
                   Text(
-                    product.type.toUpperCase(),
+                    widget.product.type.toUpperCase(),
                     style: GoogleFonts.inter(
                       color: _kOrange,
                       fontSize: 12,
@@ -123,7 +136,7 @@ class AmbassadorShopScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    product.name,
+                    widget.product.name,
                     style: GoogleFonts.plusJakartaSans(
                       color: _kOnBg,
                       fontSize: 32,
@@ -180,7 +193,7 @@ class AmbassadorShopScreen extends ConsumerWidget {
                     progress: progress,
                     isUnlocked: isUnlocked,
                     groupPrice: groupPrice,
-                    originalPrice: product.price,
+                    originalPrice: widget.product.price,
                     discountPct: discountPct,
                   ),
 
@@ -202,13 +215,13 @@ class AmbassadorShopScreen extends ConsumerWidget {
                           ? null
                           : () {
                               // Refresh provider — triggers getOrCreateProductGroup again
-                              ref.read(createGroupProvider(product).notifier).initialize();
+                              ref.read(createGroupProvider(widget.product).notifier).createOrJoinGroup();
                               
                               // Navigate to My Groups (Assuming context.go(AppRoutes.dashboard) or similar)
                               // For now, we'll just show a snackbar since we are on the product page.
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Group created/refreshed successfully! Check My Groups.'),
+                                  content: Text('Groupe créé/rejoint avec succès !'),
                                   backgroundColor: Colors.green,
                                 ),
                               );
