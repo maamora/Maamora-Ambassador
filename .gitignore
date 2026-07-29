@@ -54,3 +54,5 @@ kotlin-compiler-*
 **/generated_plugin_registrant.h
 **/generated_plugins.cmake
 **/GeneratedPluginRegistrant.swift
+
+.env

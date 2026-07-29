@@ -1,5 +1,6 @@
 // features/onboarding/screens/sign_up_screen.dart
 // import 'package:ambassadors/features/onboarding/screens/email_verification_screen.dart';
+import 'package:ambassadors/shared/widgets/google_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/theme/app_colors.dart';
@@ -56,37 +57,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     if (success && mounted) {
       widget.onSignUpSuccess(targetEmail);
-
-      // Redirection vers l'écran de vérification d'email
-      // Navigator.of(context).pushReplacement(
-      //   MaterialPageRoute(
-      //     builder: (context) => EmailVerificationScreen(
-      //       email: targetEmail,
-      //       onGoToLogin: () {
-      //         // Si vous utilisez un système de navigation simple ou un widget parent :
-      //         widget.onGoToLogin?.call();
-      //       },
-      //     ),
-      //   ),
-      // );
     }
   }
-  // Future<void> _handleSignUp(OnboardingProvider provider) async {
-  //   FocusScope.of(context).unfocus();
-  //   final formValid = _formKey.currentState!.validate();
 
-  //   setState(() => _termsError = !_acceptedTerms);
-  //   if (!formValid || !_acceptedTerms) return;
+  Future<void> _handleGoogleAuth(OnboardingProvider provider) async {
+    FocusScope.of(context).unfocus();
 
-  //   final success = await provider.signUp(
-  //     name: _nameController.text.trim(),
-  //     email: _emailController.text.trim(),
-  //     password: _passwordController.text,
-  //   );
-  //   if (success && mounted) {
-  //     widget.onSignUpSuccess?.call();
-  //   }
-  // }
+    // Optionnel : Obliger l'utilisateur à accepter les CGU avant de cliquer sur Google
+    setState(() => _termsError = !_acceptedTerms);
+    if (!_acceptedTerms) return;
+
+    final success = await provider.signInWithGoogle();
+
+    if (success && mounted) {
+      // Redirection après succès (L'utilisateur est loggé et inscrit)
+      widget.onSignUpSuccess("Google User");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -310,6 +297,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
           isLoading: provider.isLoading,
           onPressed: () => _handleSignUp(provider),
         ),
+
+        // --- AJOUT DU BOUTON DE CONNEXION GOOGLE ---
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(
+              child: Divider(
+                color: AppColors.outlineVariant.withValues(alpha: 0.3),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Ou continuer avec',
+                style: AppTheme.bodySm.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Divider(
+                color: AppColors.outlineVariant.withValues(alpha: 0.3),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        GoogleButton(
+          isLoading: provider.isLoading,
+          onPressed: () => _handleGoogleAuth(provider),
+        ),
+        // -------------------------------------------
       ],
     );
   }

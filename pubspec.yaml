@@ -41,6 +41,8 @@ dependencies:
   share_plus: ^10.1.2
   # Pour un state management propre (si vous n'en avez pas déjà choisi un)
   flutter_riverpod: ^2.6.1
+
+  google_sign_in: ^6.2.1
   
 
 
@@ -72,6 +74,7 @@ dev_dependencies:
 flutter:
   assets:
     - assets/images/
+    - .env
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
