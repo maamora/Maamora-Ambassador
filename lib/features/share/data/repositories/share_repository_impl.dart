@@ -39,6 +39,21 @@ class ShareRepositoryImpl implements ShareRepository {
   }
 
   @override
+  Future<ProductGroup?> fetchExistingProductGroup({
+    required String productId,
+    required String ambassadorId,
+  }) async {
+    final result = await _client
+        .from('product_groups')
+        .select()
+        .eq('product_id', productId)
+        .eq('ambassador_id', ambassadorId)
+        .eq('statut', 'en_attente')
+        .maybeSingle();
+    return result != null ? ProductGroup.fromJson(result) : null;
+  }
+
+  @override
   Future<ProductGroup> getOrCreateProductGroup({
     required String productId,
     required String ambassadorId,
@@ -51,7 +66,7 @@ class ShareRepositoryImpl implements ShareRepository {
         .select('*')
         .eq('ambassador_id', ambassadorId)
         .eq('product_id', productId)
-        .eq('statut', 'active')
+        .eq('statut', 'en_attente')
         .maybeSingle();
 
     if (existing != null) {
@@ -63,7 +78,7 @@ class ShareRepositoryImpl implements ShareRepository {
       'ambassador_id': ambassadorId,
       'seuil_min': seuilMin,
       'compteur_actuel': 0,
-      'statut': 'active',
+      'statut': 'en_attente',
     };
     if (prixGroupe != null) {
       payload['prix_groupe'] = prixGroupe;

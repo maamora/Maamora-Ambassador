@@ -37,4 +37,9 @@ abstract class ShareRepository {
 
   /// Fetch currently authenticated ambassador from database
   Future<Ambassador?> fetchCurrentAmbassador();
+
+  Future<ProductGroup?> fetchExistingProductGroup({
+    required String productId,
+    required String ambassadorId,
+  });
 }

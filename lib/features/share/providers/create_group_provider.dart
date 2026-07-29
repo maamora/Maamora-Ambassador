@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../core/services/mock_data_service.dart';
 import '../../../../models/models.dart';
 import '../data/repositories/share_repository.dart';
 import 'product_catalog_provider.dart';
@@ -53,11 +52,44 @@ class CreateGroupNotifier extends StateNotifier<CreateGroupState> {
   final Product _product;
   RealtimeChannel? _realtimeChannel;
 
-  CreateGroupNotifier(this._repository, this._product) : super(const CreateGroupState()) {
-    initialize();
+  CreateGroupNotifier(this._repository, this._product) : super(const CreateGroupState());
+
+  Future<void> loadExisting() async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+
+      Ambassador? ambassador;
+      try {
+        ambassador = await _repository.fetchCurrentAmbassador();
+      } catch (e) {
+        print('Error fetching ambassador: $e');
+      }
+
+      if (ambassador == null) {
+        state = state.copyWith(isLoading: false);
+        return;
+      }
+
+      final existingGroup = await _repository.fetchExistingProductGroup(
+        productId: _product.id,
+        ambassadorId: ambassador.id,
+      );
+
+      if (existingGroup != null) {
+        _subscribeToRealtimeGroupUpdates(existingGroup.id);
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        ambassador: ambassador,
+        productGroup: existingGroup,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: 'Erreur lors du chargement: $e');
+    }
   }
 
-  Future<void> initialize() async {
+  Future<void> createOrJoinGroup() async {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);
 
