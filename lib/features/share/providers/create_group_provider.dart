@@ -79,10 +79,27 @@ class CreateGroupNotifier extends StateNotifier<CreateGroupState> {
         _subscribeToRealtimeGroupUpdates(existingGroup.id);
       }
 
+      // Fetch Referral Link & URL for immediate sharing (important for single products)
+      ReferralLink? link;
+      try {
+        link = await _repository.getOrCreateReferralLink(
+          productId: _product.id,
+          ambassadorId: ambassador.id,
+          ambassadorCode: ambassador.referralCode,
+        );
+      } catch (_) {}
+
+      final referralUrl = _repository.buildReferralUrl(
+        productId: _product.id,
+        ambassadorCode: ambassador.referralCode,
+      );
+
       state = state.copyWith(
         isLoading: false,
         ambassador: ambassador,
         productGroup: existingGroup,
+        referralLink: link,
+        referralUrl: referralUrl,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: 'Erreur lors du chargement: $e');

@@ -11,11 +11,46 @@ const Color _surfaceContainerLowest = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF251912);
 const Color _onSurfaceVariant = Color(0xFF584236);
 
-class ProductsScreen extends ConsumerWidget {
+class ProductsScreen extends ConsumerStatefulWidget {
   const ProductsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProductsScreen> createState() => _ProductsScreenState();
+}
+
+class _ProductsScreenState extends ConsumerState<ProductsScreen> {
+  String _filter = 'All';
+
+  Widget _buildFilterChip(String label) {
+    final isSelected = _filter == label;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (bool selected) {
+        if (selected) {
+          setState(() {
+            _filter = label;
+          });
+        }
+      },
+      selectedColor: const Color(0xFFFB7701).withValues(alpha: 0.2),
+      checkmarkColor: const Color(0xFFFB7701),
+      labelStyle: GoogleFonts.inter(
+        color: isSelected ? const Color(0xFFFB7701) : _onSurfaceVariant,
+        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? const Color(0xFFFB7701) : const Color(0xFFE0C0B0),
+        ),
+      ),
+      backgroundColor: _surfaceContainerLowest,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final catalogAsync = ref.watch(productCatalogProvider);
 
     return Scaffold(
@@ -44,11 +79,30 @@ class ProductsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFilterChip('All'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Grouped'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Single'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               Expanded(
                 child: catalogAsync.when(
                   data: (products) {
-                    if (products.isEmpty) {
+                    final filteredProducts = products.where((p) {
+                      if (_filter == 'Grouped') return p.isGrouped;
+                      if (_filter == 'Single') return !p.isGrouped;
+                      return true;
+                    }).toList();
+
+                    if (filteredProducts.isEmpty) {
                       return Center(
                         child: Text(
                           'No products available',
@@ -63,13 +117,14 @@ class ProductsScreen extends ConsumerWidget {
                         mainAxisSpacing: 16,
                         childAspectRatio: 0.75,
                       ),
-                      itemCount: products.length,
+                      itemCount: filteredProducts.length,
                       itemBuilder: (context, index) {
-                        final product = products[index];
+                        final product = filteredProducts[index];
                         return _ProductGridItem(
                           imageUrl: product.imageUrl,
                           title: product.name,
                           price: '${product.price.toStringAsFixed(0)} DH',
+                          isGrouped: product.isGrouped,
                           onTap: () => context.push(AppRoutes.ambassadorShop, extra: product),
                         );
                       },
@@ -105,12 +160,14 @@ class _ProductGridItem extends StatelessWidget {
   final String imageUrl;
   final String title;
   final String price;
+  final bool isGrouped;
   final VoidCallback onTap;
 
   const _ProductGridItem({
     required this.imageUrl,
     required this.title,
     required this.price,
+    required this.isGrouped,
     required this.onTap,
   });
 
@@ -134,10 +191,35 @@ class _ProductGridItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: ProductImageWidget(
-                imageUrl: imageUrl,
-                width: double.infinity,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Stack(
+                children: [
+                  ProductImageWidget(
+                    imageUrl: imageUrl,
+                    width: double.infinity,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isGrouped 
+                            ? const Color(0xFF251912).withValues(alpha: 0.85)
+                            : const Color(0xFFFB7701).withValues(alpha: 0.85),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        isGrouped ? 'Groupe' : 'Single',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Padding(

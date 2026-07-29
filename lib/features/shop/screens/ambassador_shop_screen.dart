@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../models/models.dart';
 import '../../share/providers/create_group_provider.dart';
+import '../../share/services/native_share_service.dart';
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
 const Color _kOrange = Color(0xFFFB7701);
@@ -146,15 +147,29 @@ class _AmbassadorShopScreenState extends ConsumerState<AmbassadorShopScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Partagez ce produit avec votre réseau et débloquez une réduction groupe de $discountPct% dès $target membres.',
-                    style: GoogleFonts.inter(
-                      color: _kOnSurfaceVariant,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      height: 1.5,
+                  
+                  if (widget.product.isGrouped) ...[
+                    Text(
+                      'Partagez ce produit avec votre réseau et débloquez une réduction groupe de $discountPct% dès $target membres.',
+                      style: GoogleFonts.inter(
+                        color: _kOnSurfaceVariant,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
+                  ] else ...[
+                    Text(
+                      'Partagez ce produit avec votre réseau pour gagner des points !',
+                      style: GoogleFonts.inter(
+                        color: _kOnSurfaceVariant,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                  
                   const SizedBox(height: 24),
 
                   if (shareState.errorMessage != null)
@@ -185,65 +200,114 @@ class _AmbassadorShopScreenState extends ConsumerState<AmbassadorShopScreen> {
                     ),
 
                   // ── Group Progress Card ──────────────────────────────────
-                  _GroupProgressCard(
-                    isLoading: shareState.isLoading,
-                    current: current,
-                    target: target,
-                    remaining: remaining,
-                    progress: progress,
-                    isUnlocked: isUnlocked,
-                    groupPrice: groupPrice,
-                    originalPrice: widget.product.price,
-                    discountPct: discountPct,
-                  ),
+                  if (widget.product.isGrouped)
+                    _GroupProgressCard(
+                      isLoading: shareState.isLoading,
+                      current: current,
+                      target: target,
+                      remaining: remaining,
+                      progress: progress,
+                      isUnlocked: isUnlocked,
+                      groupPrice: groupPrice,
+                      originalPrice: widget.product.price,
+                      discountPct: discountPct,
+                    ),
 
                   const SizedBox(height: 24),
 
-                  // ── Create Group CTA ────────────────────────────────────────────
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _kOrange,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        elevation: 4,
-                      ),
-                      onPressed: shareState.isLoading
-                          ? null
-                          : () {
-                              // Refresh provider — triggers getOrCreateProductGroup again
-                              ref.read(createGroupProvider(widget.product).notifier).createOrJoinGroup();
-                              
-                              // Navigate to My Groups (Assuming context.go(AppRoutes.dashboard) or similar)
-                              // For now, we'll just show a snackbar since we are on the product page.
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Groupe créé/rejoint avec succès !'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            },
-                      child: shareState.isLoading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
+                  // ── Action CTA ────────────────────────────────────────────
+                  Builder(
+                    builder: (context) {
+                      final bool isInviteAction = !widget.product.isGrouped || shareState.productGroup != null;
+                      
+                      void handleAction() {
+                        if (isInviteAction) {
+                          // Invite Action
+                          if (shareState.referralUrl != null) {
+                            NativeShareService.shareReferralLink(
+                              productName: widget.product.name,
+                              referralUrl: shareState.referralUrl!,
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Erreur: Lien introuvable.'),
+                                backgroundColor: Colors.red,
                               ),
-                            )
-                          : Text(
-                              'Create Group',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            );
+                          }
+                        } else {
+                          // Create Group Action
+                          ref.read(createGroupProvider(widget.product).notifier).createOrJoinGroup();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Groupe créé/rejoint avec succès !'),
+                              backgroundColor: Colors.green,
                             ),
-                    ),
+                          );
+                        }
+                      }
+                      
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: isInviteAction
+                            ? OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: _kOrange,
+                                  side: const BorderSide(color: _kOrange, width: 1.5),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                                onPressed: shareState.isLoading ? null : handleAction,
+                                icon: shareState.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: _kOrange,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      )
+                                    : const Icon(Icons.person_add_alt_1, size: 22),
+                                label: Text(
+                                  'Invite Friends',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              )
+                            : FilledButton(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: _kOrange,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  elevation: 4,
+                                ),
+                                onPressed: shareState.isLoading ? null : handleAction,
+                                child: shareState.isLoading
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      )
+                                    : Text(
+                                        'Create Group',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                              ),
+                      );
+                    }
                   ),
 
                   const SizedBox(height: 32),
