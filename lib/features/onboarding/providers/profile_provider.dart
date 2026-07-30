@@ -27,17 +27,43 @@ class ProfileProvider extends ChangeNotifier {
       errorMessage = null;
       notifyListeners();
 
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
         throw Exception('Utilisateur non connecté');
       }
 
-      // 1. Récupérer les infos de l'ambassadeur et son tier
-      final data = await _supabase
+      // 1. Chercher l'ambassadeur (maybeSingle évite PGRST116 si absent)
+      var data = await _supabase
           .from('ambassadors')
           .select('*, tiers(name)')
-          .eq('auth_id', userId)
-          .single();
+          .eq('auth_id', user.id)
+          .maybeSingle();
+
+      // Si aucune ligne n'existe encore (ex: premier login Google sur web,
+      // avant que le trigger SQL ait créé la ligne), on la crée ici.
+      if (data == null) {
+        debugPrint('[ProfileProvider] Aucun ambassadeur trouvé — création automatique.');
+        final name = user.userMetadata?['full_name'] ??
+            user.userMetadata?['name'] ??
+            user.email?.split('@').first ??
+            'Ambassadeur';
+        final email = user.email ?? '';
+        // Code de parrainage provisoire — le trigger le remplacera à terme
+        final tempCode = 'AMB${DateTime.now().millisecondsSinceEpoch % 100000}';
+        await _supabase.from('ambassadors').insert({
+          'auth_id': user.id,
+          'name': name,
+          'email': email,
+          'referral_code': tempCode,
+          'points_total': 0,
+        });
+        // Relit la ligne fraîchement insérée avec son tier
+        data = await _supabase
+            .from('ambassadors')
+            .select('*, tiers(name)')
+            .eq('auth_id', user.id)
+            .single();
+      }
 
       ambassadorData = data;
 

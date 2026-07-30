@@ -165,6 +165,7 @@ class OnboardingProvider extends ChangeNotifier {
         // null laisserait Supabase utiliser le Site URL du dashboard,
         // qui pourrait être configuré en maamora:// (deep link mobile).
         final webRedirect = '${Uri.base.origin}/callback/login';
+        debugPrint('🔵 [GoogleSignIn] redirectTo envoyé à Supabase : $webRedirect');
         return await _supabase.auth.signInWithOAuth(
           OAuthProvider.google,
           redirectTo: webRedirect,
