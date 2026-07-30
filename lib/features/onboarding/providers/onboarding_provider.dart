@@ -161,9 +161,17 @@ class OnboardingProvider extends ChangeNotifier {
 
     try {
       if (kIsWeb) {
+        // Sur le web, on doit fournir une URL http(s) valide.
+        // null laisserait Supabase utiliser le Site URL du dashboard,
+        // qui pourrait être configuré en maamora:// (deep link mobile).
+        final webRedirect = '${Uri.base.origin}/callback/login';
         return await _supabase.auth.signInWithOAuth(
           OAuthProvider.google,
+<<<<<<< HEAD
           redirectTo: 'http://localhost:5000/callback/login',
+=======
+          redirectTo: webRedirect,
+>>>>>>> ac6b978469746eeb91881ada9598174e19190969
           queryParams: {'prompt': 'select_account'},
         );
       }

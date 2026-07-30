@@ -8,6 +8,7 @@ class AppRoutes {
   static const String verifyEmail = '/verify-email';
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
+  static const String callbackLogin = '/callback/login'; // retour OAuth web
   static const String dashboard = '/dashboard';
   static const String share = '/share';
   static const String leaderboard = '/leaderboard';

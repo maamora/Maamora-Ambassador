@@ -4,6 +4,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/services/supabase_client_service.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ProfileProvider extends ChangeNotifier {
   final _supabase = SupabaseClientService.client;
 
@@ -72,7 +74,21 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    await _supabase.auth.signOut();
-    await GoogleSignIn().signOut();
+    // 1. Déconnexion de Supabase, qui ne doit pas être bloquée par Google
+    try {
+      await _supabase.auth.signOut();
+    } catch (e) {
+      debugPrint('Erreur lors de la déconnexion Supabase: $e');
+    }
+
+    // 2. Déconnexion de Google avec le clientId, entourée d'un try-catch
+    try {
+      final googleSignIn = GoogleSignIn(
+        serverClientId: dotenv.env['GOOGLE_WEB_CLIENT_ID'],
+      );
+      await googleSignIn.signOut();
+    } catch (e) {
+      debugPrint('Erreur lors de la déconnexion GoogleSignIn: $e');
+    }
   }
 }
