@@ -1,5 +1,4 @@
 // features/onboarding/screens/sign_up_screen.dart
-// import 'package:ambassadors/features/onboarding/screens/email_verification_screen.dart';
 import 'package:ambassadors/shared/widgets/google_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -70,8 +69,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final success = await provider.signInWithGoogle();
 
     if (success && mounted) {
-      // Redirection après succès (L'utilisateur est loggé et inscrit)
-      widget.onSignUpSuccess("Google User");
+      // Redirection après succès avec le VRAI email de l'utilisateur
+      // authentifié (auparavant une chaîne factice "Google User" en dur).
+      // Sur le web, ce succès signale seulement le démarrage de la
+      // redirection OAuth : voir OnboardingProvider.signInWithGoogle et
+      // INTEGRATION_NOTES.md pour la limite que ça implique côté web.
+      widget.onSignUpSuccess(provider.currentUserEmail ?? '');
     }
   }
 

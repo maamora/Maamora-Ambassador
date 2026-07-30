@@ -1,13 +1,13 @@
-/// Noms de routes centralisés — figés en semaine 1, chaque dev ajoute
-/// sa route ici quand son écran est prêt (petit risque de conflit git,
-/// mais fichier volontairement minimal pour limiter la casse).
 class AppRoutes {
   AppRoutes._();
 
+  // static const String home = '/';
   static const String introAmbassador = '/intro-ambassador';
   static const String signUp = '/sign-up';
   static const String login = '/login';
   static const String verifyEmail = '/verify-email';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
   static const String dashboard = '/dashboard';
   static const String share = '/share';
   static const String leaderboard = '/leaderboard';

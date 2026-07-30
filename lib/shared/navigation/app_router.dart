@@ -1,4 +1,6 @@
 import 'package:ambassadors/features/onboarding/screens/email_verification_screen.dart';
+import 'package:ambassadors/features/onboarding/screens/forgot_password_screen.dart';
+import 'package:ambassadors/features/onboarding/screens/reset_password_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/navigation/navigation_service.dart';
 import 'app_routes.dart';
@@ -16,9 +18,6 @@ import '../../features/groups/screens/order_details_screen.dart';
 import '../../features/shop/screens/product_detail_screen.dart';
 import '../../features/shop/screens/ambassador_shop_screen.dart';
 
-/// Ajoutez votre écran ici dès qu'il est prêt (une ligne par GoRoute).
-/// Chacun ajoute SA ligne — évitez de reformater tout le fichier pour
-/// limiter les conflits Git avec les autres.
 final GoRouter appRouter = GoRouter(
   navigatorKey: NavigationService.navigatorKey,
   initialLocation: AppRoutes.introAmbassador,
@@ -41,7 +40,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.verifyEmail,
       builder: (context, state) {
-        // 2. On récupère l'email depuis les paramètres de recherche (?email=...)
         final email = state.uri.queryParameters['email'] ?? '';
         return EmailVerificationScreen(
           email: email,
@@ -50,10 +48,11 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     // GoRoute(
-    //   path: AppRoutes.signUp,
-    //   builder: (context, state) => SignUpScreen(
-    //     onGoToLogin: () => context.go(AppRoutes.login),
-    //     onSignUpSuccess: () => context.go(AppRoutes.dashboard),
+    //   path: AppRoutes.home,
+    //   builder: (context, state) => LoginScreen(
+    //     onCreateAccount: () => context.go(AppRoutes.signUp),
+    //     onLoginSuccess: () => context.go(AppRoutes.dashboard),
+    //     onForgotPassword: () => context.go(AppRoutes.forgotPassword),
     //   ),
     // ),
     GoRoute(
@@ -61,6 +60,19 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => LoginScreen(
         onCreateAccount: () => context.go(AppRoutes.signUp),
         onLoginSuccess: () => context.go(AppRoutes.dashboard),
+        onForgotPassword: () => context.go(AppRoutes.forgotPassword),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.forgotPassword,
+      builder: (context, state) => ForgotPasswordScreen(
+        onBackToLogin: () => context.go(AppRoutes.login),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.resetPassword,
+      builder: (context, state) => ResetPasswordScreen(
+        onResetSuccess: () => context.go(AppRoutes.login),
       ),
     ),
     GoRoute(

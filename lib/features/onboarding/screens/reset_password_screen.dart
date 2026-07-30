@@ -1,3 +1,4 @@
+// features/onboarding/screens/reset_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/theme/app_colors.dart';
@@ -7,14 +8,9 @@ import '../../../shared/widgets/app_text_field.dart';
 import '../providers/onboarding_provider.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  final String email;
   final VoidCallback onResetSuccess;
 
-  const ResetPasswordScreen({
-    super.key,
-    required this.email,
-    required this.onResetSuccess,
-  });
+  const ResetPasswordScreen({super.key, required this.onResetSuccess});
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -22,13 +18,13 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _otpController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
 
   @override
   void dispose() {
-    _otpController.dispose();
     _passwordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
@@ -36,10 +32,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await provider.confirmPasswordReset(
-      email: widget.email,
-      otp: _otpController.text.trim(),
-      newPassword: _passwordController.text,
+    final success = await provider.updatePasswordAfterRecovery(
+      _passwordController.text,
     );
 
     if (success && mounted) {
@@ -80,11 +74,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            'Entrez le code OTP envoyé à ${widget.email} et votre nouveau mot de passe.',
-                            textAlign: TextAlign.center,
-                            style: AppTheme.bodyMd.copyWith(
-                              color: AppColors.onSurfaceVariant,
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 300),
+                            child: Text(
+                              'Votre lien a été vérifié. Choisissez un '
+                              'nouveau mot de passe pour votre compte.',
+                              textAlign: TextAlign.center,
+                              style: AppTheme.bodyMd.copyWith(
+                                color: AppColors.onSurfaceVariant,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 32),
@@ -107,18 +105,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             const SizedBox(height: 16),
                           ],
                           AppTextField(
-                            label: 'Code de récupération (6 chiffres)',
-                            icon: Icons.pin,
-                            controller: _otpController,
-                            keyboardType: TextInputType.number,
-                            validator: provider.validateOtp,
-                          ),
-                          const SizedBox(height: 16),
-                          AppTextField(
-                            label: 'Nouveau Mot de passe',
+                            label: 'Nouveau mot de passe',
                             icon: Icons.lock_outline,
                             controller: _passwordController,
                             obscureText: provider.obscurePassword,
+                            autofillHints: const [AutofillHints.newPassword],
                             validator: provider.validatePassword,
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -129,6 +120,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               ),
                               onPressed: provider.toggleObscurePassword,
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          AppTextField(
+                            label: 'Confirmer le mot de passe',
+                            icon: Icons.lock_outline,
+                            controller: _confirmController,
+                            obscureText: provider.obscurePassword,
+                            validator: (value) =>
+                                provider.validateConfirmPassword(
+                                  value,
+                                  _passwordController.text,
+                                ),
                           ),
                           const SizedBox(height: 24),
                           AppButton(
