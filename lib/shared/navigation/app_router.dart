@@ -18,16 +18,62 @@ import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
 import '../../features/groups/screens/order_details_screen.dart';
 import '../../features/shop/screens/ambassador_shop_screen.dart';
+import 'dart:async';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/groups/providers/my_groups_provider.dart';
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: NavigationService.navigatorKey,
   initialLocation: AppRoutes.introAmbassador,
+  refreshListenable: GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
+  redirect: (context, state) {
+    final session = Supabase.instance.client.auth.currentSession;
+    final isLoggedIn = session != null;
+    
+    // Check if the route is a public route
+    final isPublicRoute = state.matchedLocation == AppRoutes.introAmbassador ||
+        state.matchedLocation == AppRoutes.login ||
+        state.matchedLocation == AppRoutes.signUp ||
+        state.matchedLocation == AppRoutes.forgotPassword ||
+        state.matchedLocation == AppRoutes.resetPassword ||
+        state.matchedLocation.startsWith(AppRoutes.verifyEmail) ||
+        // Route de retour OAuth web — doit rester accessible sans session
+        state.matchedLocation.startsWith(AppRoutes.callbackLogin);
+
+    if (!isLoggedIn && !isPublicRoute) {
+      // Redirect to login if user is not logged in and tries to access a protected route
+      return AppRoutes.login;
+    }
+
+    if (isLoggedIn && (state.matchedLocation == AppRoutes.login || state.matchedLocation == AppRoutes.introAmbassador || state.matchedLocation == AppRoutes.signUp)) {
+      // If logged in and trying to access login/intro/signup, redirect to dashboard
+      return AppRoutes.dashboard;
+    }
+
+    return null;
+  },
   routes: [
     GoRoute(
       path: AppRoutes.introAmbassador,
       builder: (context, state) => AmbassadorIntroScreen(
-        onStartApplication: () => context.go(AppRoutes.signUp),
+        onStartApplication: () => context.go(AppRoutes.login),
       ),
     ),
     GoRoute(
@@ -75,6 +121,15 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.resetPassword,
       builder: (context, state) => ResetPasswordScreen(
         onResetSuccess: () => context.go(AppRoutes.login),
+      ),
+    ),
+    // Route de callback OAuth web (Google Sign-In).
+    // Supabase traite les tokens dans l'URL, déclenche onAuthStateChange,
+    // ce qui rafraîchit le routeur et le redirect guard envoie vers /dashboard.
+    GoRoute(
+      path: AppRoutes.callbackLogin,
+      builder: (context, state) => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       ),
     ),
     GoRoute(
