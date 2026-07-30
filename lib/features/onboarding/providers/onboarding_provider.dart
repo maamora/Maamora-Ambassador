@@ -163,7 +163,7 @@ class OnboardingProvider extends ChangeNotifier {
       if (kIsWeb) {
         return await _supabase.auth.signInWithOAuth(
           OAuthProvider.google,
-          redirectTo: 'maamora://callback/login',
+          redirectTo: 'http://localhost:5000/callback/login',
           queryParams: {'prompt': 'select_account'},
         );
       }
