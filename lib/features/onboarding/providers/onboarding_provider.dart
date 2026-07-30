@@ -168,11 +168,7 @@ class OnboardingProvider extends ChangeNotifier {
         debugPrint('🔵 [GoogleSignIn] redirectTo envoyé à Supabase : $webRedirect');
         return await _supabase.auth.signInWithOAuth(
           OAuthProvider.google,
-<<<<<<< HEAD
-          redirectTo: 'http://localhost:5000/callback/login',
-=======
           redirectTo: webRedirect,
->>>>>>> ac6b978469746eeb91881ada9598174e19190969
           queryParams: {'prompt': 'select_account'},
         );
       }

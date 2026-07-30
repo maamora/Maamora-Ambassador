@@ -1,34 +1,33 @@
 ﻿-- =====================================================
 -- Migration: Auto-creation ambassadeur apres inscription OAuth/Email
--- Description: Quand un utilisateur est cree dans auth.users (via OAuth
--- Google, email/mot de passe, etc.), un trigger cree automatiquement
--- une ligne dans la table public.ambassadors avec les valeurs par defaut.
+-- Le trigger utilise un bloc EXCEPTION pour ne JAMAIS bloquer
+-- la creation d'un utilisateur dans auth.users.
 -- =====================================================
 
--- Fonction utilitaire : genere un code de parrainage unique de 8 caracteres
+-- Fonction utilitaire : genere un code de parrainage unique
 create or replace function generate_referral_code(base_name text)
 returns text as $$
 declare
-  code text;
-  prefix text;
-  exists_check int;
+  code       text;
+  prefix     text;
+  cnt        int;
 begin
-  prefix := upper(substring(regexp_replace(base_name, ''[^a-zA-Z]'', '''', ''g''), 1, 4));
+  prefix := upper(substring(regexp_replace(base_name, '[^a-zA-Z]', '', 'g'), 1, 4));
   if length(prefix) < 4 then
-    prefix := rpad(prefix, 4, ''X'');
+    prefix := rpad(prefix, 4, 'X');
   end if;
-
   loop
-    code := prefix || lpad(floor(random() * 10000)::text, 4, ''0'');
-    select count(*) into exists_check from public.ambassadors where referral_code = code;
-    exit when exists_check = 0;
+    code := prefix || lpad(floor(random() * 10000)::text, 4, '0');
+    select count(*) into cnt from public.ambassadors where referral_code = code;
+    exit when cnt = 0;
   end loop;
-
   return code;
 end;
-$$ language plpgsql;
+$$ language plpgsql security definer;
 
--- Fonction appelee par le trigger : cree l ambassadeur si inexistant
+-- Fonction du trigger : cree l'ambassadeur si absent.
+-- EXCEPTION garantit que toute erreur est absorbee et ne bloque jamais
+-- la creation de l'utilisateur dans auth.users.
 create or replace function public.handle_new_user()
 returns trigger as $$
 declare
@@ -37,10 +36,10 @@ declare
   ref_code  text;
 begin
   amb_name  := coalesce(
-    new.raw_user_meta_data->''full_name'',
-    new.raw_user_meta_data->''name'',
-    split_part(new.email, ''@'', 1),
-    ''Ambassadeur''
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'name',
+    split_part(new.email, '@', 1),
+    'Ambassadeur'
   );
   amb_email := new.email;
 
@@ -51,10 +50,14 @@ begin
   end if;
 
   return new;
+
+exception when others then
+  raise warning '[handle_new_user] Erreur ignoree : %', sqlerrm;
+  return new;
 end;
 $$ language plpgsql security definer;
 
--- Trigger : se declenche a chaque nouvel utilisateur dans auth.users
+-- (Re)creer le trigger
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
