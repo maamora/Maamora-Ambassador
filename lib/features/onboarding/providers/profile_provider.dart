@@ -1,5 +1,6 @@
 // features/onboarding/providers/profile_provider.dart
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/services/supabase_client_service.dart';
 
@@ -72,5 +73,6 @@ class ProfileProvider extends ChangeNotifier {
 
   Future<void> signOut() async {
     await _supabase.auth.signOut();
+    await GoogleSignIn().signOut();
   }
 }

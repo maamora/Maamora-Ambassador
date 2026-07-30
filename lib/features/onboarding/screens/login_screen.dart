@@ -9,10 +9,16 @@ import '../providers/onboarding_provider.dart';
 import 'package:ambassadors/shared/widgets/google_button.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, this.onLoginSuccess, this.onCreateAccount});
+  const LoginScreen({
+    super.key,
+    this.onLoginSuccess,
+    this.onCreateAccount,
+    this.onForgotPassword,
+  });
 
   final VoidCallback? onLoginSuccess;
   final VoidCallback? onCreateAccount;
+  final VoidCallback? onForgotPassword;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -43,27 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success && mounted) {
       widget.onLoginSuccess?.call();
     }
-  }
-
-  Future<void> _handleForgotPassword(OnboardingProvider provider) async {
-    final email = _emailController.text.trim();
-    if (provider.validateEmail(email) != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Entrez votre email d\'abord')),
-      );
-      return;
-    }
-    final success = await provider.sendPasswordResetEmail(email);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success
-              ? 'Email de réinitialisation envoyé'
-              : provider.errorMessage ?? 'Une erreur est survenue',
-        ),
-      ),
-    );
   }
 
   @override
@@ -225,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () => _handleForgotPassword(provider),
+              onPressed: widget.onForgotPassword,
               child: Text(
                 'Mot de passe oublié ?',
                 style: AppTheme.labelMd.copyWith(
