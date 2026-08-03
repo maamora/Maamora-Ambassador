@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Shared app bar that matches the mockup:
+/// [Logo icon] [Title]  ·  [Avatar circle] on the right.
 class SharedAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String? avatarUrl;
@@ -18,20 +20,16 @@ class SharedAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(64);
+  Size get preferredSize => const Size.fromHeight(60);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFEDE8E4), width: 1),
+        ),
       ),
       child: SafeArea(
         bottom: false,
@@ -41,52 +39,51 @@ class SharedAppBar extends StatelessWidget implements PreferredSizeWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: onAvatarTap,
-                  child: CircleAvatar(
-                    radius: 18,
-                    backgroundColor: const Color(0xFFF6DED2),
-                    backgroundImage:
-                        avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-                    child: avatarUrl == null
-                        ? const Icon(Icons.person, size: 18, color: Color(0xFF9A4600))
-                        : null,
+                // Brand logo mark
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF0E6),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      title,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                        color: const Color(0xFF1A1A2E),
-                      ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'M',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFFFB7701),
                     ),
                   ),
                 ),
+                const SizedBox(width: 10),
+                // Title
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                    color: const Color(0xFF1A2433),
+                  ),
+                ),
+                const Spacer(),
+                // Avatar on the right
                 GestureDetector(
-                  onTap: onNotificationTap,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(Icons.notifications_outlined,
-                          size: 24, color: Color(0xFF1A1A2E)),
-                      if (hasNotification)
-                        Positioned(
-                          right: -1,
-                          top: -1,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
+                  onTap: onAvatarTap,
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundColor: const Color(0xFFE8DDD3),
+                    backgroundImage:
+                        avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                    child: avatarUrl == null
+                        ? const Icon(
+                            Icons.person_rounded,
+                            size: 22,
+                            color: Color(0xFF8A8078),
+                          )
+                        : null,
                   ),
                 ),
               ],
