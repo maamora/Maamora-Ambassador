@@ -38,11 +38,13 @@ class GoRouterRefreshStream extends ChangeNotifier {
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: NavigationService.navigatorKey,
-  initialLocation: AppRoutes.login,
+  initialLocation: AppRoutes.dashboard,
   refreshListenable: GoRouterRefreshStream(
     Supabase.instance.client.auth.onAuthStateChange,
   ),
   redirect: (context, state) {
+    return null; // 👈 TEMPORARY: disabled auth to access dashboard directly
+    
     final session = Supabase.instance.client.auth.currentSession;
     final isLoggedIn = session != null;
 
