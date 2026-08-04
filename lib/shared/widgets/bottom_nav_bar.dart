@@ -22,7 +22,7 @@ class SharedBottomNavBar extends StatelessWidget {
         color: surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.07),
             blurRadius: 16,
             offset: const Offset(0, -2),
           ),

@@ -8,8 +8,7 @@ const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
 const Color _cardBorder = Color(0xFFE8DDD3);
-// Brown used for the user row and active pill in the mockup
-const Color _brownDark = Color(0xFF7B3F00);
+const Color _brownDark = _primary;
 
 // ── Dummy Data ────────────────────────────────────────────────────────────
 
@@ -219,7 +218,7 @@ class _RankRow extends StatelessWidget {
         border: Border.all(color: _cardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -355,7 +354,7 @@ class _MyPinnedRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: _brownDark.withOpacity(0.35),
+            color: _brownDark.withValues(alpha: 0.35),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -368,7 +367,7 @@ class _MyPinnedRow extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: Colors.white.withValues(alpha: 0.18),
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -388,8 +387,8 @@ class _MyPinnedRow extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.25),
-              border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+              color: Colors.white.withValues(alpha: 0.25),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 2),
             ),
             child: const Icon(Icons.person_rounded, color: Colors.white, size: 24),
           ),
@@ -415,12 +414,12 @@ class _MyPinnedRow extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withValues(alpha: 0.85),
                       ),
                     ),
                     const SizedBox(width: 4),
                     Icon(Icons.arrow_upward_rounded,
-                        color: Colors.white.withOpacity(0.85), size: 14),
+                        color: Colors.white.withValues(alpha: 0.85), size: 14),
                   ],
                 ),
               ],
@@ -443,7 +442,7 @@ class _MyPinnedRow extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white.withOpacity(0.75),
+                  color: Colors.white.withValues(alpha: 0.75),
                 ),
               ),
             ],

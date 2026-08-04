@@ -120,7 +120,7 @@ class _BalanceCard extends StatelessWidget {
           Text(
             'SOLDE TOTAL',
             style: GoogleFonts.inter(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontWeight: FontWeight.w600,
               fontSize: 13,
               letterSpacing: 1.4,
@@ -138,19 +138,19 @@ class _BalanceCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 'PTS',
-                style: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.85), fontSize: 18, fontWeight: FontWeight.w700),
+                style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.85), fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              Icon(Icons.trending_up, color: Colors.white.withOpacity(0.9), size: 18),
+              Icon(Icons.trending_up, color: Colors.white.withValues(alpha: 0.9), size: 18),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   'Valeur en \$ — taux de conversion à confirmer',
-                  style: GoogleFonts.inter(color: Colors.white.withOpacity(0.9), fontSize: 13),
+                  style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
                 ),
               ),
             ],
@@ -186,9 +186,9 @@ class _RedeemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: _surfaceContainerLowest,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _outlineVariant.withOpacity(0.3)),
+        border: Border.all(color: _outlineVariant.withValues(alpha: 0.3)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
