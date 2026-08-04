@@ -11,12 +11,13 @@ import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/register_screen.dart';
 import '../../features/onboarding/screens/welcome_screen.dart';
 
-
 import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
 import '../../features/groups/screens/order_details_screen.dart';
 import '../../features/shop/screens/ambassador_shop_screen.dart';
 import '../../features/groups/providers/my_groups_provider.dart';
+import '../../features/profile/screens/profile_screen.dart';
+import '../../features/rules/screens/rules_screen.dart';
 import '../../models/models.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -44,7 +45,7 @@ final GoRouter appRouter = GoRouter(
   ),
   redirect: (context, state) {
     return null; // 👈 TEMPORARY: disabled auth to access dashboard directly
-    
+
     final session = Supabase.instance.client.auth.currentSession;
     final isLoggedIn = session != null;
 
@@ -93,9 +94,8 @@ final GoRouter appRouter = GoRouter(
     // OAuth callback
     GoRoute(
       path: AppRoutes.callbackLogin,
-      builder: (context, state) => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      builder: (context, state) =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
     ),
 
     // ── Main app ─────────────────────────────────────────────────────────────
@@ -132,6 +132,14 @@ final GoRouter appRouter = GoRouter(
         }
         return OrderDetailsScreen(groupData: groupData);
       },
+    ),
+    GoRoute(
+      path: AppRoutes.profile,
+      builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.rules,
+      builder: (context, state) => const RulesScreen(),
     ),
   ],
 );

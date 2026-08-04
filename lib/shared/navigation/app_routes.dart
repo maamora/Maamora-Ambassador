@@ -21,4 +21,6 @@ class AppRoutes {
   static const String productDetail = '/product-detail';
   static const String ambassadorShop = '/ambassador-shop';
   static const String orderDetails = '/order-details';
+  static const String profile = '/profile';
+  static const String rules = '/rules';
 }

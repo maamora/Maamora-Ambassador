@@ -3,6 +3,8 @@ import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
 import '../../features/share/screens/share_screen.dart';
 import '../../features/wallet/screens/wallet_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'app_routes.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/shared_app_bar.dart';
 
@@ -50,7 +52,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return Scaffold(
       appBar: SharedAppBar(
         title: _getTitle(_currentIndex),
-        onAvatarTap: () {},
+        onAvatarTap: () => context.push(AppRoutes.profile),
       ),
       body: IndexedStack(
         index: _currentIndex,
