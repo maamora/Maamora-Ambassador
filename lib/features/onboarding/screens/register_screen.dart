@@ -8,10 +8,12 @@ class RegisterScreen extends StatefulWidget {
     super.key,
     this.onActivateSuccess,
     this.onGoToLogin,
+    this.initialInviteCode,
   });
 
   final VoidCallback? onActivateSuccess;
   final VoidCallback? onGoToLogin;
+  final String? initialInviteCode;
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -19,14 +21,13 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _cityController = TextEditingController();
+  final _codeController = TextEditingController();
 
   String? _selectedPayout;
   bool _ndaAccepted = false;
   bool _isActivating = false;
-
-  // Dummy validated invite code shown in card
-  static const String _inviteCode = 'SALE-7F3K';
 
   final List<String> _payoutMethods = [
     'CIH Bank',
@@ -37,9 +38,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.initialInviteCode != null) {
+      _codeController.text = widget.initialInviteCode!;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
+    _phoneController.dispose();
     _cityController.dispose();
+    _codeController.dispose();
     super.dispose();
   }
 
@@ -81,8 +92,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTitle(),
-                        const SizedBox(height: 20),
-                        _buildInviteCard(),
                         const SizedBox(height: 24),
                         _buildFormFields(),
                         const SizedBox(height: 40),
@@ -121,7 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(width: 6),
             Text(
-              'Invite-only · your code came on WhatsApp',
+              'Enter your details and invite code below',
               style: AppTheme.bodyMd.copyWith(
                 color: AppColors.onSurfaceVariant,
                 fontSize: 13,
@@ -133,72 +142,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildInviteCard() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFfb8c1a), Color(0xFFfb7701)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'VALIDATED INVITE',
-                  style: AppTheme.labelMd.copyWith(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 11,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _inviteCode,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.check_circle_outline,
-              color: Colors.white,
-              size: 26,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildFormFields() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildFieldLabel('Invite Code'),
+        const SizedBox(height: 8),
+        _buildTextField(
+          controller: _codeController,
+          hint: 'e.g. SALE-7F3K',
+          icon: Icons.card_giftcard_outlined,
+        ),
+        const SizedBox(height: 20),
         _buildFieldLabel('Full Name (as on ID)'),
         const SizedBox(height: 8),
         _buildTextField(
           controller: _nameController,
           hint: 'Fatima Zahra',
           icon: Icons.person_outline,
+        ),
+        const SizedBox(height: 20),
+        _buildFieldLabel('Phone Number'),
+        const SizedBox(height: 8),
+        _buildTextField(
+          controller: _phoneController,
+          hint: 'e.g., +212 600 000 000',
+          icon: Icons.phone_outlined,
+          keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 20),
         _buildFieldLabel('City or Neighborhood (Douar)'),
@@ -231,6 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required TextEditingController controller,
     required String hint,
     required IconData icon,
+    TextInputType? keyboardType,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -240,6 +211,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       child: TextField(
         controller: controller,
+        keyboardType: keyboardType,
         style: AppTheme.bodyMd.copyWith(color: AppColors.onSurface),
         decoration: InputDecoration(
           hintText: hint,

@@ -1,4 +1,6 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiConstants {
-  static const supabaseUrl = 'https://rcxxofpxwvbzemrdszpx.supabase.co';
-  static const supabaseAnonKey = 'sb_publishable_mAmQWJfGsBt8zzSGB3Psfg_5T6csOoC';
+  static String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
+  static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 }

@@ -47,14 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isSending = true;
     });
-    // Simulate network delay – static UI only
+    // Simulate network delay and bypass OTP for now
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
       setState(() {
         _isSending = false;
-        _showOtp = true;
       });
-      _otpFocusNodes[0].requestFocus();
+      widget.onLoginSuccess?.call();
     });
   }
 

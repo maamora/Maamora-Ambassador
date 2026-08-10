@@ -40,7 +40,8 @@ class GoRouterRefreshStream extends ChangeNotifier {
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: NavigationService.navigatorKey,
-  initialLocation: AppRoutes.dashboard,
+  initialLocation: AppRoutes.login,
+  // initialLocation: AppRoutes.dashboard,
   refreshListenable: GoRouterRefreshStream(
     Supabase.instance.client.auth.onAuthStateChange,
   ),
@@ -79,10 +80,14 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.register,
-      builder: (context, state) => RegisterScreen(
-        onActivateSuccess: () => context.go(AppRoutes.welcome),
-        onGoToLogin: () => context.go(AppRoutes.login),
-      ),
+      builder: (context, state) {
+        final inviteCode = state.uri.queryParameters['code'];
+        return RegisterScreen(
+          initialInviteCode: inviteCode,
+          onActivateSuccess: () => context.go(AppRoutes.welcome),
+          onGoToLogin: () => context.go(AppRoutes.login),
+        );
+      },
     ),
     GoRoute(
       path: AppRoutes.welcome,
