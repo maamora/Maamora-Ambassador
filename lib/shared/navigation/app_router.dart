@@ -12,6 +12,8 @@ import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/register_screen.dart';
 import '../../features/onboarding/screens/welcome_screen.dart';
 
+import '../../features/admin/screens/admin_navigation_screen.dart';
+
 import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
 import '../../features/groups/screens/order_details_screen.dart';
@@ -146,6 +148,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.rules,
       builder: (context, state) => const RulesScreen(),
+    ),
+
+    // ── Admin app ─────────────────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.admin,
+      builder: (context, state) => const AdminNavigationScreen(),
     ),
   ],
 );

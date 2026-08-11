@@ -53,6 +53,15 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isSending = false;
       });
+      // TODO: appeler get_my_role() ici et rediriger vers AdminNavigationScreen
+      // ou AmbassadorDashboardScreen selon le résultat.
+      // Exemple:
+      //   final role = await supabase.rpc('get_my_role');
+      //   if (role == 'admin') {
+      //     context.go(AppRoutes.admin);
+      //   } else {
+      //     widget.onLoginSuccess?.call(); // → AppRoutes.dashboard
+      //   }
       widget.onLoginSuccess?.call();
     });
   }
