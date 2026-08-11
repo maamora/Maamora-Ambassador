@@ -15,7 +15,14 @@ class AppRoutes {
   static const String leaderboard = '/leaderboard';
   static const String rewards = '/rewards';
   static const String notifications = '/notifications'; // phase 2
-  static const String admin = '/admin'; // phase 2
+  // ── Admin app ────────────────────────────────────────────────────────────
+  static const String admin = '/admin';
+  static const String adminInvite = '/admin/invite';
+  static const String adminAmbassadorsPending = '/admin/ambassadors/pending';
+  static const String adminAmbassadorsList = '/admin/ambassadors/list';
+  static const String adminGroupsPending = '/admin/groups';
+  static const String adminCommissions = '/admin/commissions';
+  static const String adminAuditLog = '/admin/audit-log';
   static const String community = '/community';
   static const String pickup = '/pickup';
   static const String productDetail = '/product-detail';
