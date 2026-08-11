@@ -1,5 +1,5 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/services/mock_data_service.dart';
 import '../../../../models/models.dart';
 import '../data/repositories/share_repository.dart';
 import '../data/repositories/share_repository_impl.dart';
@@ -25,7 +25,7 @@ class ProductCatalogNotifier extends AsyncNotifier<List<Product>> {
     try {
       return await _repository.fetchProducts();
     } catch (e) {
-      print('Error fetching products: $e');
+      debugPrint('Error fetching products: $e');
       return [];
     }
   }

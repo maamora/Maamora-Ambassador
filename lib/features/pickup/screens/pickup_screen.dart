@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PickupScreen extends StatelessWidget {
-  const PickupScreen({Key? key}) : super(key: key);
+  const PickupScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

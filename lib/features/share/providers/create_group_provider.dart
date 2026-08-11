@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../models/models.dart';
@@ -62,7 +63,7 @@ class CreateGroupNotifier extends StateNotifier<CreateGroupState> {
       try {
         ambassador = await _repository.fetchCurrentAmbassador();
       } catch (e) {
-        print('Error fetching ambassador: $e');
+        debugPrint('Error fetching ambassador: $e');
       }
 
       if (ambassador == null) {
@@ -115,7 +116,7 @@ class CreateGroupNotifier extends StateNotifier<CreateGroupState> {
       try {
         ambassador = await _repository.fetchCurrentAmbassador();
       } catch (e) {
-        print('Error fetching ambassador: $e');
+        debugPrint('Error fetching ambassador: $e');
       }
 
       if (ambassador == null) {
@@ -154,7 +155,7 @@ class CreateGroupNotifier extends StateNotifier<CreateGroupState> {
         // 4. Realtime updates subscription on product group
         _subscribeToRealtimeGroupUpdates(group.id);
       } catch (e, stack) {
-        print('Error creating group: $e\n$stack');
+        debugPrint('Error creating group: $e\n$stack');
         state = state.copyWith(
           isLoading: false,
           errorMessage: 'Erreur lors de la création du groupe.',

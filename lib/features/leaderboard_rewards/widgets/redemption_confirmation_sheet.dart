@@ -84,7 +84,7 @@ class _RedemptionConfirmationSheetState extends State<RedemptionConfirmationShee
               decoration: BoxDecoration(
                 color: _surfaceContainerLow,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: _outlineVariant.withOpacity(0.6)),
+                border: Border.all(color: _outlineVariant.withValues(alpha: 0.6)),
               ),
               child: Column(
                 children: [
@@ -166,7 +166,7 @@ class _DetailRow extends StatelessWidget {
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : Border(bottom: BorderSide(color: _outlineVariant.withOpacity(0.4))),
+            : Border(bottom: BorderSide(color: _outlineVariant.withValues(alpha: 0.4))),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

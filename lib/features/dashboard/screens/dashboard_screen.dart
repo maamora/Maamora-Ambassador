@@ -1,80 +1,316 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../shared/widgets/points_card.dart';
+// ── Design tokens (match project palette) ─────────────────────────────────
+const Color _primary = Color(0xFFFB7701); // orange
+const Color _secondary = Color(0xFF1A2433); // dark navy
+const Color _background = Color(0xFFFAF5F0); // warm cream
+const Color _surface = Color(0xFFFFFFFF);
+const Color _onBackground = Color(0xFF1A2433);
+const Color _onSurfaceVariant = Color(0xFF8A8078);
+const Color _cardBorder = Color(0xFFE8DDD3);
+const Color _orangeLight = Color(0xFFFFF0E6);
 
-// ==========================================
-// Colors based on the user's design system
-// ==========================================
-const Color _primary = Color(0xFF9A4600);
-const Color _primaryContainer = Color(0xFFFB7701);
-const Color _onPrimaryContainer = Color(0xFF592600);
-const Color _surface = Color(0xFFFFF8F5);
-const Color _surfaceContainerLowest = Color(0xFFFFFFFF);
-const Color _surfaceContainerHigh = Color(0xFFFBE3D8);
-const Color _surfaceVariant = Color(0xFFF6DED2);
-const Color _onBackground = Color(0xFF251912);
-const Color _onSurfaceVariant = Color(0xFF584236);
-const Color _outlineVariant = Color(0xFFE0C0B0);
-const Color _tertiaryContainer = Color(0xFF00A4FC);
-
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _surface,
-      body: const SafeArea(
+      backgroundColor: _background,
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              PointsCard(),
-              SizedBox(height: 32),
+              _GreetingHeader(),
+              const SizedBox(height: 16),
+              const _NextLevelCard(),
+              const SizedBox(height: 16),
+              _ShareButton(),
+              const SizedBox(height: 24),
               _ActiveGroupsSection(),
-              SizedBox(height: 32),
-              _RecentActivitySection(),
-              SizedBox(height: 24),
+              const SizedBox(height: 16),
+              const _TotalEarnedCard(),
+              const SizedBox(height: 16),
             ],
           ),
         ),
       ),
     );
   }
-
 }
 
+// ── Greeting Header ─────────────────────────────────────────────────────────
 
+class _GreetingHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Salam, Ahmed 👋',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: _onBackground,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Here is a quick look at your earnings and active groups.',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  color: _onSurfaceVariant,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        _LevelBadge(label: 'Bronze · 6%'),
+      ],
+    );
+  }
+}
 
-class _ActiveGroupsSection extends StatelessWidget {
-  const _ActiveGroupsSection();
+class _LevelBadge extends StatelessWidget {
+  final String label;
+  const _LevelBadge({required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'My Active Groups',
-          style: GoogleFonts.plusJakartaSans(
-            color: _onBackground,
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: _primary,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.military_tech_rounded, color: Colors.white, size: 14),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Next Level Card ─────────────────────────────────────────────────────────
+
+class _NextLevelCard extends StatelessWidget {
+  const _NextLevelCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const int totalOrders = 50;
+    const int completedOrders = 38;
+    const double progress = completedOrders / totalOrders;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _cardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'NEXT LEVEL',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: _onSurfaceVariant,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Silver Tier',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: _onBackground,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  const Icon(Icons.timer_outlined, color: _primary, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    '5 days left',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: _primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '12 orders needed',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: _onSurfaceVariant,
+                ),
+              ),
+              Text(
+                '$completedOrders/$totalOrders',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: _onBackground,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFEDE8E4),
+              valueColor: const AlwaysStoppedAnimation<Color>(_primary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Share Button ─────────────────────────────────────────────────────────────
+
+class _ShareButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton.icon(
+        onPressed: () {},
+        icon: const Icon(Icons.share_rounded, color: Colors.white, size: 20),
+        label: Text(
+          'Share a deal link',
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
         ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 135, // Increased from 120 to provide more breathing room and avoid overflow
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: 2, // Dummy count for UI showcase
-            separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              return const _GroupCard();
-            },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Active Groups Section ────────────────────────────────────────────────────
+
+class _ActiveGroupsSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'My Active Groups',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: _onBackground,
+              ),
+            ),
+            TextButton(
+              onPressed: () {},
+              style: TextButton.styleFrom(
+                foregroundColor: _primary,
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'See all',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _GroupCard(
+          productEmoji: '🍵',
+          name: 'Artisan Tea Set Bundle',
+          seatsFilled: 8,
+          totalSeats: 10,
+          timeRemaining: '02:15:00',
+          isCountdown: true,
+          estimatedEarnings: 120,
+        ),
+        const SizedBox(height: 12),
+        _GroupCard(
+          productEmoji: '🫘',
+          name: 'Premium Dates Box (5kg)',
+          seatsFilled: 3,
+          totalSeats: 5,
+          timeRemaining: '1d 12h',
+          isCountdown: false,
+          estimatedEarnings: 85,
         ),
       ],
     );
@@ -82,224 +318,211 @@ class _ActiveGroupsSection extends StatelessWidget {
 }
 
 class _GroupCard extends StatelessWidget {
-  const _GroupCard();
+  final String productEmoji;
+  final String name;
+  final int seatsFilled;
+  final int totalSeats;
+  final String timeRemaining;
+  final bool isCountdown;
+  final int estimatedEarnings;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 300,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              width: 80,
-              height: 80,
-              color: _surfaceVariant,
-              // Utilisation d'un conteneur coloré avec icône pour simuler l'image du produit
-              child: const Icon(Icons.image_outlined, color: _outlineVariant, size: 32),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min, // Added to prevent overflow
-              children: [
-                Text(
-                  'Summer Hydration\nCampaign',
-                  style: GoogleFonts.inter(
-                    color: _onBackground,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    height: 1.2,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Ends in 3 days',
-                  style: GoogleFonts.inter(
-                    color: _onSurfaceVariant,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _primaryContainer,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'CONFIRMED',
-                    style: GoogleFonts.inter(
-                      color: _surfaceContainerLowest,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecentActivitySection extends StatelessWidget {
-  const _RecentActivitySection();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recent Activity',
-              style: GoogleFonts.plusJakartaSans(
-                color: _onBackground,
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                foregroundColor: _primaryContainer,
-              ),
-              child: Text(
-                'View All',
-                style: GoogleFonts.inter(
-                  color: _primaryContainer,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        const _ActivityTile(
-          title: 'Order #4892',
-          subtitle: '2 items • Today, 10:42 AM',
-          points: '+450 pts',
-          icon: Icons.shopping_bag_outlined,
-          iconColor: _primaryContainer,
-          iconBackgroundColor: _surface,
-        ),
-        const SizedBox(height: 12),
-        const _ActivityTile(
-          title: 'Joined Group',
-          subtitle: 'Fitness Essentials • Yesterday',
-          icon: Icons.people_outline,
-          iconColor: _onBackground,
-          iconBackgroundColor: _surfaceVariant,
-        ),
-      ],
-    );
-  }
-}
-
-class _ActivityTile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String? points;
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBackgroundColor;
-
-  const _ActivityTile({
-    required this.title,
-    required this.subtitle,
-    this.points,
-    required this.icon,
-    required this.iconColor,
-    required this.iconBackgroundColor,
+  const _GroupCard({
+    required this.productEmoji,
+    required this.name,
+    required this.seatsFilled,
+    required this.totalSeats,
+    required this.timeRemaining,
+    required this.isCountdown,
+    required this.estimatedEarnings,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(20),
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _cardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: iconBackgroundColor,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
+          Row(
+            children: [
+              // Product image placeholder
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5EDE4),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Text(productEmoji, style: const TextStyle(fontSize: 30)),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: _onBackground,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.people_alt_outlined,
+                            size: 14, color: _onSurfaceVariant),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$seatsFilled/$totalSeats filled',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: _onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          isCountdown
+                              ? Icons.timer_outlined
+                              : Icons.access_time_rounded,
+                          size: 14,
+                          color: isCountdown ? Colors.red.shade400 : _onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          timeRemaining,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: isCountdown
+                                ? Colors.red.shade400
+                                : _onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 12),
+          const Divider(color: Color(0xFFEDE8E4), height: 1),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Estimated Earnings',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: _onSurfaceVariant,
+                ),
+              ),
+              Text(
+                '$estimatedEarnings DH',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1A5FAD),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Total Earned Card ────────────────────────────────────────────────────────
+
+class _TotalEarnedCard extends StatelessWidget {
+  const _TotalEarnedCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+      decoration: BoxDecoration(
+        color: _orangeLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFFD4A8)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Total earned this month',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: _onBackground,
+            ),
+          ),
+          const SizedBox(height: 6),
+          RichText(
+            text: TextSpan(
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    color: _onBackground,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                TextSpan(
+                  text: '1,450 ',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    color: _primary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.inter(
-                    color: _onSurfaceVariant,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
+                TextSpan(
+                  text: 'DH',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: _primary,
                   ),
                 ),
               ],
             ),
           ),
-          if (points != null) ...[
-            const SizedBox(width: 8),
-            Text(
-              points!,
-              style: GoogleFonts.inter(
-                color: _primaryContainer,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () {},
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'View rank and history',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _secondary,
+                    decoration: TextDecoration.underline,
+                    decorationColor: _secondary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_forward, size: 14, color: _secondary),
+              ],
             ),
-          ]
+          ),
         ],
       ),
     );

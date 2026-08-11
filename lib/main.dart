@@ -13,7 +13,7 @@ Future<void> main() async {
 
   await Supabase.initialize(
     url: ApiConstants.supabaseUrl,
-    anonKey: ApiConstants.supabaseAnonKey,
+    publishableKey: ApiConstants.supabaseAnonKey,
   );
 
   runApp(const ProviderScope(child: AmbassadorsApp()));

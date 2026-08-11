@@ -1,14 +1,15 @@
 class AppRoutes {
   AppRoutes._();
 
-  // static const String home = '/';
-  static const String introAmbassador = '/intro-ambassador';
-  static const String signUp = '/sign-up';
+  // ── Auth / Onboarding ──────────────────────────────────────────────────────
   static const String login = '/login';
-  static const String verifyEmail = '/verify-email';
-  static const String forgotPassword = '/forgot-password';
-  static const String resetPassword = '/reset-password';
-  static const String callbackLogin = '/callback/login'; // retour OAuth web
+  static const String register = '/register';
+  static const String welcome = '/welcome';
+
+  // ── Callback (OAuth web) ───────────────────────────────────────────────────
+  static const String callbackLogin = '/callback/login';
+
+  // ── Main app ───────────────────────────────────────────────────────────────
   static const String dashboard = '/dashboard';
   static const String share = '/share';
   static const String leaderboard = '/leaderboard';
@@ -20,4 +21,6 @@ class AppRoutes {
   static const String productDetail = '/product-detail';
   static const String ambassadorShop = '/ambassador-shop';
   static const String orderDetails = '/order-details';
+  static const String profile = '/profile';
+  static const String rules = '/rules';
 }
