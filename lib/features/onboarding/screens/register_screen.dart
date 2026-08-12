@@ -1,12 +1,11 @@
 // features/onboarding/screens/register_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../providers/auth_provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../shared/navigation/app_routes.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({
@@ -107,19 +106,64 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() {
       _isCheckingCode = true;
       _codeError = null;
+      _isCodeValidated = false;
     });
 
-    final isValid = await ref.read(authProvider.notifier).checkInviteCode(code);
+    try {
+      final result = await Supabase.instance.client
+          .rpc('verify_invite_code_status', params: {'p_code': code})
+          .maybeSingle();
 
-    if (!mounted) return;
-    setState(() {
-      _isCheckingCode = false;
-      if (isValid) {
-        _isCodeValidated = true;
-      } else {
-        _codeError = 'Code invalide, expiré ou déjà utilisé.';
+      if (!mounted) return;
+
+      if (result == null) {
+        // Code introuvable en base
+        setState(() {
+          _isCheckingCode = false;
+          _codeError = 'Code invalide. Vérifiez que vous l\'avez copié correctement.';
+        });
+        return;
       }
-    });
+
+      final status = result['status'] as String?;
+      if (status != 'unused') {
+        // Code utilisé, expiré ou révoqué
+        setState(() {
+          _isCheckingCode = false;
+          _codeError = 'Ce code a déjà été utilisé ou n\'est plus valide.';
+        });
+        return;
+      }
+
+      final expiresAtStr = result['expires_at'] as String?;
+      if (expiresAtStr != null) {
+        final expiresAt = DateTime.tryParse(expiresAtStr);
+        if (expiresAt != null && DateTime.now().isAfter(expiresAt)) {
+          // Code expiré (basé sur la date)
+          setState(() {
+            _isCheckingCode = false;
+            _codeError = 'Ce code a expiré. Demandez un nouveau code à votre administrateur.';
+          });
+          return;
+        }
+      }
+
+      // ✅ Code valide
+      setState(() {
+        _isCheckingCode = false;
+        _isCodeValidated = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('[RegisterScreen] _verifyCode error: $e');
+      // Si l'erreur est liée au RLS (pas de lecture publique autorisée),
+      // on remonte l'erreur clairement plutôt que de laisser passer.
+      setState(() {
+        _isCheckingCode = false;
+        _codeError = 'Impossible de vérifier le code : $e\n'
+            'Contactez votre administrateur si l\'erreur persiste.';
+      });
+    }
   }
 
   void _handleGoogleSignIn() async {

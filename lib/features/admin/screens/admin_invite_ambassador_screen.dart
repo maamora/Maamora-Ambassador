@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/admin_status_badge.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
@@ -13,53 +14,36 @@ const Color _cardBorder = Color(0xFFE8DDD3);
 const Color _orangeLight = Color(0xFFFFF0E6);
 const Color _whatsappGreen = Color(0xFF25D366);
 
-// ── données factices, à remplacer ─────────────────────────────────────────
-class _MockInviteCode {
+// ── Modèle de données ──────────────────────────────────────────────────────
+class _InviteCode {
   final String code;
   final String status; // unused | used | expired | revoked
-  final String createdAt;
-  final String expiresAt;
-  final String? city;
+  final DateTime createdAt;
+  final DateTime? expiresAt;
+  final DateTime? usedAt;
 
-  const _MockInviteCode({
+  const _InviteCode({
     required this.code,
     required this.status,
     required this.createdAt,
-    required this.expiresAt,
-    this.city,
+    this.expiresAt,
+    this.usedAt,
   });
-}
 
-final _mockInviteCodes = <_MockInviteCode>[
-  const _MockInviteCode(
-    code: 'AMB-X7K2M',
-    status: 'unused',
-    createdAt: 'Aujourd\'hui, 10:15',
-    expiresAt: '18 août 2026',
-    city: 'Casablanca',
-  ),
-  const _MockInviteCode(
-    code: 'AMB-3NP8Q',
-    status: 'used',
-    createdAt: 'Hier, 14:30',
-    expiresAt: '17 août 2026',
-    city: 'Rabat',
-  ),
-  const _MockInviteCode(
-    code: 'AMB-LF9W1',
-    status: 'expired',
-    createdAt: '5 août 2026',
-    expiresAt: '8 août 2026',
-    city: null,
-  ),
-  const _MockInviteCode(
-    code: 'AMB-T4ZB6',
-    status: 'revoked',
-    createdAt: '1 août 2026',
-    expiresAt: '15 août 2026',
-    city: 'Salé',
-  ),
-];
+  factory _InviteCode.fromMap(Map<String, dynamic> map) {
+    return _InviteCode(
+      code: map['code'] as String,
+      status: map['status'] as String? ?? 'unused',
+      createdAt: DateTime.parse(map['created_at'] as String),
+      expiresAt: map['expires_at'] != null
+          ? DateTime.tryParse(map['expires_at'] as String)
+          : null,
+      usedAt: map['used_at'] != null
+          ? DateTime.tryParse(map['used_at'] as String)
+          : null,
+    );
+  }
+}
 
 class AdminInviteAmbassadorScreen extends StatefulWidget {
   const AdminInviteAmbassadorScreen({super.key});
@@ -71,10 +55,20 @@ class AdminInviteAmbassadorScreen extends StatefulWidget {
 
 class _AdminInviteAmbassadorScreenState
     extends State<AdminInviteAmbassadorScreen> {
-  final _cityController = TextEditingController();
+  final _cityController = TextEditingController(); // visuel uniquement, non envoyé en DB
   DateTime? _selectedExpiry;
-  String? _generatedCode; // null = not yet generated
+  String? _generatedCode;
   bool _isGenerating = false;
+
+  List<_InviteCode> _invites = [];
+  bool _isLoadingInvites = true;
+  String? _invitesError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInvites();
+  }
 
   @override
   void dispose() {
@@ -85,23 +79,81 @@ class _AdminInviteAmbassadorScreenState
   String get _generatedLink =>
       'https://maamora.app/join/${_generatedCode ?? ''}';
 
-  void _generate() {
-    setState(() => _isGenerating = true);
-    Future.delayed(const Duration(milliseconds: 700), () {
-      if (!mounted) return;
-      setState(() {
-        _isGenerating = false;
-        // données factices, à remplacer
-        _generatedCode = 'AMB-${DateTime.now().millisecondsSinceEpoch % 90000 + 10000}';
-      });
+  // ── Récupération de la liste des invitations ────────────────────────────
+  Future<void> _fetchInvites() async {
+    setState(() {
+      _isLoadingInvites = true;
+      _invitesError = null;
     });
-    // TODO: brancher sur invite_codes (INSERT) + bouton Générer -> créer une ligne
-    // supabase.from('invite_codes').insert({
-    //   'code': generatedCode,
-    //   'status': 'unused',
-    //   'created_by_admin_id': adminId,
-    //   'expires_at': _selectedExpiry?.toIso8601String(),
-    // });
+    try {
+      final adminId = Supabase.instance.client.auth.currentUser!.id;
+      final response = await Supabase.instance.client
+          .from('invite_codes')
+          .select('code, status, created_at, expires_at, used_at')
+          .eq('created_by_admin_id', adminId)
+          .order('created_at', ascending: false);
+
+      final list = (response as List)
+          .map((e) => _InviteCode.fromMap(e as Map<String, dynamic>))
+          .toList();
+
+      if (mounted) {
+        setState(() {
+          _invites = list;
+          _isLoadingInvites = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[AdminInvite] fetchInvites error: $e');
+      if (mounted) {
+        setState(() {
+          _invitesError = 'Erreur lors du chargement des invitations : $e';
+          _isLoadingInvites = false;
+        });
+      }
+    }
+  }
+
+  // ── Génération d'un nouveau code ────────────────────────────────────────
+  Future<void> _generate() async {
+    setState(() {
+      _isGenerating = true;
+      _generatedCode = null;
+    });
+
+    try {
+      final adminId = Supabase.instance.client.auth.currentUser!.id;
+
+      final response = await Supabase.instance.client
+          .from('invite_codes')
+          .insert({
+            'created_by_admin_id': adminId,
+            if (_selectedExpiry != null)
+              'expires_at': _selectedExpiry!.toIso8601String(),
+          })
+          .select('code, status, expires_at, created_at')
+          .single();
+
+      if (mounted) {
+        setState(() {
+          _generatedCode = response['code'] as String;
+          _isGenerating = false;
+        });
+        // Rafraîchir la liste
+        _fetchInvites();
+      }
+    } catch (e) {
+      debugPrint('[AdminInvite] generate error: $e');
+      if (mounted) {
+        setState(() => _isGenerating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la génération : $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _pickDate() async {
@@ -116,6 +168,16 @@ class _AdminInviteAmbassadorScreenState
     }
   }
 
+  void _copyCode() {
+    Clipboard.setData(ClipboardData(text: _generatedCode ?? ''));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Code copié dans le presse-papiers'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _copyLink() {
     Clipboard.setData(ClipboardData(text: _generatedLink));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -127,9 +189,10 @@ class _AdminInviteAmbassadorScreenState
   }
 
   void _shareWhatsApp() {
-    // TODO: brancher sur url_launcher + WhatsApp deep link
+    // Partage du CODE via un message texte
+    // TODO: brancher url_launcher avec le lien WhatsApp
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Partage WhatsApp (à brancher)')),
+      SnackBar(content: Text('Code à partager : ${_generatedCode ?? ''}')),
     );
   }
 
@@ -175,7 +238,7 @@ class _AdminInviteAmbassadorScreenState
         ),
         const SizedBox(height: 4),
         Text(
-          'Générez un lien d\'invitation unique.',
+          'Générez un code d\'invitation unique.',
           style: GoogleFonts.inter(
             fontSize: 13,
             color: _onSurfaceVariant,
@@ -196,9 +259,9 @@ class _AdminInviteAmbassadorScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // City field (optional)
+          // Ville (optionnel, visuel uniquement — non envoyé en DB)
           Text(
-            'Ville (optionnel)',
+            'Ville (optionnel, pour votre référence)',
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -224,9 +287,14 @@ class _AdminInviteAmbassadorScreenState
             ),
             style: GoogleFonts.inter(fontSize: 14, color: _onBackground),
           ),
+          const SizedBox(height: 4),
+          Text(
+            'Note : Ce champ est local uniquement — le code généré n\'est pas lié à une ville en base.',
+            style: GoogleFonts.inter(fontSize: 11, color: _onSurfaceVariant),
+          ),
           const SizedBox(height: 16),
 
-          // Expiry date (optional)
+          // Date d'expiration (optionnel)
           Text(
             'Date d\'expiration (optionnel)',
             style: GoogleFonts.inter(
@@ -286,7 +354,7 @@ class _AdminInviteAmbassadorScreenState
               )
             : const Icon(Icons.link_rounded, color: Colors.white, size: 20),
         label: Text(
-          _isGenerating ? 'Génération...' : 'Générer le lien d\'invitation',
+          _isGenerating ? 'Génération...' : 'Générer le code d\'invitation',
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -316,41 +384,46 @@ class _AdminInviteAmbassadorScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'LIEN GÉNÉRÉ',
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: _onSurfaceVariant,
-              letterSpacing: 1.0,
-            ),
+          Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: _primary, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                'CODE GÉNÉRÉ',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: _primary,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          // Link display box
+          const SizedBox(height: 12),
+          // Code seul (à communiquer à l'ambassadeur)
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
               color: _surface,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _primary, width: 1.5),
+              border: Border.all(color: _primary, width: 2),
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
-                  child: Text(
-                    _generatedLink,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _onBackground,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                Text(
+                  _generatedCode ?? '',
+                  style: GoogleFonts.inter(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: _primary,
+                    letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 GestureDetector(
-                  onTap: _copyLink,
+                  onTap: _copyCode,
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
@@ -364,15 +437,45 @@ class _AdminInviteAmbassadorScreenState
               ],
             ),
           ),
+          const SizedBox(height: 10),
+          // Lien complet (pour partage)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: _surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _cardBorder),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _generatedLink,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: _onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _copyLink,
+                  child: const Icon(Icons.copy_rounded,
+                      color: _onSurfaceVariant, size: 16),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
-          // Action buttons
+          // Bouton partager WhatsApp
           Row(
             children: [
               Expanded(
                 child: _ActionButton(
                   icon: Icons.copy_all_rounded,
-                  label: 'Copier',
-                  onTap: _copyLink,
+                  label: 'Copier le code',
+                  onTap: _copyCode,
                   outlined: true,
                 ),
               ),
@@ -396,25 +499,84 @@ class _AdminInviteAmbassadorScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Invitations envoyées',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: _onBackground,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Invitations envoyées',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: _onBackground,
+                ),
+              ),
+            ),
+            if (!_isLoadingInvites)
+              GestureDetector(
+                onTap: _fetchInvites,
+                child: const Icon(Icons.refresh_rounded,
+                    size: 20, color: _onSurfaceVariant),
+              ),
+          ],
         ),
         const SizedBox(height: 4),
-        Text(
-          // données factices, à remplacer
-          '${_mockInviteCodes.length} invitations • données factices',
-          style: GoogleFonts.inter(fontSize: 12, color: _onSurfaceVariant),
-        ),
+        if (!_isLoadingInvites && _invitesError == null)
+          Text(
+            '${_invites.length} invitation${_invites.length > 1 ? 's' : ''}',
+            style: GoogleFonts.inter(fontSize: 12, color: _onSurfaceVariant),
+          ),
         const SizedBox(height: 12),
-        ..._mockInviteCodes.map((inv) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _InviteCodeRow(invite: inv),
-            )),
+        if (_isLoadingInvites)
+          const Center(
+              child: Padding(
+            padding: EdgeInsets.all(24),
+            child: CircularProgressIndicator(),
+          ))
+        else if (_invitesError != null)
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.red.shade200),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _invitesError!,
+                    style: GoogleFonts.inter(
+                        fontSize: 13, color: Colors.red.shade700),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else if (_invites.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  const Icon(Icons.mail_outline_rounded,
+                      size: 40, color: _onSurfaceVariant),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Aucune invitation envoyée',
+                    style: GoogleFonts.inter(
+                        fontSize: 13, color: _onSurfaceVariant),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ..._invites.map((inv) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _InviteCodeRow(invite: inv),
+              )),
       ],
     );
   }
@@ -476,8 +638,16 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
+String _formatDate(DateTime dt) {
+  final now = DateTime.now();
+  final diff = now.difference(dt);
+  if (diff.inDays == 0) return 'Aujourd\'hui, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  if (diff.inDays == 1) return 'Hier, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  return '${dt.day}/${dt.month}/${dt.year}';
+}
+
 class _InviteCodeRow extends StatelessWidget {
-  final _MockInviteCode invite;
+  final _InviteCode invite;
   const _InviteCodeRow({required this.invite});
 
   @override
@@ -496,44 +666,39 @@ class _InviteCodeRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      invite.code,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: _primary,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    if (invite.city != null) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        '• ${invite.city}',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: _onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
+                Text(
+                  invite.code,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: _primary,
+                    letterSpacing: 0.5,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Créé: ${invite.createdAt}',
+                  'Créé: ${_formatDate(invite.createdAt)}',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: _onSurfaceVariant,
                   ),
                 ),
-                Text(
-                  'Expire: ${invite.expiresAt}',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: _onSurfaceVariant,
+                if (invite.expiresAt != null)
+                  Text(
+                    'Expire: ${invite.expiresAt!.day}/${invite.expiresAt!.month}/${invite.expiresAt!.year}',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: _onSurfaceVariant,
+                    ),
+                  )
+                else
+                  Text(
+                    'Pas d\'expiration',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: _onSurfaceVariant,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
