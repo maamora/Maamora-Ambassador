@@ -170,6 +170,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await _supabase.auth.signInWithOAuth(
           OAuthProvider.google,
           redirectTo: kIsWeb ? '${Uri.base.origin}$redirectPath' : null,
+          queryParams: {'prompt': 'select_account'},
         );
         // The page will redirect. Upon return, _init() will catch the auth state change.
       } else {

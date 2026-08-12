@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/navigation/app_routes.dart';
@@ -342,7 +345,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: GestureDetector(
-                      onTap: () {},
+                      onTap: () async {
+                        try {
+                          if (!kIsWeb) {
+                            final googleSignIn = GoogleSignIn();
+                            if (await googleSignIn.isSignedIn()) {
+                              await googleSignIn.signOut();
+                            }
+                          }
+                          await Supabase.instance.client.auth.signOut();
+                          if (context.mounted) {
+                            context.go(AppRoutes.login);
+                          }
+                        } catch (e) {
+                          debugPrint('Logout error: $e');
+                        }
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(

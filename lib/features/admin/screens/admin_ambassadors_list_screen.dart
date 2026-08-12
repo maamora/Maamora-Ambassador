@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
 import '../widgets/admin_status_badge.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
@@ -9,92 +11,73 @@ const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
 const Color _cardBorder = Color(0xFFE8DDD3);
+const Color _errorColor = Color(0xFFB3261E);
 
-// ── données factices, à remplacer ─────────────────────────────────────────
-class _MockAmbassador {
+// ── Modèle ───────────────────────────────────────────────────────────────
+class AmbassadorData {
+  final String id;
   final String fullName;
   final String initials;
   final String city;
-  final String phone;
-  final String status; // active | pending | rejected | suspended
-  final String level; // Bronze | Silver | Gold | Platinum
+  final String status; 
+  final String level;
   final int totalValidatedMembers;
   final String createdAt;
 
-  const _MockAmbassador({
+  AmbassadorData({
+    required this.id,
     required this.fullName,
     required this.initials,
     required this.city,
-    required this.phone,
     required this.status,
     required this.level,
     required this.totalValidatedMembers,
     required this.createdAt,
   });
-}
 
-final _mockAmbassadors = <_MockAmbassador>[
-  const _MockAmbassador(
-    fullName: 'Youssef Tahiri',
-    initials: 'YT',
-    city: 'Casablanca',
-    phone: '+212 6 11 22 33 44',
-    status: 'active',
-    level: 'Gold',
-    totalValidatedMembers: 87,
-    createdAt: 'Mar 2026',
-  ),
-  const _MockAmbassador(
-    fullName: 'Amine Benhammou',
-    initials: 'AB',
-    city: 'Marrakech',
-    phone: '+212 6 55 66 77 88',
-    status: 'active',
-    level: 'Silver',
-    totalValidatedMembers: 45,
-    createdAt: 'Avr 2026',
-  ),
-  const _MockAmbassador(
-    fullName: 'Fatima Zahra',
-    initials: 'FZ',
-    city: 'Salé',
-    phone: '+212 6 12 34 56 78',
-    status: 'pending',
-    level: 'Bronze',
-    totalValidatedMembers: 0,
-    createdAt: 'Aujourd\'hui',
-  ),
-  const _MockAmbassador(
-    fullName: 'Karim Alaoui',
-    initials: 'KA',
-    city: 'Casablanca',
-    phone: '+212 6 98 76 54 32',
-    status: 'pending',
-    level: 'Bronze',
-    totalValidatedMembers: 0,
-    createdAt: 'Hier',
-  ),
-  const _MockAmbassador(
-    fullName: 'Nadia Chraibi',
-    initials: 'NC',
-    city: 'Fès',
-    phone: '+212 6 33 22 11 00',
-    status: 'rejected',
-    level: 'Bronze',
-    totalValidatedMembers: 0,
-    createdAt: 'Oct 2025',
-  ),
-  const _MockAmbassador(
-    fullName: 'Hassan Moussaoui',
-    initials: 'HM',
-    city: 'Tanger',
-    phone: '+212 6 77 88 99 00',
-    status: 'suspended',
-    level: 'Bronze',
-    totalValidatedMembers: 12,
-    createdAt: 'Jan 2026',
-  ),
-];
+  factory AmbassadorData.fromMap(Map<String, dynamic> map) {
+    final fullName = map['full_name'] ?? 'Inconnu';
+    final parts = fullName.split(' ');
+    String initials = '';
+    if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      initials += parts[0][0].toUpperCase();
+    }
+    if (parts.length > 1 && parts[1].isNotEmpty) {
+      initials += parts[1][0].toUpperCase();
+    }
+
+    String formattedDate = '';
+    if (map['created_at'] != null) {
+      final date = DateTime.tryParse(map['created_at']);
+      if (date != null) {
+        final now = DateTime.now();
+        final difference = now.difference(date);
+        if (difference.inDays == 0 && now.day == date.day) {
+          formattedDate = 'Aujourd\'hui, ${DateFormat('HH:mm').format(date)}';
+        } else if (difference.inDays == 1 || (difference.inDays == 0 && now.day != date.day)) {
+          formattedDate = 'Hier';
+        } else {
+          formattedDate = DateFormat('MMM yyyy').format(date);
+        }
+      }
+    }
+
+    // Capitalize level if it comes lowercased from DB
+    String rawLevel = map['level'] ?? 'bronze';
+    String capitalizedLevel = rawLevel.isNotEmpty ? '${rawLevel[0].toUpperCase()}${rawLevel.substring(1)}' : 'Bronze';
+
+    return AmbassadorData(
+      id: map['id']?.toString() ?? '',
+      fullName: fullName,
+      initials: initials,
+      city: map['city'] ?? 'Inconnue',
+      status: map['status'] ?? 'pending',
+      level: capitalizedLevel,
+      totalValidatedMembers: map['total_validated_members'] ?? 0,
+      createdAt: formattedDate,
+    );
+  }
+}
 
 class AdminAmbassadorsListScreen extends StatefulWidget {
   const AdminAmbassadorsListScreen({super.key});
@@ -106,7 +89,7 @@ class AdminAmbassadorsListScreen extends StatefulWidget {
 
 class _AdminAmbassadorsListScreenState
     extends State<AdminAmbassadorsListScreen> {
-  // Filter state — UI only, no real filtering logic yet
+  // Filter state — UI only, logic to be implemented later if needed
   String _filterStatus = 'Tous';
   String _filterLevel = 'Tous';
   String _filterCity = 'Toutes';
@@ -123,8 +106,51 @@ class _AdminAmbassadorsListScreenState
     'Tanger',
   ];
 
-  // données factices, à remplacer — no real filter applied
-  List<_MockAmbassador> get _displayed => _mockAmbassadors;
+  List<AmbassadorData> _ambassadors = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAmbassadors();
+  }
+
+  Future<void> _fetchAmbassadors() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await Supabase.instance.client
+          .from('ambassadors')
+          .select('id, full_name, city, created_at, status, level, total_validated_members')
+          .order('created_at', ascending: false);
+
+      final List<dynamic> data = response;
+      setState(() {
+        _ambassadors = data.map((e) => AmbassadorData.fromMap(e)).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des ambassadeurs : $e');
+      setState(() {
+        _errorMessage = 'Impossible de charger la liste. Veuillez vérifier votre connexion ou vos droits d\'accès.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Very basic local filtering for demo purposes based on selected dropdowns
+  List<AmbassadorData> get _displayed {
+    return _ambassadors.where((a) {
+      if (_filterStatus != 'Tous' && a.status.toLowerCase() != _filterStatus.toLowerCase()) return false;
+      if (_filterLevel != 'Tous' && a.level.toLowerCase() != _filterLevel.toLowerCase()) return false;
+      if (_filterCity != 'Toutes' && a.city.toLowerCase() != _filterCity.toLowerCase()) return false;
+      return true;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,18 +165,63 @@ class _AdminAmbassadorsListScreenState
             _buildFilters(),
             const SizedBox(height: 8),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 8),
-                itemCount: _displayed.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (_, i) =>
-                    _AmbassadorRow(ambassador: _displayed[i]),
-              ),
+              child: _buildBody(),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: _primary));
+    }
+    
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline_rounded, color: _errorColor, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(color: _onBackground, fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _fetchAmbassadors,
+                style: ElevatedButton.styleFrom(backgroundColor: _primary, foregroundColor: Colors.white),
+                child: const Text('Réessayer'),
+              )
+            ],
+          ),
+        ),
+      );
+    }
+    
+    final displayedList = _displayed;
+    
+    if (displayedList.isEmpty) {
+      return Center(
+        child: Text(
+          'Aucun ambassadeur trouvé.',
+          style: GoogleFonts.inter(color: _onSurfaceVariant, fontSize: 14),
+        ),
+      );
+    }
+    
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(
+          horizontal: 16, vertical: 8),
+      itemCount: displayedList.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (_, i) =>
+          _AmbassadorRow(ambassador: displayedList[i]),
     );
   }
 
@@ -168,11 +239,11 @@ class _AdminAmbassadorsListScreenState
               color: _onBackground,
             ),
           ),
-          Text(
-            // données factices, à remplacer
-            '${_mockAmbassadors.length} ambassadeurs • données factices',
-            style: GoogleFonts.inter(fontSize: 13, color: _onSurfaceVariant),
-          ),
+          if (!_isLoading && _errorMessage == null)
+            Text(
+              '${_displayed.length} ambassadeur(s)',
+              style: GoogleFonts.inter(fontSize: 13, color: _onSurfaceVariant),
+            ),
         ],
       ),
     );
@@ -267,16 +338,16 @@ class _FilterDropdown extends StatelessWidget {
 }
 
 class _AmbassadorRow extends StatelessWidget {
-  final _MockAmbassador ambassador;
+  final AmbassadorData ambassador;
   const _AmbassadorRow({required this.ambassador});
 
   Color _levelColor(String level) {
-    switch (level) {
-      case 'Gold':
+    switch (level.toLowerCase()) {
+      case 'gold':
         return const Color(0xFFD4AF37);
-      case 'Silver':
+      case 'silver':
         return const Color(0xFFB0B0B8);
-      case 'Platinum':
+      case 'platinum':
         return const Color(0xFF7DE3E8);
       default:
         return const Color(0xFFCD7F32); // Bronze

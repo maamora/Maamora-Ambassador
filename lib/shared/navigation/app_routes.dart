@@ -21,6 +21,7 @@ class AppRoutes {
   static const String notifications = '/notifications'; // phase 2
   // ── Admin app ────────────────────────────────────────────────────────────
   static const String admin = '/admin';
+  static const String adminProfile = '/admin/profile';
   static const String adminInvite = '/admin/invite';
   static const String adminAmbassadorsPending = '/admin/ambassadors/pending';
   static const String adminAmbassadorsList = '/admin/ambassadors/list';
