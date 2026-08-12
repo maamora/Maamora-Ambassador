@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
-import '../../../shared/navigation/app_routes.dart';
 import '../../../shared/widgets/shared_app_bar.dart';
+import '../../../features/admin/screens/admin_profile_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_invite_ambassador_screen.dart';
 import 'admin_ambassadors_pending_screen.dart';
@@ -113,7 +112,42 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
     return Scaffold(
       appBar: SharedAppBar(
         title: _getTitle(),
-        onAvatarTap: () => context.push(AppRoutes.adminProfile),
+        onAvatarTap: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => DraggableScrollableSheet(
+            initialChildSize: 0.75,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            expand: false,
+            builder: (ctx, scrollController) => Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFFAF5F0),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD8CEC7),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: const AdminProfileContent(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: _buildCurrentPage(),
       bottomNavigationBar: _AdminBottomNavBar(
