@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
+import '../../../shared/navigation/app_routes.dart';
 import '../../../shared/widgets/shared_app_bar.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_invite_ambassador_screen.dart';
@@ -111,7 +113,7 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
     return Scaffold(
       appBar: SharedAppBar(
         title: _getTitle(),
-        onAvatarTap: () {},
+        onAvatarTap: () => context.push(AppRoutes.adminProfile),
       ),
       body: _buildCurrentPage(),
       bottomNavigationBar: _AdminBottomNavBar(

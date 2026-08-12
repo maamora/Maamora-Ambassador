@@ -86,6 +86,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
+    // Initial check in case state is already loaded when screen mounts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = ref.read(authProvider);
+      if (!authState.isLoading && authState.status != AmbassadorStatus.unauthenticated && authState.status != AmbassadorStatus.initial) {
+        final location = GoRouterState.of(context).matchedLocation;
+        if (location == AppRoutes.login) {
+          _routeBasedOnStatus(authState.status);
+        }
+      }
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFFFAF4EE),
       body: SafeArea(

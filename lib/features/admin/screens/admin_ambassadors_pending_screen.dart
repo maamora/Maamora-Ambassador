@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../widgets/admin_status_badge.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
@@ -10,65 +11,66 @@ const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
 const Color _cardBorder = Color(0xFFE8DDD3);
 const Color _success = Color(0xFF2E7D32);
-const Color _successContainer = Color(0xFFDCEEE3);
 const Color _errorColor = Color(0xFFB3261E);
-const Color _errorContainer = Color(0xFFF9DEDC);
 
-// ── données factices, à remplacer ─────────────────────────────────────────
-class _MockCandidate {
+// ── Modèle ───────────────────────────────────────────────────────────────
+class Candidate {
+  final String id;
   final String fullName;
   final String initials;
   final String city;
-  final String phone;
-  final String inviteCode;
-  final String invitedBy;
-  final bool ndaSigned;
   final String createdAt;
+  
+  // Champs optionnels qui n'ont peut-être pas été demandés ou qui sont gérés
+  final String? phone;
 
-  const _MockCandidate({
+  Candidate({
+    required this.id,
     required this.fullName,
     required this.initials,
     required this.city,
-    required this.phone,
-    required this.inviteCode,
-    required this.invitedBy,
-    required this.ndaSigned,
     required this.createdAt,
+    this.phone,
   });
-}
 
-final _mockCandidates = <_MockCandidate>[
-  const _MockCandidate(
-    fullName: 'Fatima Zahra',
-    initials: 'FZ',
-    city: 'Salé',
-    phone: '+212 6 12 34 56 78',
-    inviteCode: 'SALE-7F3K',
-    invitedBy: 'Youssef T.',
-    ndaSigned: true,
-    createdAt: 'Aujourd\'hui, 10:42',
-  ),
-  const _MockCandidate(
-    fullName: 'Karim Alaoui',
-    initials: 'KA',
-    city: 'Casablanca',
-    phone: '+212 6 98 76 54 32',
-    inviteCode: 'CASA-2B8M',
-    invitedBy: 'Admin',
-    ndaSigned: false,
-    createdAt: 'Hier',
-  ),
-  const _MockCandidate(
-    fullName: 'Sara Benali',
-    initials: 'SB',
-    city: 'Rabat',
-    phone: '+212 6 55 44 33 22',
-    inviteCode: 'RABA-9C1X',
-    invitedBy: 'Amine B.',
-    ndaSigned: true,
-    createdAt: 'Oct 24',
-  ),
-];
+  factory Candidate.fromMap(Map<String, dynamic> map) {
+    final fullName = map['full_name'] ?? 'Inconnu';
+    final parts = fullName.split(' ');
+    String initials = '';
+    if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      initials += parts[0][0].toUpperCase();
+    }
+    if (parts.length > 1 && parts[1].isNotEmpty) {
+      initials += parts[1][0].toUpperCase();
+    }
+
+    // Formatage de la date relative
+    String formattedDate = '';
+    if (map['created_at'] != null) {
+      final date = DateTime.tryParse(map['created_at']);
+      if (date != null) {
+        final now = DateTime.now();
+        final difference = now.difference(date);
+        if (difference.inDays == 0 && now.day == date.day) {
+          formattedDate = 'Aujourd\'hui, ${DateFormat('HH:mm').format(date)}';
+        } else if (difference.inDays == 1 || (difference.inDays == 0 && now.day != date.day)) {
+          formattedDate = 'Hier';
+        } else {
+          formattedDate = DateFormat('MMM d').format(date);
+        }
+      }
+    }
+
+    return Candidate(
+      id: map['id']?.toString() ?? '',
+      fullName: fullName,
+      initials: initials,
+      city: map['city'] ?? 'Inconnue',
+      createdAt: formattedDate,
+      phone: map['phone'],
+    );
+  }
+}
 
 class AdminAmbassadorsPendingScreen extends StatefulWidget {
   const AdminAmbassadorsPendingScreen({super.key});
@@ -81,31 +83,117 @@ class AdminAmbassadorsPendingScreen extends StatefulWidget {
 class _AdminAmbassadorsPendingScreenState
     extends State<AdminAmbassadorsPendingScreen> {
   int? _expandedIndex;
+  
+  List<Candidate> _candidates = [];
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  void _accept(_MockCandidate candidate) {
-    // TODO: brancher sur admin_set_ambassador_status(p_ambassador_id, 'active', null)
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${candidate.fullName} accepté(e) — (mock)'),
-        backgroundColor: _success,
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _fetchPendingCandidates();
   }
 
-  void _showRejectDialog(_MockCandidate candidate) {
+  Future<void> _fetchPendingCandidates() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await Supabase.instance.client
+          .from('ambassadors')
+          .select('id, full_name, city, created_at, phone')
+          .eq('status', 'pending')
+          .order('created_at', ascending: false);
+
+      final List<dynamic> data = response;
+      setState(() {
+        _candidates = data.map((e) => Candidate.fromMap(e)).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des candidatures : $e');
+      setState(() {
+        _errorMessage = 'Impossible de charger les candidatures. Veuillez vérifier votre connexion ou vos droits d\'accès.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _accept(Candidate candidate) async {
+    try {
+      await Supabase.instance.client.rpc('admin_set_ambassador_status', params: {
+        'p_ambassador_id': candidate.id,
+        'p_status': 'active',
+        'p_reason': null,
+      });
+
+      setState(() {
+        _candidates.removeWhere((c) => c.id == candidate.id);
+        _expandedIndex = null;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${candidate.fullName} accepté(e)'),
+            backgroundColor: _success,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Erreur acceptation : $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Erreur lors de l\'acceptation.'),
+            backgroundColor: _errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showRejectDialog(Candidate candidate) {
     showDialog(
       context: context,
       builder: (ctx) => _RejectDialog(
         candidate: candidate,
-        onConfirm: (reason) {
+        onConfirm: (reason) async {
           Navigator.of(ctx).pop();
-          // TODO: brancher sur admin_set_ambassador_status(p_ambassador_id, 'rejected', reason)
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${candidate.fullName} refusé(e) — (mock)'),
-              backgroundColor: _errorColor,
-            ),
-          );
+          
+          try {
+            await Supabase.instance.client.rpc('admin_set_ambassador_status', params: {
+              'p_ambassador_id': candidate.id,
+              'p_status': 'rejected',
+              'p_reason': reason.isNotEmpty ? reason : 'Candidature refusée',
+            });
+
+            setState(() {
+              _candidates.removeWhere((c) => c.id == candidate.id);
+              _expandedIndex = null;
+            });
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${candidate.fullName} refusé(e)'),
+                  backgroundColor: _errorColor,
+                ),
+              );
+            }
+          } catch (e) {
+             debugPrint('Erreur rejet : $e');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Erreur lors du refus.'),
+                  backgroundColor: _errorColor,
+                ),
+              );
+            }
+          }
         },
       ),
     );
@@ -121,31 +209,73 @@ class _AdminAmbassadorsPendingScreenState
           children: [
             _buildHeader(),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
-                itemCount: _mockCandidates.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final candidate = _mockCandidates[index];
-                  final isExpanded = _expandedIndex == index;
-                  return _CandidateCard(
-                    candidate: candidate,
-                    isExpanded: isExpanded,
-                    onToggle: () {
-                      setState(() {
-                        _expandedIndex = isExpanded ? null : index;
-                      });
-                    },
-                    onAccept: () => _accept(candidate),
-                    onReject: () => _showRejectDialog(candidate),
-                  );
-                },
-              ),
+              child: _buildBody(),
             ),
           ],
         ),
       ),
+    );
+  }
+  
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: _primary));
+    }
+    
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline_rounded, color: _errorColor, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(color: _onBackground, fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _fetchPendingCandidates,
+                style: ElevatedButton.styleFrom(backgroundColor: _primary, foregroundColor: Colors.white),
+                child: const Text('Réessayer'),
+              )
+            ],
+          ),
+        ),
+      );
+    }
+    
+    if (_candidates.isEmpty) {
+      return Center(
+        child: Text(
+          'Aucune candidature en attente.',
+          style: GoogleFonts.inter(color: _onSurfaceVariant, fontSize: 14),
+        ),
+      );
+    }
+    
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: _candidates.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (context, index) {
+        final candidate = _candidates[index];
+        final isExpanded = _expandedIndex == index;
+        return _CandidateCard(
+          candidate: candidate,
+          isExpanded: isExpanded,
+          onToggle: () {
+            setState(() {
+              _expandedIndex = isExpanded ? null : index;
+            });
+          },
+          onAccept: () => _accept(candidate),
+          onReject: () => _showRejectDialog(candidate),
+        );
+      },
     );
   }
 
@@ -177,31 +307,32 @@ class _AdminAmbassadorsPendingScreenState
             ),
           ),
           // Pending count badge
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _primary,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  '${_mockCandidates.length}\npending',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.1,
+          if (!_isLoading && _errorMessage == null)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: _primary,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    '${_candidates.length}\npending',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      height: 1.1,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(Icons.notifications_rounded,
-                    color: Colors.white, size: 16),
-              ],
+                  const SizedBox(width: 4),
+                  const Icon(Icons.notifications_rounded,
+                      color: Colors.white, size: 16),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -211,7 +342,7 @@ class _AdminAmbassadorsPendingScreenState
 // ── Candidate Card ────────────────────────────────────────────────────────
 
 class _CandidateCard extends StatelessWidget {
-  final _MockCandidate candidate;
+  final Candidate candidate;
   final bool isExpanded;
   final VoidCallback onToggle;
   final VoidCallback onAccept;
@@ -324,23 +455,8 @@ class _CandidateCard extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               child: Column(
                 children: [
-                  _DetailRow(
-                      label: 'Phone', value: candidate.phone),
-                  _DetailRow(
-                      label: 'Invite Code',
-                      value: candidate.inviteCode,
-                      valueColor: _primary),
-                  _DetailRow(
-                      label: 'Invited By', value: candidate.invitedBy),
-                  _DetailRow(
-                    label: 'NDA Signed',
-                    value: candidate.ndaSigned ? 'Verified' : 'Not signed',
-                    valueColor:
-                        candidate.ndaSigned ? _success : _errorColor,
-                    valueIcon: candidate.ndaSigned
-                        ? Icons.verified_rounded
-                        : Icons.warning_amber_rounded,
-                  ),
+                  if (candidate.phone != null)
+                    _DetailRow(label: 'Phone', value: candidate.phone!),
                   const SizedBox(height: 14),
                   // Action buttons
                   Row(
@@ -458,7 +574,7 @@ class _DetailRow extends StatelessWidget {
 // ── Reject Dialog ─────────────────────────────────────────────────────────
 
 class _RejectDialog extends StatefulWidget {
-  final _MockCandidate candidate;
+  final Candidate candidate;
   final void Function(String reason) onConfirm;
 
   const _RejectDialog({
@@ -497,7 +613,7 @@ class _RejectDialogState extends State<_RejectDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Raison du refus (optionnel)',
+            'Raison du refus (obligatoire)',
             style: GoogleFonts.inter(
               fontSize: 13,
               color: _onSurfaceVariant,
@@ -535,7 +651,19 @@ class _RejectDialogState extends State<_RejectDialog> {
           ),
         ),
         ElevatedButton(
-          onPressed: () => widget.onConfirm(_reasonController.text.trim()),
+          onPressed: () {
+            final reason = _reasonController.text.trim();
+            if (reason.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Veuillez saisir un motif de refus.'),
+                  backgroundColor: _errorColor,
+                )
+              );
+              return;
+            }
+            widget.onConfirm(reason);
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: _errorColor,
             foregroundColor: Colors.white,
