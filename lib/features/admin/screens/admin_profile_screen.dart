@@ -5,7 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/navigation/app_routes.dart';
-import '../../../shared/widgets/shared_app_bar.dart';
 
 const Color _primary = Color(0xFFFB7701);
 const Color _background = Color(0xFFFAF5F0);
@@ -16,17 +15,46 @@ const Color _cardBorder = Color(0xFFE8DDD3);
 const Color _errorColor = Color(0xFFB3261E);
 const Color _success = Color(0xFF2E7D32);
 
-class AdminProfileScreen extends StatefulWidget {
+class AdminProfileScreen extends StatelessWidget {
   const AdminProfileScreen({super.key});
 
   @override
-  State<AdminProfileScreen> createState() => _AdminProfileScreenState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _background,
+      appBar: AppBar(
+        backgroundColor: _background,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: _onBackground),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Profil Admin',
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            color: _onBackground,
+          ),
+        ),
+      ),
+      body: const SafeArea(child: AdminProfileContent()),
+    );
+  }
 }
 
-class _AdminProfileScreenState extends State<AdminProfileScreen> {
+/// Widget autonome contenant toute la logique de chargement et d'affichage
+/// du profil admin. Utilisable dans un Scaffold complet ou dans un modal sheet.
+class AdminProfileContent extends StatefulWidget {
+  const AdminProfileContent({super.key});
+
+  @override
+  State<AdminProfileContent> createState() => _AdminProfileContentState();
+}
+
+class _AdminProfileContentState extends State<AdminProfileContent> {
   bool _isLoading = true;
   String? _errorMessage;
-  
+
   String? _fullName;
   bool _isActive = false;
   String? _createdAt;
@@ -49,7 +77,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       if (user == null) {
         throw Exception('Utilisateur non connecté.');
       }
-      
+
       _email = user.email;
 
       final response = await Supabase.instance.client
@@ -155,164 +183,171 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _background,
-      appBar: SharedAppBar(
-        title: 'Profil Admin',
-      ),
-      body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: _primary))
-            : _errorMessage != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline_rounded, color: _errorColor, size: 48),
-                        const SizedBox(height: 16),
-                        Text(
-                          _errorMessage!,
-                          style: GoogleFonts.inter(color: _onBackground),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _fetchAdminData,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _primary,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Réessayer'),
-                        ),
-                      ],
-                    ),
-                  )
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Avatar and Status
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFE8DDD3),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.person_rounded,
-                            size: 48,
-                            color: Color(0xFF8A8078),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _fullName ?? 'Admin',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: _onBackground,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _isActive ? _success.withValues(alpha: 0.1) : _errorColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _isActive ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                                size: 14,
-                                color: _isActive ? _success : _errorColor,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _isActive ? 'Actif' : 'Inactif',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: _isActive ? _success : _errorColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(48),
+        child: Center(child: CircularProgressIndicator(color: _primary)),
+      );
+    }
 
-                        // Info section
-                        Container(
-                          decoration: BoxDecoration(
-                            color: _surface,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: _cardBorder),
-                          ),
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Informations',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: _onBackground,
-                                ),
-                              ),
-                              const Divider(color: Color(0xFFEDE8E4), height: 24),
-                              _InfoRow(
-                                icon: Icons.email_outlined,
-                                label: 'Email',
-                                value: _email ?? 'Non renseigné',
-                              ),
-                              const SizedBox(height: 12),
-                              _InfoRow(
-                                icon: Icons.calendar_today_outlined,
-                                label: 'Créé le',
-                                value: _createdAt != null
-                                    ? _createdAt!.substring(0, 10)
-                                    : 'Inconnu',
-                              ),
-                            ],
-                          ),
-                        ),
+    if (_errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline_rounded, color: _errorColor, size: 48),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage!,
+              style: GoogleFonts.inter(color: _onBackground),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchAdminData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      );
+    }
 
-                        const SizedBox(height: 32),
-
-                        // Logout button
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: _confirmLogout,
-                            icon: const Icon(Icons.logout_rounded, size: 20),
-                            label: Text(
-                              'Se déconnecter',
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: _errorColor,
-                              side: const BorderSide(color: _errorColor),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 8),
+          // Avatar
+          Container(
+            width: 80,
+            height: 80,
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8DDD3),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.person_rounded,
+              size: 48,
+              color: Color(0xFF8A8078),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _fullName ?? 'Admin',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: _onBackground,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: _isActive
+                  ? _success.withValues(alpha: 0.1)
+                  : _errorColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _isActive ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                  size: 14,
+                  color: _isActive ? _success : _errorColor,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _isActive ? 'Actif' : 'Inactif',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: _isActive ? _success : _errorColor,
                   ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Infos
+          Container(
+            decoration: BoxDecoration(
+              color: _surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _cardBorder),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Informations',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: _onBackground,
+                  ),
+                ),
+                const Divider(color: Color(0xFFEDE8E4), height: 24),
+                _InfoRow(
+                  icon: Icons.email_outlined,
+                  label: 'Email',
+                  value: _email ?? 'Non renseigné',
+                ),
+                const SizedBox(height: 12),
+                _InfoRow(
+                  icon: Icons.calendar_today_outlined,
+                  label: 'Créé le',
+                  value: _createdAt != null
+                      ? _createdAt!.substring(0, 10)
+                      : 'Inconnu',
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // Logout
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _confirmLogout,
+              icon: const Icon(Icons.logout_rounded, size: 20),
+              label: Text(
+                'Se déconnecter',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _errorColor,
+                side: const BorderSide(color: _errorColor),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
 }
+
+
 
 class _InfoRow extends StatelessWidget {
   final IconData icon;

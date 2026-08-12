@@ -650,61 +650,93 @@ class _InviteCodeRow extends StatelessWidget {
   final _InviteCode invite;
   const _InviteCodeRow({required this.invite});
 
+  void _copyCode(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: invite.code));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              '${invite.code} copié !',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        backgroundColor: _primary,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _cardBorder),
-      ),
-      child: Row(
-        children: [
-          // Code
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  invite.code,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: _primary,
-                    letterSpacing: 0.5,
+    return InkWell(
+      onTap: () => _copyCode(context),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _cardBorder),
+        ),
+        child: Row(
+          children: [
+            // Code
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        invite.code,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: _primary,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.copy_rounded, size: 14, color: _onSurfaceVariant),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Créé: ${_formatDate(invite.createdAt)}',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: _onSurfaceVariant,
-                  ),
-                ),
-                if (invite.expiresAt != null)
+                  const SizedBox(height: 4),
                   Text(
-                    'Expire: ${invite.expiresAt!.day}/${invite.expiresAt!.month}/${invite.expiresAt!.year}',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      color: _onSurfaceVariant,
-                    ),
-                  )
-                else
-                  Text(
-                    'Pas d\'expiration',
+                    'Créé: ${_formatDate(invite.createdAt)}',
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: _onSurfaceVariant,
                     ),
                   ),
-              ],
+                  if (invite.expiresAt != null)
+                    Text(
+                      'Expire: ${invite.expiresAt!.day}/${invite.expiresAt!.month}/${invite.expiresAt!.year}',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: _onSurfaceVariant,
+                      ),
+                    )
+                  else
+                    Text(
+                      'Pas d\'expiration',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: _onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
-          AdminStatusBadge(status: invite.status),
-        ],
+            const SizedBox(width: 10),
+            AdminStatusBadge(status: invite.status),
+          ],
+        ),
       ),
     );
   }
