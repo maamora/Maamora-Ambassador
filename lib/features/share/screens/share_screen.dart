@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../profile/providers/profile_provider.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
@@ -12,7 +14,7 @@ const Color _cardBorder = Color(0xFFE8DDD3);
 const Color _whatsappGreen = Color(0xFF25D366);
 const Color _whatsappBubble = Color(0xFFDCF8C6);
 
-class ShareScreen extends StatelessWidget {
+class ShareScreen extends ConsumerWidget {
   const ShareScreen({super.key});
 
   static const String _referralLink = 'maamora.ma/join/amine-tabriquet';
@@ -22,11 +24,23 @@ class ShareScreen extends StatelessWidget {
       'Assalamu alaikum neighbors! 👋\n\nJoin my Maamora group for the best deals on bulk groceries in Tabriquet. We buy together, we save together! 🛒✨\n\nClick here to join my group:\nmaamora.ma/join/amine-tabriquet';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(profileProvider);
+
     return Scaffold(
       backgroundColor: _background,
-      body: SafeArea(
-        child: SingleChildScrollView(
+      body: profileAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: _primary)),
+        error: (err, _) => Center(child: Text('Error: $err')),
+        data: (ambassador) {
+          if (ambassador == null) return const Center(child: Text('Not logged in'));
+          
+          final fullLink = 'maamora.ma/join/${ambassador.referralSlug}';
+          final shortLink = 'maamora.ma/join/${ambassador.referralSlug.substring(0, ambassador.referralSlug.length > 5 ? 5 : ambassador.referralSlug.length)}...';
+          final messageText = 'Assalamu alaikum neighbors! 👋\n\nJoin my Maamora group for the best deals on bulk groceries in ${ambassador.city}. We buy together, we save together! 🛒✨\n\nClick here to join my group:\n$fullLink';
+
+          return SafeArea(
+            child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -56,15 +70,15 @@ class ShareScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Referral Link Box
-              _ReferralLinkBox(link: _shortLink, fullLink: _referralLink),
+              _ReferralLinkBox(link: shortLink, fullLink: fullLink),
               const SizedBox(height: 24),
 
               // Message Preview
-              const _MessagePreviewSection(message: _messageText),
+              _MessagePreviewSection(message: messageText),
               const SizedBox(height: 28),
 
               // WhatsApp Button
-              _WhatsAppButton(link: _referralLink),
+              _WhatsAppButton(link: fullLink),
               const SizedBox(height: 20),
 
               // Weekly stats
@@ -73,7 +87,8 @@ class ShareScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      );
+    }),
     );
   }
 }

@@ -19,6 +19,7 @@ class AppRoutes {
   static const String leaderboard = '/leaderboard';
   static const String rewards = '/rewards';
   static const String notifications = '/notifications'; // phase 2
+  static const String createGroup = '/create-group';
   // ── Admin app ────────────────────────────────────────────────────────────
   static const String admin = '/admin';
   static const String adminProfile = '/admin/profile';
@@ -32,7 +33,6 @@ class AppRoutes {
   static const String pickup = '/pickup';
   static const String productDetail = '/product-detail';
   static const String ambassadorShop = '/ambassador-shop';
-  static const String orderDetails = '/order-details';
   static const String profile = '/profile';
   static const String rules = '/rules';
 }

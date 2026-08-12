@@ -18,11 +18,11 @@ import '../../features/admin/screens/admin_profile_screen.dart';
 
 import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
-import '../../features/groups/screens/order_details_screen.dart';
-import '../../features/shop/screens/ambassador_shop_screen.dart';
+import '../../features/groups/providers/my_groups_provider.dart';
 import '../../features/groups/providers/my_groups_provider.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/rules/screens/rules_screen.dart';
+import '../../features/groups/screens/create_group_screen.dart';
 import '../../models/models.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -44,8 +44,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: NavigationService.navigatorKey,
-  initialLocation: AppRoutes.login,
-  // initialLocation: AppRoutes.dashboard,
+  initialLocation: AppRoutes.dashboard,
   refreshListenable: GoRouterRefreshStream(
     Supabase.instance.client.auth.onAuthStateChange,
   ),
@@ -115,33 +114,16 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const PickupScreen(),
     ),
     GoRoute(
-      path: AppRoutes.ambassadorShop,
-      builder: (context, state) =>
-          AmbassadorShopScreen(product: state.extra as Product),
-    ),
-    GoRoute(
-      path: AppRoutes.orderDetails,
-      builder: (context, state) {
-        final groupData = state.extra as GroupWithProduct?;
-        if (groupData == null) {
-          return const Scaffold(
-            body: Center(
-              child: Text(
-                'Error: Group data is missing. Please go back and try again.',
-              ),
-            ),
-          );
-        }
-        return OrderDetailsScreen(groupData: groupData);
-      },
-    ),
-    GoRoute(
       path: AppRoutes.profile,
       builder: (context, state) => const ProfileScreen(),
     ),
     GoRoute(
       path: AppRoutes.rules,
       builder: (context, state) => const RulesScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.createGroup,
+      builder: (context, state) => const CreateGroupScreen(),
     ),
 
     // ── Admin app ─────────────────────────────────────────────────────────

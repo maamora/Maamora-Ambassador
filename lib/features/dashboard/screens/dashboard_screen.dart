@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/ambassador_state_provider.dart';
+import '../../../models/models.dart';
+import '../../groups/providers/my_groups_provider.dart';
+import '../../../core/services/supabase_service.dart';
+import '../../../shared/navigation/app_routes.dart';
+import 'package:go_router/go_router.dart';
 
 // ── Design tokens (match project palette) ─────────────────────────────────
 const Color _primary = Color(0xFFFB7701); // orange
@@ -11,42 +18,53 @@ const Color _onSurfaceVariant = Color(0xFF8A8078);
 const Color _cardBorder = Color(0xFFE8DDD3);
 const Color _orangeLight = Color(0xFFFFF0E6);
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ambassadorState = ref.watch(ambassadorStateProvider);
+    final groupsAsync = ref.watch(myGroupsProvider);
+
     return Scaffold(
       backgroundColor: _background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _GreetingHeader(),
-              const SizedBox(height: 16),
-              const _NextLevelCard(),
-              const SizedBox(height: 16),
-              _ShareButton(),
-              const SizedBox(height: 24),
-              _ActiveGroupsSection(),
-              const SizedBox(height: 16),
-              const _TotalEarnedCard(),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
+        child: ambassadorState.isLoading
+            ? const Center(child: CircularProgressIndicator(color: _primary))
+            : ambassadorState.ambassador == null
+                ? Center(child: Text(ambassadorState.errorMessage ?? 'Error'))
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _GreetingHeader(ambassador: ambassadorState.ambassador!),
+                        const SizedBox(height: 16),
+                        _NextLevelCard(ambassador: ambassadorState.ambassador!),
+                        const SizedBox(height: 16),
+                        _ShareButton(),
+                        const SizedBox(height: 24),
+                        _ActiveGroupsSection(groupsAsync: groupsAsync),
+                        const SizedBox(height: 16),
+                        const _TotalEarnedCard(),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
       ),
     );
   }
 }
-
 // ── Greeting Header ─────────────────────────────────────────────────────────
 
 class _GreetingHeader extends StatelessWidget {
+  final Ambassador ambassador;
+
+  const _GreetingHeader({required this.ambassador});
+
   @override
   Widget build(BuildContext context) {
+    final name = ambassador.fullName.split(' ').first;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -55,7 +73,7 @@ class _GreetingHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Salam, Ahmed 👋',
+                'Salam, $name 👋',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
@@ -77,7 +95,7 @@ class _GreetingHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        _LevelBadge(label: 'Bronze · 6%'),
+        _LevelBadge(label: '${ambassador.level.label} · ${(ambassador.level.commissionRate * 100).toInt()}%'),
       ],
     );
   }
@@ -117,13 +135,26 @@ class _LevelBadge extends StatelessWidget {
 // ── Next Level Card ─────────────────────────────────────────────────────────
 
 class _NextLevelCard extends StatelessWidget {
-  const _NextLevelCard();
+  final Ambassador ambassador;
+
+  const _NextLevelCard({required this.ambassador});
 
   @override
   Widget build(BuildContext context) {
-    const int totalOrders = 50;
-    const int completedOrders = 38;
-    const double progress = completedOrders / totalOrders;
+    // Logic: threshold for Bronze->Silver is 6, Silver->Gold is 27.
+    int totalOrders = 6;
+    String nextLevelName = 'Silver Tier';
+    
+    if (ambassador.level == AmbassadorLevel.silver) {
+      totalOrders = 27;
+      nextLevelName = 'Gold Tier';
+    } else if (ambassador.level == AmbassadorLevel.gold) {
+      totalOrders = ambassador.totalValidatedMembers; // max level
+      nextLevelName = 'Max Tier';
+    }
+
+    final completedOrders = ambassador.totalValidatedMembers;
+    final progress = totalOrders > 0 ? (completedOrders / totalOrders).clamp(0.0, 1.0) : 0.0;
 
     return Container(
       width: double.infinity,
@@ -150,7 +181,7 @@ class _NextLevelCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'NEXT LEVEL',
+                    ambassador.level == AmbassadorLevel.gold ? 'CURRENT LEVEL' : 'NEXT LEVEL',
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -160,7 +191,7 @@ class _NextLevelCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Silver Tier',
+                    nextLevelName,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -232,10 +263,10 @@ class _ShareButton extends StatelessWidget {
       width: double.infinity,
       height: 52,
       child: ElevatedButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.share_rounded, color: Colors.white, size: 20),
+        onPressed: () => context.push(AppRoutes.createGroup),
+        icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
         label: Text(
-          'Share a deal link',
+          'Propose a new group',
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -258,6 +289,10 @@ class _ShareButton extends StatelessWidget {
 // ── Active Groups Section ────────────────────────────────────────────────────
 
 class _ActiveGroupsSection extends StatelessWidget {
+  final AsyncValue<List<DealGroup>> groupsAsync;
+
+  const _ActiveGroupsSection({required this.groupsAsync});
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -293,24 +328,32 @@ class _ActiveGroupsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        _GroupCard(
-          productEmoji: '🍵',
-          name: 'Artisan Tea Set Bundle',
-          seatsFilled: 8,
-          totalSeats: 10,
-          timeRemaining: '02:15:00',
-          isCountdown: true,
-          estimatedEarnings: 120,
-        ),
-        const SizedBox(height: 12),
-        _GroupCard(
-          productEmoji: '🫘',
-          name: 'Premium Dates Box (5kg)',
-          seatsFilled: 3,
-          totalSeats: 5,
-          timeRemaining: '1d 12h',
-          isCountdown: false,
-          estimatedEarnings: 85,
+        groupsAsync.when(
+          data: (groups) {
+            final activeGroups = groups.where((g) => g.status == DealGroupStatus.open).take(2).toList();
+            if (activeGroups.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Text('No active groups.'),
+              );
+            }
+            return Column(
+              children: activeGroups.map((g) => Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: _GroupCard(
+                  productEmoji: '🛍️', // Use emoji fallback
+                  name: g.productName,
+                  seatsFilled: g.membersCount,
+                  totalSeats: g.seatsTotal,
+                  timeRemaining: 'Active',
+                  isCountdown: false,
+                  estimatedEarnings: (g.estimatedTotalValue * 0.06).toInt(), // Approximation
+                ),
+              )).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator(color: _primary)),
+          error: (err, _) => Text('Error loading groups: $err'),
         ),
       ],
     );
@@ -456,8 +499,26 @@ class _GroupCard extends StatelessWidget {
 
 // ── Total Earned Card ────────────────────────────────────────────────────────
 
-class _TotalEarnedCard extends StatelessWidget {
+class _TotalEarnedCard extends StatefulWidget {
   const _TotalEarnedCard();
+
+  @override
+  State<_TotalEarnedCard> createState() => _TotalEarnedCardState();
+}
+
+class _TotalEarnedCardState extends State<_TotalEarnedCard> {
+  double _balance = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBalance();
+  }
+
+  Future<void> _loadBalance() async {
+    final balance = await supabaseService.getMyWalletBalance();
+    if (mounted) setState(() => _balance = balance);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -472,7 +533,7 @@ class _TotalEarnedCard extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'Total earned this month',
+            'Total earned',
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -484,7 +545,7 @@ class _TotalEarnedCard extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: '1,450 ',
+                  text: '${_balance.toStringAsFixed(0)} ',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 36,
                     fontWeight: FontWeight.w800,

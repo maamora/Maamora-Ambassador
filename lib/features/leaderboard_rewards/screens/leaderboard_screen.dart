@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/leaderboard_provider.dart';
+import '../../../core/services/ambassador_state_provider.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701); // orange
@@ -10,118 +13,103 @@ const Color _onSurfaceVariant = Color(0xFF8A8078);
 const Color _cardBorder = Color(0xFFE8DDD3);
 const Color _brownDark = _primary;
 
-// ── Dummy Data ────────────────────────────────────────────────────────────
-
-class _LeaderEntry {
-  final int rank;
-  final String name;
-  final String city;
-  final int level;
-  final int orders;
-  final String? avatarInitial;
-  final Color? avatarColor;
-
-  const _LeaderEntry({
-    required this.rank,
-    required this.name,
-    required this.city,
-    required this.level,
-    required this.orders,
-    this.avatarInitial,
-    this.avatarColor,
-  });
-}
-
-const _myCity = 'Salé';
-
-final _cityData = <_LeaderEntry>[
-  _LeaderEntry(rank: 1, name: 'Fatima Z.', city: 'Salé', level: 5, orders: 1240),
-  _LeaderEntry(rank: 2, name: 'Khalid B.', city: 'Salé', level: 4, orders: 985, avatarInitial: 'K', avatarColor: Color(0xFFB0C4DE)),
-  _LeaderEntry(rank: 3, name: 'Youssef M.', city: 'Salé', level: 4, orders: 820),
-  _LeaderEntry(rank: 41, name: 'Amina T.', city: 'Salé', level: 2, orders: 156, avatarInitial: 'A', avatarColor: Color(0xFF00BFFF)),
-];
-
-final _nationalData = <_LeaderEntry>[
-  _LeaderEntry(rank: 1, name: 'Hassan A.', city: 'Casablanca', level: 6, orders: 3450),
-  _LeaderEntry(rank: 2, name: 'Sara M.', city: 'Rabat', level: 5, orders: 2890),
-  _LeaderEntry(rank: 3, name: 'Omar B.', city: 'Marrakech', level: 5, orders: 2210),
-  _LeaderEntry(rank: 89, name: 'Amina T.', city: 'Salé', level: 2, orders: 156, avatarInitial: 'A', avatarColor: Color(0xFF00BFFF)),
-];
-
-const _myEntry = _LeaderEntry(rank: 42, name: 'You', city: 'Salé', level: 2, orders: 152);
-
-const _nextPerson = 'Amina';
-const _ordersToPass = 4;
-
 // ── Screen ────────────────────────────────────────────────────────────────
 
-class LeaderboardScreen extends StatefulWidget {
+class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
 
   @override
-  State<LeaderboardScreen> createState() => _LeaderboardScreenState();
+  ConsumerState<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
-class _LeaderboardScreenState extends State<LeaderboardScreen> {
+class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   bool _isMyCity = true;
 
   @override
   Widget build(BuildContext context) {
-    final data = _isMyCity ? _cityData : _nationalData;
+    final ambassadorState = ref.watch(ambassadorStateProvider);
+    final city = ambassadorState.ambassador?.city ?? '';
+    final leaderboardAsync = ref.watch(leaderboardProvider(city));
 
     return Scaffold(
       backgroundColor: _background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
-            // Toggle pills
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _TogglePills(
-                isMyCity: _isMyCity,
-                onToggle: (v) => setState(() => _isMyCity = v),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Ranked list (scrollable)
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  // Top 3 rows
-                  for (final entry in data.take(3)) ...[
-                    _RankRow(entry: entry, isMe: false, showMedal: true),
-                    const SizedBox(height: 10),
-                  ],
-                  // Ellipsis separator
-                  if (data.length > 3) ...[
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Center(
-                        child: Text(
-                          '· · ·',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: _onSurfaceVariant,
-                            letterSpacing: 4,
+      body: leaderboardAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: _primary)),
+        error: (err, _) => Center(child: Text('Error: $err')),
+        data: (data) {
+          final listData = _isMyCity ? data.cityRankings : data.nationalRankings;
+          
+          Map<String, dynamic>? myEntry;
+          Map<String, dynamic>? nextPerson;
+          int? myRank;
+          
+          if (ambassadorState.ambassador != null) {
+            for (int i = 0; i < listData.length; i++) {
+              if (listData[i]['id'] == ambassadorState.ambassador!.id) {
+                myEntry = listData[i];
+                myRank = i + 1;
+                if (i > 0) nextPerson = listData[i - 1];
+                break;
+              }
+            }
+          }
+
+          return SafeArea(
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+                // Toggle pills
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _TogglePills(
+                    city: city,
+                    isMyCity: _isMyCity,
+                    onToggle: (v) => setState(() => _isMyCity = v),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Ranked list (scrollable)
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      // Top 3 rows
+                      for (int i = 0; i < listData.length && i < 3; i++) ...[
+                        _RankRow(rank: i + 1, entry: listData[i], isMe: false, showMedal: true),
+                        const SizedBox(height: 10),
+                      ],
+                      // Ellipsis separator
+                      if (listData.length > 3) ...[
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Center(
+                            child: Text(
+                              '· · ·',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: _onSurfaceVariant,
+                                letterSpacing: 4,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    // 4th entry (user just above me)
-                    _RankRow(entry: data.last, isMe: false, showMedal: false),
-                    const SizedBox(height: 10),
-                  ],
-                  // Bottom padding so the pinned row doesn't cover content
-                  const SizedBox(height: 80),
-                ],
-              ),
+                      ],
+                      // Bottom padding so the pinned row doesn't cover content
+                      const SizedBox(height: 80),
+                    ],
+                  ),
+                ),
+                // Pinned "You" row
+                if (myEntry != null && myRank != null)
+                  _MyPinnedRow(
+                    myEntry: myEntry,
+                    myRank: myRank,
+                    nextPerson: nextPerson,
+                  ),
+              ],
             ),
-            // Pinned "You" row
-            _MyPinnedRow(myEntry: _myEntry),
-          ],
-        ),
+          );
+        }
       ),
     );
   }
@@ -130,10 +118,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 // ── Toggle Pills ─────────────────────────────────────────────────────────────
 
 class _TogglePills extends StatelessWidget {
+  final String city;
   final bool isMyCity;
   final ValueChanged<bool> onToggle;
 
-  const _TogglePills({required this.isMyCity, required this.onToggle});
+  const _TogglePills({required this.city, required this.isMyCity, required this.onToggle});
 
   @override
   Widget build(BuildContext context) {
@@ -146,14 +135,14 @@ class _TogglePills extends StatelessWidget {
       child: Row(
         children: [
           _Pill(
-            label: 'My city ($_myCity)',
+            label: 'My city${city.isNotEmpty ? ' ($city)' : ''}',
             isActive: isMyCity,
-            onTap: () => onToggle(true),
+            onToggle: () => onToggle(true),
           ),
           _Pill(
             label: 'National',
             isActive: !isMyCity,
-            onTap: () => onToggle(false),
+            onToggle: () => onToggle(false),
           ),
         ],
       ),
@@ -164,15 +153,15 @@ class _TogglePills extends StatelessWidget {
 class _Pill extends StatelessWidget {
   final String label;
   final bool isActive;
-  final VoidCallback onTap;
+  final VoidCallback onToggle;
 
-  const _Pill({required this.label, required this.isActive, required this.onTap});
+  const _Pill({required this.label, required this.isActive, required this.onToggle});
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
+        onTap: onToggle,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -198,11 +187,13 @@ class _Pill extends StatelessWidget {
 // ── Rank Row ─────────────────────────────────────────────────────────────────
 
 class _RankRow extends StatelessWidget {
-  final _LeaderEntry entry;
+  final int rank;
+  final Map<String, dynamic> entry;
   final bool isMe;
   final bool showMedal;
 
   const _RankRow({
+    required this.rank,
     required this.entry,
     required this.isMe,
     required this.showMedal,
@@ -210,6 +201,10 @@ class _RankRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final name = entry['full_name'] as String? ?? 'User';
+    final city = entry['city'] as String? ?? 'Unknown';
+    final level = entry['level'] as String? ?? 'neutral';
+    final orders = entry['total_validated_members'] as int? ?? 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
@@ -238,14 +233,14 @@ class _RankRow extends StatelessWidget {
                     top: -4,
                     left: 0,
                     child: Text(
-                      _medal(entry.rank),
+                      _medal(rank),
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
                 Padding(
                   padding: EdgeInsets.only(top: showMedal ? 12 : 0),
                   child: Text(
-                    '${entry.rank}',
+                    '$rank',
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -259,9 +254,7 @@ class _RankRow extends StatelessWidget {
           const SizedBox(width: 10),
           // Avatar
           _Avatar(
-            name: entry.name,
-            initial: entry.avatarInitial,
-            bgColor: entry.avatarColor,
+            name: name,
           ),
           const SizedBox(width: 12),
           // Name & city/level
@@ -270,7 +263,7 @@ class _RankRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  entry.name,
+                  name,
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -284,7 +277,7 @@ class _RankRow extends StatelessWidget {
                         size: 12, color: _onSurfaceVariant),
                     const SizedBox(width: 2),
                     Text(
-                      '${entry.city} · Level ${entry.level}',
+                      '$city · $level',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
@@ -301,7 +294,7 @@ class _RankRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${entry.orders}',
+                '$orders',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -340,12 +333,25 @@ class _RankRow extends StatelessWidget {
 // ── My Pinned Row ─────────────────────────────────────────────────────────────
 
 class _MyPinnedRow extends StatelessWidget {
-  final _LeaderEntry myEntry;
+  final Map<String, dynamic> myEntry;
+  final int myRank;
+  final Map<String, dynamic>? nextPerson;
 
-  const _MyPinnedRow({required this.myEntry});
+  const _MyPinnedRow({required this.myEntry, required this.myRank, this.nextPerson});
 
   @override
   Widget build(BuildContext context) {
+    final orders = myEntry['total_validated_members'] as int? ?? 0;
+    
+    int ordersToPass = 0;
+    String nextName = '';
+    
+    if (nextPerson != null) {
+      final nextOrders = nextPerson!['total_validated_members'] as int? ?? 0;
+      ordersToPass = nextOrders - orders + 1;
+      nextName = (nextPerson!['full_name'] as String? ?? 'Next').split(' ').first;
+    }
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -372,7 +378,7 @@ class _MyPinnedRow extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Text(
-              '${myEntry.rank}',
+              '$myRank',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -409,17 +415,28 @@ class _MyPinnedRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    Text(
-                      '$_ordersToPass more orders to pass $_nextPerson',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.85),
+                    if (nextPerson != null) ...[
+                      Text(
+                        '$ordersToPass more orders to pass $nextName',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(Icons.arrow_upward_rounded,
-                        color: Colors.white.withValues(alpha: 0.85), size: 14),
+                      const SizedBox(width: 4),
+                      Icon(Icons.arrow_upward_rounded,
+                          color: Colors.white.withValues(alpha: 0.85), size: 14),
+                    ] else ...[
+                      Text(
+                        'You are #1!',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ]
                   ],
                 ),
               ],
@@ -430,7 +447,7 @@ class _MyPinnedRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${myEntry.orders}',
+                '$orders',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,

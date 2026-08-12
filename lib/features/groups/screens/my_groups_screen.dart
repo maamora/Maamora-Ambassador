@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/navigation/app_routes.dart';
 import '../providers/my_groups_provider.dart';
-import '../widgets/invite_to_group_bottom_sheet.dart';
 
 // Colors matched with dashboard
 const Color _primaryContainer = Color(0xFFFB7701);
@@ -87,21 +86,27 @@ class MyGroupsScreen extends ConsumerWidget {
                       itemBuilder: (context, index) {
                         final g = groups[index];
                         return _GroupOrderCard(
-                          imageUrl: g.productImageUrl,
+                          imageUrl: g.productImageUrl ?? '',
                           title: g.productName,
-                          membersCount: g.group.compteurActuel,
-                          membersTotal: g.group.seuilMin,
-                          statut: g.group.statut,
-                          progressRatio: g.group.progressRatio,
-                          isUnlocked: g.group.isUnlocked,
-                          prixGroupe: g.group.prixGroupe,
-                          originalPrice: g.productPrice,
-                          onTap: () => context.push(AppRoutes.orderDetails, extra: g),
-                          onInvite: () => InviteToGroupBottomSheet.show(
-                            context,
-                            groupData: g,
-                            referralUrl: null, // TODO: pass referralUrl from share provider if available
-                          ),
+                          membersCount: g.membersCount,
+                          membersTotal: g.seatsTotal,
+                          statut: g.status.name,
+                          progressRatio: g.progressRatio,
+                          isUnlocked: g.isComplete,
+                          prixGroupe: g.pricePerPerson,
+                          originalPrice: g.pricePerPerson,
+                          onTap: () {
+                            // TODO: Add new flow for order details if needed
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Order details not available in this version.')),
+                            );
+                          },
+                          onInvite: () {
+                            // TODO: Implement direct share logic
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Share functionality coming soon.')),
+                            );
+                          },
                         );
                       },
                     );
@@ -131,6 +136,11 @@ class MyGroupsScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push(AppRoutes.createGroup),
+        backgroundColor: _primaryContainer,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

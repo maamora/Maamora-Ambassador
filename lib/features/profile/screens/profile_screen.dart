@@ -5,22 +5,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/navigation/app_routes.dart';
+import '../providers/profile_provider.dart';
+import '../../wallet/providers/wallet_provider.dart';
+import '../../../models/models.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _copied = false;
 
-  void _copyLink() {
-    Clipboard.setData(const ClipboardData(text: 'maamora.ma/ref/youssef'));
+  void _copyLink(String link) {
+    Clipboard.setData(ClipboardData(text: link));
     setState(() => _copied = true);
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) setState(() => _copied = false);
@@ -29,10 +33,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profileAsync = ref.watch(profileProvider);
+    final walletAsync = ref.watch(walletProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
+      body: profileAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryContainer)),
+        error: (err, _) => Center(child: Text('Error: $err')),
+        data: (ambassador) {
+          if (ambassador == null) return const Center(child: Text('Profile not found'));
+          final link = 'maamora.ma/join/${ambassador.referralSlug}';
+          
+          return CustomScrollView(
+            slivers: [
           // ── Header ────────────────────────────────────────────────────────
           SliverAppBar(
             pinned: true,
@@ -116,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     const Icon(Icons.star_rounded, color: Colors.white, size: 14),
                                     const SizedBox(width: 3),
                                     Text(
-                                      'Pro',
+                                      ambassador.level.label,
                                       style: GoogleFonts.workSans(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
@@ -131,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Youssef T.',
+                          ambassador.fullName,
                           style: GoogleFonts.beVietnamPro(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -145,7 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Icon(Icons.location_on_rounded, size: 16, color: AppColors.onSurfaceVariant),
                             const SizedBox(width: 4),
                             Text(
-                              'Salé, Morocco',
+                              ambassador.city.isEmpty ? 'Unknown City' : ambassador.city,
                               style: GoogleFonts.workSans(
                                 fontSize: 14,
                                 color: AppColors.onSurfaceVariant,
@@ -173,25 +187,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ],
                       ),
-                      child: IntrinsicHeight(
-                        child: Row(
-                          children: [
-                            Expanded(child: _buildStatItem('142', 'Orders')),
-                            VerticalDivider(
-                              width: 1,
-                              thickness: 1,
-                              color: AppColors.outlineVariant.withValues(alpha: 0.6),
-                            ),
-                            Expanded(child: _buildStatItem('#12', 'City Rank')),
-                            VerticalDivider(
-                              width: 1,
-                              thickness: 1,
-                              color: AppColors.outlineVariant.withValues(alpha: 0.6),
-                            ),
-                            Expanded(child: _buildStatItem('4.2k', 'DH Total')),
-                          ],
+                        child: IntrinsicHeight(
+                          child: Row(
+                            children: [
+                              Expanded(child: _buildStatItem('${ambassador.totalValidatedMembers}', 'Orders')),
+                              VerticalDivider(
+                                width: 1,
+                                thickness: 1,
+                                color: AppColors.outlineVariant.withValues(alpha: 0.6),
+                              ),
+                              Expanded(child: _buildStatItem('-', 'City Rank')),
+                              VerticalDivider(
+                                width: 1,
+                                thickness: 1,
+                                color: AppColors.outlineVariant.withValues(alpha: 0.6),
+                              ),
+                              Expanded(child: walletAsync.maybeWhen(
+                                data: (w) => _buildStatItem('${w.balance.toStringAsFixed(0)}', 'DH Total'),
+                                orElse: () => _buildStatItem('-', 'DH Total'),
+                              )),
+                            ],
+                          ),
                         ),
-                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -219,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Column(
                           children: [
                             // My Link
-                            _buildMyLinkRow(),
+                            _buildMyLinkRow(link),
                             const Divider(height: 1, color: AppColors.outlineVariant),
                             // Payout Method
                             _buildSettingRow(
@@ -230,7 +247,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('CIH Bank', style: GoogleFonts.workSans(fontSize: 13, color: AppColors.onSurfaceVariant)),
+                                  Text(
+                                    ambassador.payoutMethod == 'bank' 
+                                      ? (ambassador.payoutBankRib ?? 'Setup RIB') 
+                                      : (ambassador.payoutMethod == 'cash_pickup' ? 'Cash' : 'Setup'),
+                                    style: GoogleFonts.workSans(fontSize: 13, color: AppColors.onSurfaceVariant)
+                                  ),
                                   const SizedBox(width: 4),
                                   const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant, size: 20),
                                 ],
@@ -389,8 +411,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ],
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 
   Widget _buildStatItem(String value, String label) {
@@ -438,11 +462,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildMyLinkRow() {
+  Widget _buildMyLinkRow(String link) {
     return Stack(
       children: [
         InkWell(
-          onTap: _copyLink,
+          onTap: () => _copyLink(link),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -462,7 +486,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('My Link', style: GoogleFonts.workSans(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
-                      Text('maamora.ma/ref/youssef', style: GoogleFonts.workSans(fontSize: 13, color: AppColors.onSurfaceVariant), overflow: TextOverflow.ellipsis),
+                      Text(link, style: GoogleFonts.workSans(fontSize: 13, color: AppColors.onSurfaceVariant), overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),

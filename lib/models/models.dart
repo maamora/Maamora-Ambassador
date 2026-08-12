@@ -1,7 +1,4 @@
 export 'ambassador.dart';
-export 'tier.dart';
-export 'league.dart';
-export 'product.dart';
-export 'product_group.dart';
-export 'referral_link.dart';
-export 'referral_order.dart';
+export 'deal_group.dart';
+export 'commission.dart';
+export 'payout.dart';

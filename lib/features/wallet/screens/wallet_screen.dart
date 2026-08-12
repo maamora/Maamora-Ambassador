@@ -1,37 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/theme/app_colors.dart';
+import '../providers/wallet_provider.dart';
+import '../../../core/services/ambassador_state_provider.dart';
+import '../../../models/models.dart';
 
-class WalletScreen extends StatelessWidget {
+class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final walletAsync = ref.watch(walletProvider);
+    final ambassadorState = ref.watch(ambassadorStateProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 24,
-          bottom: 100, // For bottom nav bar padding
+      body: walletAsync.when(
+        data: (data) => SingleChildScrollView(
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 24,
+            bottom: 100, // For bottom nav bar padding
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildBalanceCard(data.balance),
+              const SizedBox(height: 32),
+              _buildEarningsBreakdown(data.commissions),
+              const SizedBox(height: 32),
+              if (ambassadorState.ambassador != null)
+                _buildPayoutMethod(ambassadorState.ambassador!),
+            ],
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildBalanceCard(),
-            const SizedBox(height: 32),
-            _buildEarningsBreakdown(),
-            const SizedBox(height: 32),
-            _buildPayoutMethod(),
-          ],
-        ),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryContainer)),
+        error: (err, _) => Center(child: Text('Error: $err')),
       ),
     );
   }
 
-  Widget _buildBalanceCard() {
+  Widget _buildBalanceCard(double balance) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.primaryContainer,
@@ -99,7 +110,7 @@ class WalletScreen extends StatelessWidget {
                           textBaseline: TextBaseline.alphabetic,
                           children: [
                             Text(
-                              '840 ',
+                              '${balance.toStringAsFixed(0)} ',
                               style: GoogleFonts.beVietnamPro(
                                 fontSize: 36,
                                 fontWeight: FontWeight.w800,
@@ -171,7 +182,7 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEarningsBreakdown() {
+  Widget _buildEarningsBreakdown(List<Commission> commissions) {
     return Column(
       children: [
         Row(
@@ -194,7 +205,7 @@ class WalletScreen extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    'This Week',
+                    'All Time',
                     style: GoogleFonts.workSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -213,57 +224,53 @@ class WalletScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+        if (commissions.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Text('No earnings yet.'),
+          )
+        else
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+            ),
+            child: Column(
+              children: commissions.asMap().entries.map((entry) {
+                final index = entry.key;
+                final comm = entry.value;
+                final isLast = index == commissions.length - 1;
+                
+                String title = 'Commission';
+                IconData icon = Icons.shopping_bag_rounded;
+                if (comm.source == CommissionSource.groupCommission) {
+                  title = comm.dealGroupName ?? 'Deal Group';
+                  icon = Icons.group_rounded;
+                } else if (comm.source == CommissionSource.recruitBonus) {
+                  title = 'Recruitment Bonus';
+                  icon = Icons.person_add_rounded;
+                }
+                
+                return Column(
+                  children: [
+                    _buildEarningRow(
+                      icon: icon,
+                      iconColor: const Color(0xFF596374),
+                      iconBgColor: const Color(0xFFd6e0f5),
+                      title: title,
+                      subtitle: comm.status.value.toUpperCase(),
+                      amount: '+${comm.amount.toStringAsFixed(0)} DH',
+                      isLast: isLast,
+                      isExpired: comm.status == CommissionStatus.voided,
+                    ),
+                    if (!isLast)
+                      const Divider(height: 1, color: AppColors.outlineVariant),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
-          child: Column(
-            children: [
-              _buildEarningRow(
-                icon: Icons.group_rounded,
-                iconColor: const Color(0xFF596374),
-                iconBgColor: const Color(0xFFd6e0f5),
-                title: 'Olive Oil Lovers - Casa',
-                subtitle: '12 Orders completed',
-                amount: '+420 DH',
-                isLast: false,
-              ),
-              const Divider(height: 1, color: AppColors.outlineVariant),
-              _buildEarningRow(
-                icon: Icons.shopping_bag_rounded,
-                iconColor: const Color(0xFF003759),
-                iconBgColor: const Color(0xFF00a4fc).withValues(alpha: 0.3),
-                title: 'Sidi Ali Bulk Buy',
-                subtitle: '8 Orders completed',
-                amount: '+300 DH',
-                isLast: false,
-              ),
-              const Divider(height: 1, color: AppColors.outlineVariant),
-              _buildEarningRow(
-                icon: Icons.local_florist_rounded,
-                iconColor: const Color(0xFF584236),
-                iconBgColor: const Color(0xFFf6ded2),
-                title: 'Argan Oil Special',
-                subtitle: '3 Orders completed',
-                amount: '+120 DH',
-                isLast: false,
-              ),
-              const Divider(height: 1, color: AppColors.outlineVariant),
-              _buildEarningRow(
-                icon: Icons.timer_off_rounded,
-                iconColor: const Color(0xFF8A8078),
-                iconBgColor: const Color(0xFFf6ded2).withValues(alpha: 0.5),
-                title: 'Weekend Bakery Drop',
-                subtitle: 'Did not meet minimum',
-                amount: '0 DH',
-                isLast: true,
-                isExpired: true,
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -359,7 +366,11 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPayoutMethod() {
+  Widget _buildPayoutMethod(Ambassador ambassador) {
+    final hasMethod = ambassador.payoutMethod != null;
+    final title = hasMethod ? (ambassador.payoutMethod == 'bank' ? 'Bank Transfer' : 'Cash Pickup') : 'Not Set';
+    final subtitle = hasMethod ? (ambassador.payoutMethod == 'bank' ? (ambassador.payoutBankRib ?? 'RIB missing') : (ambassador.payoutCashPoint ?? 'Cash point missing')) : 'Tap to set up';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -403,7 +414,7 @@ class WalletScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'CIH Bank ****4592',
+                        title,
                         style: GoogleFonts.workSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -412,7 +423,7 @@ class WalletScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Default transfer method',
+                        subtitle,
                         style: GoogleFonts.workSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w400,
