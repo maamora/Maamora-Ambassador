@@ -11,6 +11,7 @@ import 'main_navigation_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/register_screen.dart';
 import '../../features/onboarding/screens/welcome_screen.dart';
+import '../../features/onboarding/screens/status_screens.dart';
 
 import '../../features/admin/screens/admin_navigation_screen.dart';
 
@@ -154,6 +155,24 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.admin,
       builder: (context, state) => const AdminNavigationScreen(),
+    ),
+
+    // ── Status Screens ────────────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.pending,
+      builder: (context, state) => const PendingScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.rejected,
+      builder: (context, state) => const RejectedScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.paused,
+      builder: (context, state) => const PausedScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.unregistered,
+      builder: (context, state) => const UnregisteredScreen(),
     ),
   ],
 );

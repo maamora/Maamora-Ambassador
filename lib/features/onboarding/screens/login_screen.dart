@@ -1,10 +1,13 @@
 // features/onboarding/screens/login_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../providers/auth_provider.dart';
+import '../../../shared/navigation/app_routes.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({
     super.key,
     this.onLoginSuccess,
@@ -17,57 +20,72 @@ class LoginScreen extends StatefulWidget {
   final VoidCallback? onForgotPassword;
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _phoneController = TextEditingController();
-  final List<TextEditingController> _otpControllers =
-      List.generate(4, (_) => TextEditingController());
-  final List<FocusNode> _otpFocusNodes =
-      List.generate(4, (_) => FocusNode());
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  bool _isSigningIn = false;
 
-  bool _showOtp = false;
-  bool _isSending = false;
+  void _handleGoogleSignIn() async {
+    setState(() => _isSigningIn = true);
+    
+    await ref.read(authProvider.notifier).signInWithGoogle();
+    
+    if (!mounted) return;
+    setState(() => _isSigningIn = false);
 
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    for (final c in _otpControllers) {
-      c.dispose();
+    final authState = ref.read(authProvider);
+    
+    if (authState.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(authState.errorMessage!), backgroundColor: Colors.red),
+      );
+      return;
     }
-    for (final f in _otpFocusNodes) {
-      f.dispose();
-    }
-    super.dispose();
+
+    _routeBasedOnStatus(authState.status);
   }
-
-  void _sendCode() {
-    if (_phoneController.text.trim().isEmpty) return;
-    setState(() {
-      _isSending = true;
-    });
-    // Simulate network delay and bypass OTP for now
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
-      setState(() {
-        _isSending = false;
-      });
-      // TODO: appeler get_my_role() ici et rediriger vers AdminNavigationScreen
-      // ou AmbassadorDashboardScreen selon le résultat.
-      // Exemple:
-      //   final role = await supabase.rpc('get_my_role');
-      //   if (role == 'admin') {
-      //     context.go(AppRoutes.admin);
-      //   } else {
-      //     widget.onLoginSuccess?.call(); // → AppRoutes.dashboard
-      //   }
-      widget.onLoginSuccess?.call();
-    });
+  
+  void _routeBasedOnStatus(AmbassadorStatus status) {
+    switch (status) {
+      case AmbassadorStatus.admin:
+        context.go(AppRoutes.admin);
+        break;
+      case AmbassadorStatus.pending:
+        context.go(AppRoutes.pending);
+        break;
+      case AmbassadorStatus.active:
+        widget.onLoginSuccess?.call(); // usually goes to dashboard
+        break;
+      case AmbassadorStatus.rejected:
+        context.go(AppRoutes.rejected);
+        break;
+      case AmbassadorStatus.paused:
+        context.go(AppRoutes.paused);
+        break;
+      case AmbassadorStatus.unregistered:
+        context.go(AppRoutes.unregistered);
+        break;
+      default:
+        // Do nothing if initial or unauthenticated
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Listen to status changes to handle automatic redirects (e.g. if user is already signed in)
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (previous?.isLoading == true && next.isLoading == false && next.status != AmbassadorStatus.unauthenticated && next.status != AmbassadorStatus.initial) {
+        if (!_isSigningIn) {
+          final location = GoRouterState.of(context).matchedLocation;
+          if (location == AppRoutes.login) {
+            _routeBasedOnStatus(next.status);
+          }
+        }
+      }
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFFFAF4EE),
       body: SafeArea(
@@ -80,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 28),
-                  _buildPhoneCard(),
+                  _buildGoogleCard(),
                   const SizedBox(height: 20),
                   _buildInviteCard(),
                 ],
@@ -95,7 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildHeader() {
     return Column(
       children: [
-        // Logo card – slight rotation to match mockup
         Transform.rotate(
           angle: -0.04,
           child: Container(
@@ -114,7 +131,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        // "AMBASSADOR · PRIVATE APP" badge
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
@@ -149,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPhoneCard() {
+  Widget _buildGoogleCard() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -161,213 +177,52 @@ class _LoginScreenState extends State<LoginScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Numéro de téléphone',
+            'Connexion à votre compte',
             style: AppTheme.headlineSm.copyWith(
-              fontSize: 15,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
               color: AppColors.secondary,
             ),
           ),
-          const SizedBox(height: 12),
-          _buildPhoneInput(),
-          const SizedBox(height: 12),
-          if (_showOtp) ...[
-            _buildOtpRow(),
-            const SizedBox(height: 12),
-          ],
-          _buildSendButton(),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.shield_outlined,
-                size: 14,
-                color: AppColors.onSurfaceVariant,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'We verify by SMS/WhatsApp — no password',
-                style: AppTheme.bodySm.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                  fontSize: 12,
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFFDDD5CC)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhoneInput() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAF4EE),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE8DFDA)),
-      ),
-      child: Row(
-        children: [
-          // Country code block
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF0E9E2),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(11),
-                bottomLeft: Radius.circular(11),
-              ),
-            ),
-            child: Text(
-              '+212',
-              style: AppTheme.bodyMd.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.secondary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              style: AppTheme.bodyMd.copyWith(color: AppColors.onSurface),
-              decoration: InputDecoration(
-                hintText: '6 XX XX XX XX',
-                hintStyle: AppTheme.bodyMd.copyWith(
-                  color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 16,
-                ),
-              ),
+              onPressed: _isSigningIn ? null : _handleGoogleSignIn,
+              child: _isSigningIn
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.g_mobiledata, size: 28, color: AppColors.secondary),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Se connecter avec Google',
+                          style: AppTheme.bodyMd.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildOtpRow() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Code de vérification',
-          style: AppTheme.labelMd.copyWith(
-            color: AppColors.secondary,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(4, (i) {
-            return SizedBox(
-              width: 62,
-              height: 62,
-              child: TextField(
-                controller: _otpControllers[i],
-                focusNode: _otpFocusNodes[i],
-                textAlign: TextAlign.center,
-                keyboardType: TextInputType.number,
-                maxLength: 1,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: AppTheme.headlineSm.copyWith(
-                  fontSize: 22,
-                  color: AppColors.secondary,
-                ),
-                decoration: InputDecoration(
-                  counterText: '',
-                  filled: true,
-                  fillColor: const Color(0xFFFAF4EE),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE8DFDA)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE8DFDA)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                      width: 2,
-                    ),
-                  ),
-                ),
-                onChanged: (val) {
-                  if (val.isNotEmpty && i < 3) {
-                    _otpFocusNodes[i + 1].requestFocus();
-                  } else if (val.isEmpty && i > 0) {
-                    _otpFocusNodes[i - 1].requestFocus();
-                  }
-                },
-              ),
-            );
-          }),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSendButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 54,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        onPressed: _isSending
-            ? null
-            : () {
-                if (_showOtp) {
-                  widget.onLoginSuccess?.call();
-                } else {
-                  _sendCode();
-                }
-              },
-        child: _isSending
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _showOtp ? 'Vérifier le code' : 'Envoyer le code',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.arrow_forward,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ],
-              ),
       ),
     );
   }
@@ -403,7 +258,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'You need an invite to join the ambassador\nprogram.',
+            'You need an invite code to join the ambassador\nprogram.',
             textAlign: TextAlign.center,
             style: AppTheme.bodyMd.copyWith(
               color: AppColors.onSurfaceVariant,

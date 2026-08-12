@@ -5,6 +5,10 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String welcome = '/welcome';
+  static const String pending = '/pending';
+  static const String rejected = '/rejected';
+  static const String paused = '/paused';
+  static const String unregistered = '/unregistered';
 
   // ── Callback (OAuth web) ───────────────────────────────────────────────────
   static const String callbackLogin = '/callback/login';
