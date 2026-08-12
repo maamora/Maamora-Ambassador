@@ -87,7 +87,7 @@ final GoRouter appRouter = GoRouter(
         final inviteCode = state.uri.queryParameters['code'];
         return RegisterScreen(
           initialInviteCode: inviteCode,
-          onActivateSuccess: () => context.go(AppRoutes.welcome),
+          onActivateSuccess: () => context.go(AppRoutes.pending),
           onGoToLogin: () => context.go(AppRoutes.login),
         );
       },

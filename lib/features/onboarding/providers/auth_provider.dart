@@ -99,10 +99,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Check ambassador
       final response = await _supabase.rpc('get_my_ambassador_status');
       
-      if (response != null && response is Map) {
-        final statusStr = response['status'] as String?;
-        final reason = response['rejection_reason'] as String?;
+      String? statusStr;
+      String? reason;
 
+      if (response != null) {
+        if (response is Map) {
+          statusStr = response['status']?.toString();
+          reason = response['rejection_reason']?.toString();
+        } else if (response is String) {
+          statusStr = response;
+        } else if (response is List && response.isNotEmpty) {
+          final first = response.first;
+          if (first is Map) {
+            statusStr = first['status']?.toString();
+            reason = first['rejection_reason']?.toString();
+          } else if (first is String) {
+            statusStr = first;
+          }
+        }
+      }
+
+      if (statusStr != null) {
         AmbassadorStatus newStatus;
         switch (statusStr) {
           case 'pending':
@@ -127,7 +144,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isLoading: false,
         );
       } else {
-        // Unregistered user
+        // Unregistered user or empty response
         state = state.copyWith(
           status: AmbassadorStatus.unregistered,
           isLoading: false,
