@@ -44,7 +44,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: NavigationService.navigatorKey,
-  initialLocation: AppRoutes.dashboard,
+  initialLocation: AppRoutes.login,
   refreshListenable: GoRouterRefreshStream(
     Supabase.instance.client.auth.onAuthStateChange,
   ),
