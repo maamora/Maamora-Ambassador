@@ -341,6 +341,7 @@ class _ActiveGroupsSection extends StatelessWidget {
               children: activeGroups.map((g) => Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: _GroupCard(
+                  groupId: g.id,
                   productEmoji: '🛍️', // Use emoji fallback
                   name: g.productName,
                   seatsFilled: g.membersCount,
@@ -360,7 +361,8 @@ class _ActiveGroupsSection extends StatelessWidget {
   }
 }
 
-class _GroupCard extends StatelessWidget {
+class _GroupCard extends ConsumerStatefulWidget {
+  final String groupId;
   final String productEmoji;
   final String name;
   final int seatsFilled;
@@ -370,6 +372,7 @@ class _GroupCard extends StatelessWidget {
   final int estimatedEarnings;
 
   const _GroupCard({
+    required this.groupId,
     required this.productEmoji,
     required this.name,
     required this.seatsFilled,
@@ -378,6 +381,31 @@ class _GroupCard extends StatelessWidget {
     required this.isCountdown,
     required this.estimatedEarnings,
   });
+
+  @override
+  ConsumerState<_GroupCard> createState() => _GroupCardState();
+}
+
+class _GroupCardState extends ConsumerState<_GroupCard> {
+  bool _isAddingMember = false;
+
+  bool get _isFull => widget.seatsFilled >= widget.totalSeats;
+
+  Future<void> _handleAddMember() async {
+    if (_isAddingMember || _isFull) return;
+    setState(() => _isAddingMember = true);
+    try {
+      await ref.read(myGroupsProvider.notifier).addParticipant(widget.groupId);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not add member: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isAddingMember = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -409,7 +437,7 @@ class _GroupCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: Text(productEmoji, style: const TextStyle(fontSize: 30)),
+                child: Text(widget.productEmoji, style: const TextStyle(fontSize: 30)),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -417,7 +445,7 @@ class _GroupCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      widget.name,
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -434,7 +462,7 @@ class _GroupCard extends StatelessWidget {
                             size: 14, color: _onSurfaceVariant),
                         const SizedBox(width: 4),
                         Text(
-                          '$seatsFilled/$totalSeats filled',
+                          '${widget.seatsFilled}/${widget.totalSeats} filled',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -443,19 +471,19 @@ class _GroupCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         Icon(
-                          isCountdown
+                          widget.isCountdown
                               ? Icons.timer_outlined
                               : Icons.access_time_rounded,
                           size: 14,
-                          color: isCountdown ? Colors.red.shade400 : _onSurfaceVariant,
+                          color: widget.isCountdown ? Colors.red.shade400 : _onSurfaceVariant,
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          timeRemaining,
+                          widget.timeRemaining,
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: isCountdown
+                            color: widget.isCountdown
                                 ? Colors.red.shade400
                                 : _onSurfaceVariant,
                           ),
@@ -464,6 +492,12 @@ class _GroupCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(width: 8),
+              _AddMemberButton(
+                isFull: _isFull,
+                isLoading: _isAddingMember,
+                onPressed: _handleAddMember,
               ),
             ],
           ),
@@ -482,7 +516,7 @@ class _GroupCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '$estimatedEarnings DH',
+                '${widget.estimatedEarnings} DH',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -492,6 +526,65 @@ class _GroupCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Add Member Button ────────────────────────────────────────────────────────
+
+class _AddMemberButton extends StatelessWidget {
+  final bool isFull;
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  const _AddMemberButton({
+    required this.isFull,
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = isFull || isLoading;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: disabled ? null : onPressed,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: disabled ? const Color(0xFFF5EDE4) : _orangeLight,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: disabled ? _cardBorder : _primary),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              isLoading
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: _primary),
+                    )
+                  : Icon(
+                      Icons.person_add_alt_1_rounded,
+                      size: 14,
+                      color: disabled ? _onSurfaceVariant : _primary,
+                    ),
+              const SizedBox(width: 6),
+              Text(
+                isFull ? 'Full' : 'Add Member',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: disabled ? _onSurfaceVariant : _primary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
