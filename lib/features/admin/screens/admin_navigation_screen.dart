@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/widgets/shared_app_bar.dart';
 import '../../../features/admin/screens/admin_profile_screen.dart';
+import '../providers/admin_groups_provider.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_invite_ambassador_screen.dart';
 import 'admin_ambassadors_pending_screen.dart';
@@ -22,14 +24,14 @@ const Color _onSurfaceVariant = Color(0xFF584236);
 /// "Ambassadors" = sub-tabs for Pending + All ambassadors
 /// "Groups" = Completed groups pending commission
 /// "Settings" = Commissions + Audit log
-class AdminNavigationScreen extends StatefulWidget {
+class AdminNavigationScreen extends ConsumerStatefulWidget {
   const AdminNavigationScreen({super.key});
 
   @override
-  State<AdminNavigationScreen> createState() => _AdminNavigationScreenState();
+  ConsumerState<AdminNavigationScreen> createState() => _AdminNavigationScreenState();
 }
 
-class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
+class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
   int _currentIndex = 0;
   // Ambassadors sub-tab: 0 = Pending, 1 = All
   int _ambassadorsSubTab = 0;
@@ -154,7 +156,7 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
         pendingAmbassadors: 3, // données factices, à remplacer
-        pendingGroups: 7, // données factices, à remplacer
+        pendingGroups: ref.watch(adminGroupsProvider).pendingCommissionCount,
       ),
     );
   }
