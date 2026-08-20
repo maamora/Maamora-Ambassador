@@ -17,6 +17,17 @@ class NativeShareService {
     );
   }
 
+  /// Shares a custom invitation message (e.g. WhatsApp)
+  static Future<void> shareCustomMessage({
+    required String message,
+    String? subject,
+  }) async {
+    await Share.share(
+      message,
+      subject: subject ?? 'Maamora - Rejoignez mon groupe',
+    );
+  }
+
   /// Copies referral URL to clipboard
   static Future<void> copyToClipboard(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
