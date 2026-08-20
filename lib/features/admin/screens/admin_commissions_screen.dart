@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/admin_status_badge.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
@@ -10,101 +11,121 @@ const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
 const Color _cardBorder = Color(0xFFE8DDD3);
 
-// ── données factices, à remplacer ─────────────────────────────────────────
-class _MockCommission {
-  final String ambassadorName;
-  final String initials;
-  final String productName;
-  final double amount;
-  final String status; // paid | pending | failed
-  final String date;
-
-  const _MockCommission({
-    required this.ambassadorName,
-    required this.initials,
-    required this.productName,
-    required this.amount,
-    required this.status,
-    required this.date,
-  });
-}
-
-final _mockCommissions = <_MockCommission>[
-  const _MockCommission(
-    ambassadorName: 'Youssef Tahiri',
-    initials: 'YT',
-    productName: 'Premium Dates Box',
-    amount: 562.50,
-    status: 'paid',
-    date: 'Aujourd\'hui',
-  ),
-  const _MockCommission(
-    ambassadorName: 'Amine Benhammou',
-    initials: 'AB',
-    productName: 'Olive Oil Lovers Pack',
-    amount: 712.50,
-    status: 'paid',
-    date: 'Oct 26',
-  ),
-  const _MockCommission(
-    ambassadorName: 'Fatima Zahra',
-    initials: 'FZ',
-    productName: 'Artisan Tea Set Bundle',
-    amount: 900.00,
-    status: 'pending',
-    date: 'Oct 28',
-  ),
-  const _MockCommission(
-    ambassadorName: 'Sara Benali',
-    initials: 'SB',
-    productName: 'Moroccan Honey Jar',
-    amount: 450.00,
-    status: 'pending',
-    date: 'Oct 30',
-  ),
-  const _MockCommission(
-    ambassadorName: 'Hassan Moussaoui',
-    initials: 'HM',
-    productName: 'Argan Oil Gift Set',
-    amount: 337.50,
-    status: 'failed',
-    date: 'Nov 1',
-  ),
-];
-
-class AdminCommissionsScreen extends StatelessWidget {
+class AdminCommissionsScreen extends StatefulWidget {
   const AdminCommissionsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // données factices, à remplacer
-    final totalPaid = _mockCommissions
-        .where((c) => c.status == 'paid')
-        .fold<double>(0, (sum, c) => sum + c.amount);
-    final totalPending = _mockCommissions
-        .where((c) => c.status == 'pending')
-        .fold<double>(0, (sum, c) => sum + c.amount);
+  State<AdminCommissionsScreen> createState() => _AdminCommissionsScreenState();
+}
 
+class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<Map<String, dynamic>> _payouts = [];
+  double _totalPaid = 0.0;
+  double _totalPending = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final client = Supabase.instance.client;
+
+      // Fetch payouts for the list
+      final payoutsResponse = await client
+          .from('payouts')
+          .select('*, ambassadors(full_name)')
+          .order('created_at', ascending: false);
+          
+      // Fetch commissions for the totals
+      final commissionsResponse = await client
+          .from('commissions')
+          .select('amount, status');
+
+      double totalPaid = 0;
+      double totalPending = 0;
+
+      for (var c in (commissionsResponse as List)) {
+        final amount = (c['amount'] as num?)?.toDouble() ?? 0.0;
+        final status = c['status'] as String?;
+        if (status == 'paid') {
+          totalPaid += amount;
+        } else if (status == 'payable' || status == 'pending') {
+          totalPending += amount;
+        }
+      }
+
+      setState(() {
+        _payouts = List<Map<String, dynamic>>.from(payoutsResponse);
+        _totalPaid = totalPaid;
+        _totalPending = totalPending;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Impossible de charger les données: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(totalPaid, totalPending),
+            _buildHeader(_totalPaid, _totalPending),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
-                itemCount: _mockCommissions.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (_, i) =>
-                    _CommissionRow(commission: _mockCommissions[i]),
-              ),
+              child: _buildBody(),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: _primary));
+    }
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 48),
+            const SizedBox(height: 16),
+            Text(_errorMessage!, style: GoogleFonts.inter()),
+            TextButton(onPressed: _fetchData, child: const Text('Réessayer'))
+          ],
+        ),
+      );
+    }
+
+    if (_payouts.isEmpty) {
+      return const Center(child: Text('Aucun paiement trouvé.'));
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: _payouts.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (_, i) {
+        final p = _payouts[i];
+        return _PayoutRow(payoutData: p);
+      },
     );
   }
 
@@ -145,13 +166,6 @@ class AdminCommissionsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            'données factices, à remplacer',
-            style: GoogleFonts.inter(
-                fontSize: 11,
-                color: _onSurfaceVariant,
-                fontStyle: FontStyle.italic),
-          ),
         ],
       ),
     );
@@ -198,14 +212,35 @@ class _SummaryChip extends StatelessWidget {
   }
 }
 
-// ── Commission Row ────────────────────────────────────────────────────────
+// ── Payout Row ────────────────────────────────────────────────────────
 
-class _CommissionRow extends StatelessWidget {
-  final _MockCommission commission;
-  const _CommissionRow({required this.commission});
+class _PayoutRow extends StatelessWidget {
+  final Map<String, dynamic> payoutData;
+  const _PayoutRow({required this.payoutData});
 
   @override
   Widget build(BuildContext context) {
+    final ambassadorName = payoutData['ambassadors'] != null ? payoutData['ambassadors']['full_name'] ?? 'Inconnu' : 'Inconnu';
+    final parts = ambassadorName.split(' ');
+    String initials = '';
+    if (parts.isNotEmpty && parts[0].isNotEmpty) initials += parts[0][0].toUpperCase();
+    if (parts.length > 1 && parts[1].isNotEmpty) initials += parts[1][0].toUpperCase();
+
+    final method = payoutData['method'] == 'bank' ? 'Virement Bancaire' : 'Espèces (Cash)';
+    final ref = payoutData['reference'] != null ? ' - ${payoutData['reference']}' : '';
+    final details = '$method$ref';
+    
+    final amount = (payoutData['amount'] as num?)?.toDouble() ?? 0.0;
+    final status = payoutData['status'] as String? ?? 'pending';
+    
+    String formattedDate = '';
+    if (payoutData['created_at'] != null) {
+      final date = DateTime.tryParse(payoutData['created_at']);
+      if (date != null) {
+         formattedDate = "${date.day}/${date.month}/${date.year}";
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -227,7 +262,7 @@ class _CommissionRow extends StatelessWidget {
             radius: 20,
             backgroundColor: const Color(0xFFE8DDD3),
             child: Text(
-              commission.initials,
+              initials,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
@@ -242,7 +277,7 @@ class _CommissionRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  commission.ambassadorName,
+                  ambassadorName,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -250,7 +285,7 @@ class _CommissionRow extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  commission.productName,
+                  details,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: _onSurfaceVariant,
@@ -258,7 +293,7 @@ class _CommissionRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  commission.date,
+                  formattedDate,
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: _onSurfaceVariant,
@@ -273,7 +308,7 @@ class _CommissionRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${commission.amount.toStringAsFixed(0)} DH',
+                '${amount.toStringAsFixed(0)} DH',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -281,7 +316,7 @@ class _CommissionRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              AdminStatusBadge(status: commission.status),
+              AdminStatusBadge(status: status),
             ],
           ),
         ],
