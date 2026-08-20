@@ -11,6 +11,7 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/navigation/app_routes.dart';
 import '../providers/profile_provider.dart';
 import '../../wallet/providers/wallet_provider.dart';
+import '../../wallet/widgets/payout_method_bottom_sheet.dart';
 import '../../../models/models.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -203,7 +204,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 color: AppColors.outlineVariant.withValues(alpha: 0.6),
                               ),
                               Expanded(child: walletAsync.maybeWhen(
-                                data: (w) => _buildStatItem('${w.balance.toStringAsFixed(0)}', 'DH Total'),
+                                data: (w) => _buildStatItem(w.balance.toStringAsFixed(0), 'DH Total'),
                                 orElse: () => _buildStatItem('-', 'DH Total'),
                               )),
                             ],
@@ -244,14 +245,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               iconBg: AppColors.outlineVariant.withValues(alpha: 0.6),
                               iconColor: AppColors.onSurface,
                               title: 'Payout Method',
+                              onTap: () => PayoutMethodBottomSheet.show(
+                                context: context,
+                                ambassador: ambassador,
+                              ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    ambassador.payoutMethod == 'bank' 
-                                      ? (ambassador.payoutBankRib ?? 'Setup RIB') 
-                                      : (ambassador.payoutMethod == 'cash_pickup' ? 'Cash' : 'Setup'),
-                                    style: GoogleFonts.workSans(fontSize: 13, color: AppColors.onSurfaceVariant)
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 140),
+                                    child: Text(
+                                      ambassador.payoutMethod == 'bank'
+                                          ? (ambassador.payoutBankRib?.split(' - ').first ?? 'Virement bancaire')
+                                          : (ambassador.payoutMethod == 'cash_pickup'
+                                              ? (ambassador.payoutCashPoint?.split(' - ').first ?? 'Mise à dispo')
+                                              : 'Configurer'),
+                                      style: GoogleFonts.workSans(
+                                        fontSize: 13,
+                                        fontWeight: ambassador.payoutMethod != null ? FontWeight.w600 : FontWeight.w400,
+                                        color: ambassador.payoutMethod != null ? AppColors.primary : AppColors.onSurfaceVariant,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
                                   const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant, size: 20),

@@ -264,10 +264,6 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
 
                   // WhatsApp Send Button
                   _WhatsAppButton(message: activeMessage),
-                  const SizedBox(height: 20),
-
-                  // Weekly stats
-                  _WeeklyStatsBar(),
                   const SizedBox(height: 16),
                 ],
               ),
@@ -544,72 +540,6 @@ class _WhatsAppButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-      ),
-    );
-  }
-}
-
-// ── Weekly Stats Bar ─────────────────────────────────────────────────────────
-
-class _WeeklyStatsBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _cardBorder),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _StatChip(label: 'taps', value: '42'),
-          _divider(),
-          _StatChip(label: 'joins', value: '8'),
-          _divider(),
-          _StatChip(label: 'orders', value: '3'),
-        ],
-      ),
-    );
-  }
-
-  Widget _divider() => Container(
-        width: 1,
-        height: 20,
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        color: _cardBorder,
-      );
-}
-
-class _StatChip extends StatelessWidget {
-  final String label;
-  final String value;
-  const _StatChip({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: '$value ',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: _primary,
-            ),
-          ),
-          TextSpan(
-            text: label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: _onSurfaceVariant,
-            ),
-          ),
-        ],
       ),
     );
   }

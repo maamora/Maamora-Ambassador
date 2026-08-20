@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../providers/wallet_provider.dart';
+import '../widgets/payout_method_bottom_sheet.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../../../core/services/ambassador_state_provider.dart';
 import '../../../models/models.dart';
 
@@ -13,6 +15,8 @@ class WalletScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final walletAsync = ref.watch(walletProvider);
     final ambassadorState = ref.watch(ambassadorStateProvider);
+    final profileAsync = ref.watch(profileProvider);
+    final currentAmbassador = profileAsync.value ?? ambassadorState.ambassador;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -31,8 +35,8 @@ class WalletScreen extends ConsumerWidget {
               const SizedBox(height: 32),
               _buildEarningsBreakdown(data.commissions),
               const SizedBox(height: 32),
-              if (ambassadorState.ambassador != null)
-                _buildPayoutMethod(ambassadorState.ambassador!),
+              if (currentAmbassador != null)
+                _buildPayoutMethod(context, currentAmbassador),
             ],
           ),
         ),
@@ -366,49 +370,120 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPayoutMethod(Ambassador ambassador) {
+  Widget _buildPayoutMethod(BuildContext context, Ambassador ambassador) {
     final hasMethod = ambassador.payoutMethod != null;
-    final title = hasMethod ? (ambassador.payoutMethod == 'bank' ? 'Bank Transfer' : 'Cash Pickup') : 'Not Set';
-    final subtitle = hasMethod ? (ambassador.payoutMethod == 'bank' ? (ambassador.payoutBankRib ?? 'RIB missing') : (ambassador.payoutCashPoint ?? 'Cash point missing')) : 'Tap to set up';
+    final isBank = ambassador.payoutMethod == 'bank';
+    final isCash = ambassador.payoutMethod == 'cash_pickup';
+
+    String title;
+    String subtitle;
+    IconData icon;
+    Color iconBgColor;
+    Color iconColor;
+
+    if (isBank) {
+      title = 'Virement bancaire (RIB)';
+      final rawRib = ambassador.payoutBankRib ?? '';
+      // Format masked or clean
+      subtitle = rawRib.isNotEmpty ? rawRib : 'RIB configuré';
+      icon = Icons.account_balance_rounded;
+      iconBgColor = AppColors.primaryContainer.withValues(alpha: 0.1);
+      iconColor = AppColors.primaryContainer;
+    } else if (isCash) {
+      title = 'Mise à disposition (Cash)';
+      final rawCash = ambassador.payoutCashPoint ?? '';
+      subtitle = rawCash.isNotEmpty ? rawCash : 'Retrait cash configuré';
+      icon = Icons.local_atm_rounded;
+      iconBgColor = const Color(0xFF2E7D32).withValues(alpha: 0.1);
+      iconColor = const Color(0xFF2E7D32);
+    } else {
+      title = 'Not Set';
+      subtitle = 'Tap to set up';
+      icon = Icons.account_balance_rounded;
+      iconBgColor = AppColors.primaryContainer.withValues(alpha: 0.1);
+      iconColor = AppColors.primaryContainer;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Payout Method',
-          style: GoogleFonts.beVietnamPro(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.onSurface,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Payout Method',
+              style: GoogleFonts.beVietnamPro(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onSurface,
+              ),
+            ),
+            if (hasMethod)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_circle_rounded, size: 12, color: Color(0xFF166534)),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Configuré',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF166534),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 16),
         InkWell(
-          onTap: () {},
+          onTap: () => PayoutMethodBottomSheet.show(
+            context: context,
+            ambassador: ambassador,
+          ),
           borderRadius: BorderRadius.circular(16),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: hasMethod
+                    ? AppColors.primary.withValues(alpha: 0.3)
+                    : AppColors.outlineVariant.withValues(alpha: 0.5),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer.withValues(alpha: 0.1),
+                    color: iconBgColor,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.account_balance_rounded,
-                    color: AppColors.primaryContainer,
-                    size: 20,
+                    icon,
+                    color: iconColor,
+                    size: 22,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,14 +496,16 @@ class WalletScreen extends ConsumerWidget {
                           color: AppColors.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         subtitle,
                         style: GoogleFonts.workSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w400,
-                          color: AppColors.onSurfaceVariant,
+                          color: hasMethod ? AppColors.onSurface : AppColors.onSurfaceVariant,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -446,3 +523,4 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 }
+
