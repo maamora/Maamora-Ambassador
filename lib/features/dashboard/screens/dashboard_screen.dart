@@ -288,20 +288,23 @@ class _ShareButton extends StatelessWidget {
 
 // ── Active Groups Section ────────────────────────────────────────────────────
 
-class _ActiveGroupsSection extends StatelessWidget {
+class _ActiveGroupsSection extends ConsumerWidget {
   final AsyncValue<List<DealGroup>> groupsAsync;
 
   const _ActiveGroupsSection({required this.groupsAsync});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ambassadorState = ref.watch(ambassadorStateProvider);
+    final commissionRate = ambassadorState.ambassador?.level.commissionRate ?? 0.0;
+
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'My Active Groups',
+              'My groups',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -330,7 +333,7 @@ class _ActiveGroupsSection extends StatelessWidget {
         const SizedBox(height: 12),
         groupsAsync.when(
           data: (groups) {
-            final activeGroups = groups.where((g) => g.status == DealGroupStatus.open).take(2).toList();
+            final activeGroups = groups.where((g) => g.status != DealGroupStatus.cancelled).take(2).toList();
             if (activeGroups.isEmpty) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
@@ -348,7 +351,8 @@ class _ActiveGroupsSection extends StatelessWidget {
                   totalSeats: g.seatsTotal,
                   timeRemaining: 'Active',
                   isCountdown: false,
-                  estimatedEarnings: (g.estimatedTotalValue * 0.06).toInt(), // Approximation
+                  productPrice: g.pricePerPerson.toInt(),
+                  estimatedEarnings: (g.pricePerPerson * g.seatsTotal * commissionRate).toInt(),
                 ),
               )).toList(),
             );
@@ -369,6 +373,7 @@ class _GroupCard extends ConsumerStatefulWidget {
   final int totalSeats;
   final String timeRemaining;
   final bool isCountdown;
+  final int productPrice;
   final int estimatedEarnings;
 
   const _GroupCard({
@@ -379,6 +384,7 @@ class _GroupCard extends ConsumerStatefulWidget {
     required this.totalSeats,
     required this.timeRemaining,
     required this.isCountdown,
+    required this.productPrice,
     required this.estimatedEarnings,
   });
 
@@ -445,7 +451,7 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.name,
+                      _isFull ? '${widget.name} · closed ✓' : widget.name,
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -462,69 +468,111 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
                             size: 14, color: _onSurfaceVariant),
                         const SizedBox(width: 4),
                         Text(
-                          '${widget.seatsFilled}/${widget.totalSeats} filled',
+                          _isFull 
+                              ? '${widget.seatsFilled} of ${widget.totalSeats} seats'
+                              : '${widget.seatsFilled}/${widget.totalSeats} filled',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: _onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          widget.isCountdown
-                              ? Icons.timer_outlined
-                              : Icons.access_time_rounded,
-                          size: 14,
-                          color: widget.isCountdown ? Colors.red.shade400 : _onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          widget.timeRemaining,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: widget.isCountdown
-                                ? Colors.red.shade400
-                                : _onSurfaceVariant,
+                        if (!_isFull) ...[
+                          const SizedBox(width: 12),
+                          Icon(
+                            widget.isCountdown
+                                ? Icons.timer_outlined
+                                : Icons.access_time_rounded,
+                            size: 14,
+                            color: widget.isCountdown ? Colors.red.shade400 : _onSurfaceVariant,
                           ),
-                        ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.timeRemaining,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: widget.isCountdown
+                                  ? Colors.red.shade400
+                                  : _onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              _AddMemberButton(
-                isFull: _isFull,
-                isLoading: _isAddingMember,
-                onPressed: _handleAddMember,
-              ),
+              if (_isFull)
+                Text(
+                  '+${widget.estimatedEarnings} DH',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF198754),
+                  ),
+                )
+              else
+                _AddMemberButton(
+                  isFull: _isFull,
+                  isLoading: _isAddingMember,
+                  onPressed: _handleAddMember,
+                ),
             ],
           ),
-          const SizedBox(height: 12),
-          const Divider(color: Color(0xFFEDE8E4), height: 1),
-          const SizedBox(height: 12),
+          if (!_isFull) ...[
+            const SizedBox(height: 12),
+            const Divider(color: Color(0xFFEDE8E4), height: 1),
+            const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Estimated Earnings',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: _onSurfaceVariant,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Product Price',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: _onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    '${widget.productPrice} DH',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: _onBackground,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                '${widget.estimatedEarnings} DH',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1A5FAD),
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Estimated Earnings',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: _onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    '${widget.estimatedEarnings} DH',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF1A5FAD),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
+          ],
         ],
       ),
     );

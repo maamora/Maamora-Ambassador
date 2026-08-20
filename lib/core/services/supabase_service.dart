@@ -138,7 +138,6 @@ class SupabaseService {
     final response = await _client.rpc('get_leaderboard', params: {
       'p_city': city,
     });
-    
     return List<Map<String, dynamic>>.from(response as List);
   }
 }

@@ -25,35 +25,161 @@ class ShareScreen extends ConsumerStatefulWidget {
 }
 
 class _ShareScreenState extends ConsumerState<ShareScreen> {
+  late final TextEditingController _linkController;
   String? _customMessage;
-  bool _hasLoadedSavedMessage = false;
+  String _activeLink = '';
+  String _defaultLink = '';
+  String _currentAmbassadorId = '';
+  String _currentCity = '';
+  bool _hasLoadedSavedData = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _linkController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _linkController.dispose();
+    super.dispose();
+  }
 
   String _getDefaultMessage(String city, String fullLink) {
     return 'Assalamu alaikum neighbors! 👋\n\nJoin my Maamora group for the best deals on bulk groceries in $city. We buy together, we save together! 🛒✨\n\nClick here to join my group:\n$fullLink';
   }
 
-  Future<void> _loadSavedMessage(String ambassadorId) async {
-    if (_hasLoadedSavedMessage) return;
-    _hasLoadedSavedMessage = true;
+  Future<void> _loadSavedData({
+    required String ambassadorId,
+    required String defaultFullLink,
+    required String city,
+  }) async {
+    if (_hasLoadedSavedData && _currentAmbassadorId == ambassadorId) return;
+    _hasLoadedSavedData = true;
+    _currentAmbassadorId = ambassadorId;
+    _currentCity = city;
+    _defaultLink = defaultFullLink;
+
     try {
       final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getString('custom_share_message_$ambassadorId');
-      if (saved != null && saved.trim().isNotEmpty && mounted) {
+      final savedLink = prefs.getString('custom_share_link_$ambassadorId');
+      final savedMsg = prefs.getString('custom_share_message_$ambassadorId');
+
+      final effectiveLink = (savedLink != null && savedLink.trim().isNotEmpty)
+          ? savedLink.trim()
+          : defaultFullLink;
+
+      final effectiveMsg = (savedMsg != null && savedMsg.trim().isNotEmpty)
+          ? savedMsg
+          : _getDefaultMessage(city, effectiveLink);
+
+      if (mounted) {
         setState(() {
-          _customMessage = saved;
+          _activeLink = effectiveLink;
+          _linkController.text = effectiveLink;
+          _customMessage = effectiveMsg;
         });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _activeLink = defaultFullLink;
+          _linkController.text = defaultFullLink;
+          _customMessage = _getDefaultMessage(city, defaultFullLink);
+        });
+      }
+    }
+  }
+
+  void _onLinkChanged(String newLink) {
+    final trimmedLink = newLink.trim();
+    final oldLink = _activeLink;
+    final currentMsg = _customMessage ?? _getDefaultMessage(_currentCity, oldLink.isNotEmpty ? oldLink : _defaultLink);
+
+    String updatedMsg;
+    if (oldLink.isNotEmpty && currentMsg.contains(oldLink)) {
+      updatedMsg = currentMsg.replaceAll(oldLink, trimmedLink);
+    } else {
+      // If old link not directly found, replace existing URL pattern or append
+      final urlRegex = RegExp(r'(https?://[^\s]+|maamora\.ma/[^\s]+)');
+      if (urlRegex.hasMatch(currentMsg)) {
+        updatedMsg = currentMsg.replaceAll(urlRegex, trimmedLink);
+      } else {
+        updatedMsg = currentMsg.trimRight().isEmpty
+            ? trimmedLink
+            : '${currentMsg.trimRight()}\n\n$trimmedLink';
+      }
+    }
+
+    setState(() {
+      _activeLink = trimmedLink;
+      _customMessage = updatedMsg;
+    });
+
+    _persistData(_currentAmbassadorId, trimmedLink, updatedMsg);
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    try {
+      final data = await Clipboard.getData(Clipboard.kTextPlain);
+      final text = data?.text?.trim();
+      if (text != null && text.isNotEmpty) {
+        _linkController.text = text;
+        _onLinkChanged(text);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: const [
+                  Icon(Icons.content_paste_rounded, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Text('Lien collé et message synchronisé ! ✨'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF2E7D32),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Presse-papiers vide'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (_) {}
   }
 
-  Future<void> _saveCustomMessage(String ambassadorId, String newMessage) async {
+  void _resetLinkToDefault() {
+    _linkController.text = _defaultLink;
+    _onLinkChanged(_defaultLink);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Lien réinitialisé au lien par défaut'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _persistData(String ambassadorId, String link, String message) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('custom_share_link_$ambassadorId', link);
+      await prefs.setString('custom_share_message_$ambassadorId', message);
+    } catch (_) {}
+  }
+
+  Future<void> _saveCustomMessage(String newMessage) async {
     setState(() {
       _customMessage = newMessage;
     });
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('custom_share_message_$ambassadorId', newMessage);
-    } catch (_) {}
+    _persistData(_currentAmbassadorId, _activeLink, newMessage);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,19 +202,18 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
 
   void _openEditSheet({
     required BuildContext context,
-    required String ambassadorId,
     required String currentMessage,
     required String defaultMessage,
-    required String fullLink,
+    required String activeLink,
     required String city,
   }) {
     EditMessageBottomSheet.show(
       context: context,
       currentMessage: currentMessage,
       defaultMessage: defaultMessage,
-      referralLink: fullLink,
+      referralLink: activeLink,
       city: city,
-      onSaved: (newMessage) => _saveCustomMessage(ambassadorId, newMessage),
+      onSaved: _saveCustomMessage,
     );
   }
 
@@ -199,14 +324,17 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
         data: (ambassador) {
           if (ambassador == null) return const Center(child: Text('Not logged in'));
 
-          final fullLink = 'maamora.ma/join/${ambassador.referralSlug}';
-          final shortLink =
-              'maamora.ma/join/${ambassador.referralSlug.substring(0, ambassador.referralSlug.length > 5 ? 5 : ambassador.referralSlug.length)}...';
-          final defaultMessage = _getDefaultMessage(ambassador.city, fullLink);
+          final defaultFullLink = 'maamora.ma/join/${ambassador.referralSlug}';
 
-          // Trigger loading saved custom message once
-          _loadSavedMessage(ambassador.id);
+          // Load persisted custom data once
+          _loadSavedData(
+            ambassadorId: ambassador.id,
+            defaultFullLink: defaultFullLink,
+            city: ambassador.city,
+          );
 
+          final effectiveLink = _activeLink.isNotEmpty ? _activeLink : defaultFullLink;
+          final defaultMessage = _getDefaultMessage(ambassador.city, effectiveLink);
           final activeMessage = _customMessage ?? defaultMessage;
 
           return SafeArea(
@@ -239,24 +367,36 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Referral Link Box
+                  // Editable & Pasteable Referral Link Box
                   _ReferralLinkBox(
-                    link: shortLink,
-                    fullLink: fullLink,
-                    onQrTap: () => _showQrDialog(context, fullLink, ambassador.referralSlug),
+                    controller: _linkController,
+                    currentLink: effectiveLink,
+                    defaultLink: defaultFullLink,
+                    onChanged: _onLinkChanged,
+                    onPaste: _pasteFromClipboard,
+                    onReset: _resetLinkToDefault,
+                    onCopy: () {
+                      Clipboard.setData(ClipboardData(text: effectiveLink));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Lien copié dans le presse-papiers'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    onQrTap: () => _showQrDialog(context, effectiveLink, ambassador.referralSlug),
                   ),
                   const SizedBox(height: 24),
 
                   // Message Preview Section with Edit Button
                   _MessagePreviewSection(
                     message: activeMessage,
-                    link: fullLink,
+                    link: effectiveLink,
                     onEditTap: () => _openEditSheet(
                       context: context,
-                      ambassadorId: ambassador.id,
                       currentMessage: activeMessage,
                       defaultMessage: defaultMessage,
-                      fullLink: fullLink,
+                      activeLink: effectiveLink,
                       city: ambassador.city,
                     ),
                   ),
@@ -275,23 +415,35 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
   }
 }
 
-// ── Referral Link Box ────────────────────────────────────────────────────────
+// ── Referral Link Box (Editable & Pasteable) ──────────────────────────────────
 
 class _ReferralLinkBox extends StatelessWidget {
-  final String link;
-  final String fullLink;
+  final TextEditingController controller;
+  final String currentLink;
+  final String defaultLink;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onPaste;
+  final VoidCallback onReset;
+  final VoidCallback onCopy;
   final VoidCallback onQrTap;
 
   const _ReferralLinkBox({
-    required this.link,
-    required this.fullLink,
+    required this.controller,
+    required this.currentLink,
+    required this.defaultLink,
+    required this.onChanged,
+    required this.onPaste,
+    required this.onReset,
+    required this.onCopy,
     required this.onQrTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isCustomized = currentLink != defaultLink && currentLink.isNotEmpty;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(12),
@@ -303,49 +455,96 @@ class _ReferralLinkBox extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Editable Link Field
           Expanded(
-            child: Text(
-              link,
+            child: TextField(
+              controller: controller,
+              onChanged: onChanged,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: _onBackground,
               ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Copy icon
-          GestureDetector(
-            onTap: () {
-              Clipboard.setData(ClipboardData(text: fullLink));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Link copied to clipboard'),
-                  duration: Duration(seconds: 2),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                hintText: 'Collez ou saisissez votre lien ici...',
+                hintStyle: TextStyle(
+                  color: _onSurfaceVariant,
+                  fontSize: 13,
                 ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF0E6),
-                borderRadius: BorderRadius.circular(8),
+                contentPadding: EdgeInsets.symmetric(vertical: 6),
               ),
-              child: const Icon(Icons.copy_rounded, color: _primary, size: 20),
             ),
           ),
           const SizedBox(width: 8),
+
+          // Reset button (visible when customized)
+          if (isCustomized) ...[
+            GestureDetector(
+              onTap: onReset,
+              child: Tooltip(
+                message: 'Réinitialiser au lien par défaut',
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.restart_alt_rounded, color: _onSurfaceVariant, size: 18),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
+
+          // Paste icon button
+          GestureDetector(
+            onTap: onPaste,
+            child: Tooltip(
+              message: 'Coller depuis le presse-papiers',
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF0E6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.content_paste_rounded, color: _primary, size: 19),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+
+          // Copy icon
+          GestureDetector(
+            onTap: onCopy,
+            child: Tooltip(
+              message: 'Copier le lien',
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF0E6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.copy_rounded, color: _primary, size: 19),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+
           // QR icon
           GestureDetector(
             onTap: onQrTap,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF0E6),
-                borderRadius: BorderRadius.circular(8),
+            child: Tooltip(
+              message: 'Afficher le QR code',
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF0E6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.qr_code_rounded, color: _primary, size: 19),
               ),
-              child: const Icon(Icons.qr_code_rounded, color: _primary, size: 20),
             ),
           ),
         ],
@@ -367,22 +566,65 @@ class _MessagePreviewSection extends StatelessWidget {
     required this.onEditTap,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    // Separate link and main text if present
-    String mainText = message;
-    String? linkText;
+  List<InlineSpan> _buildMessageSpans(String text, String activeLink) {
+    final spans = <InlineSpan>[];
+    if (text.isEmpty) return spans;
 
-    if (message.contains(link)) {
-      final index = message.lastIndexOf(link);
-      mainText = message.substring(0, index).trimRight();
-      linkText = link;
+    final escapedLink = activeLink.isNotEmpty ? RegExp.escape(activeLink) : '';
+    final pattern = escapedLink.isNotEmpty
+        ? '(?:$escapedLink|https?://[^\\s]+|maamora\\.ma/[^\\s]+)'
+        : r'(?:https?://[^\s]+|maamora\.ma/[^\s]+)';
+
+    final regex = RegExp(pattern);
+    int lastIndex = 0;
+
+    for (final match in regex.allMatches(text)) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(
+          text: text.substring(lastIndex, match.start),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: _onBackground,
+            height: 1.5,
+          ),
+        ));
+      }
+      spans.add(TextSpan(
+        text: match.group(0),
+        style: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: Colors.blue.shade700,
+          decoration: TextDecoration.underline,
+          decorationColor: Colors.blue.shade700,
+          height: 1.5,
+        ),
+      ));
+      lastIndex = match.end;
     }
 
+    if (lastIndex < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastIndex),
+        style: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: _onBackground,
+          height: 1.5,
+        ),
+      ));
+    }
+
+    return spans;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header with Title and "Edit" action button
+        // Section Header with Title and "Modifier" action button
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -448,29 +690,11 @@ class _MessagePreviewSection extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    mainText,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: _onBackground,
-                      height: 1.5,
+                  RichText(
+                    text: TextSpan(
+                      children: _buildMessageSpans(message, link),
                     ),
                   ),
-                  if (linkText != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      linkText,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.blue.shade700,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Colors.blue.shade700,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
                   const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -478,7 +702,11 @@ class _MessagePreviewSection extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.edit_note_rounded, size: 13, color: _onSurfaceVariant.withValues(alpha: 0.7)),
+                          Icon(
+                            Icons.edit_note_rounded,
+                            size: 13,
+                            color: _onSurfaceVariant.withValues(alpha: 0.7),
+                          ),
                           const SizedBox(width: 2),
                           Text(
                             'Tap to edit',
