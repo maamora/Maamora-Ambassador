@@ -84,11 +84,6 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
   }
 
   @override
-  void disposeWidget() {
-    _controller.dispose();
-  }
-
-  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
