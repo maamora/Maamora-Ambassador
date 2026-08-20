@@ -15,6 +15,7 @@ import '../../features/onboarding/screens/status_screens.dart';
 
 import '../../features/admin/screens/admin_navigation_screen.dart';
 import '../../features/admin/screens/admin_profile_screen.dart';
+import '../../features/admin/screens/admin_ambassador_details_screen.dart';
 
 import '../../features/community/screens/community_screen.dart';
 import '../../features/pickup/screens/pickup_screen.dart';
@@ -134,6 +135,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.adminProfile,
       builder: (context, state) => const AdminProfileScreen(),
+    ),
+    GoRoute(
+      path: '${AppRoutes.adminAmbassadorDetails}/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return AdminAmbassadorDetailsScreen(ambassadorId: id);
+      },
     ),
 
     // ── Status Screens ────────────────────────────────────────────────────

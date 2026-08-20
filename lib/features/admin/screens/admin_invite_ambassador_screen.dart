@@ -122,21 +122,17 @@ class _AdminInviteAmbassadorScreenState
     });
 
     try {
-      final adminId = Supabase.instance.client.auth.currentUser!.id;
-
       final response = await Supabase.instance.client
-          .from('invite_codes')
-          .insert({
-            'created_by_admin_id': adminId,
-            if (_selectedExpiry != null)
-              'expires_at': _selectedExpiry!.toIso8601String(),
-          })
-          .select('code, status, expires_at, created_at')
-          .single();
+          .rpc('admin_create_invite_code', params: {
+            'p_expires_at': _selectedExpiry?.toIso8601String(),
+            'p_city': _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
+          });
+
+      final generatedCode = response as String;
 
       if (mounted) {
         setState(() {
-          _generatedCode = response['code'] as String;
+          _generatedCode = generatedCode;
           _isGenerating = false;
         });
         // Rafraîchir la liste

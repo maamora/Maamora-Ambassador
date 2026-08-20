@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../widgets/admin_status_badge.dart';
+import 'package:go_router/go_router.dart';
+import '../../../shared/navigation/app_routes.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
@@ -356,99 +358,105 @@ class _AmbassadorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _cardBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: const Color(0xFFE8DDD3),
-            child: Text(
-              ambassador.initials,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: _onSurfaceVariant,
+    return InkWell(
+      onTap: () {
+        context.push('${AppRoutes.adminAmbassadorDetails}/${ambassador.id}');
+      },
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _cardBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Avatar
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: const Color(0xFFE8DDD3),
+              child: Text(
+                ambassador.initials,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: _onSurfaceVariant,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      ambassador.fullName,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: _onBackground,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _levelColor(ambassador.level)
-                            .withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        ambassador.level,
+            const SizedBox(width: 12),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        ambassador.fullName,
                         style: GoogleFonts.inter(
-                          fontSize: 10,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: _levelColor(ambassador.level),
+                          color: _onBackground,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_rounded,
-                        size: 11, color: _onSurfaceVariant),
-                    const SizedBox(width: 2),
-                    Text(
-                      ambassador.city,
-                      style: GoogleFonts.inter(
-                          fontSize: 12, color: _onSurfaceVariant),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.people_alt_outlined,
-                        size: 11, color: _onSurfaceVariant),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${ambassador.totalValidatedMembers} membres',
-                      style: GoogleFonts.inter(
-                          fontSize: 12, color: _onSurfaceVariant),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _levelColor(ambassador.level)
+                              .withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          ambassador.level,
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: _levelColor(ambassador.level),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_rounded,
+                          size: 11, color: _onSurfaceVariant),
+                      const SizedBox(width: 2),
+                      Text(
+                        ambassador.city,
+                        style: GoogleFonts.inter(
+                            fontSize: 12, color: _onSurfaceVariant),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.people_alt_outlined,
+                          size: 11, color: _onSurfaceVariant),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${ambassador.totalValidatedMembers} membres',
+                        style: GoogleFonts.inter(
+                            fontSize: 12, color: _onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          AdminStatusBadge(status: ambassador.status),
-        ],
+            const SizedBox(width: 8),
+            AdminStatusBadge(status: ambassador.status),
+          ],
+        ),
       ),
     );
   }

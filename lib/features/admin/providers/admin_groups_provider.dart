@@ -118,55 +118,6 @@ class AdminGroupsNotifier extends StateNotifier<AdminGroupsState> {
 
   final _client = Supabase.instance.client;
 
-  /// Mock items shown when Supabase returns 0 groups.
-  /// Demonstrates all 3 visual states: in-progress, full-unpaid, full-paid.
-  static final _mockItems = <AdminGroupItem>[
-    AdminGroupItem(
-      id: 'mock-1',
-      productName: 'Premium Dates Box (5kg)',
-      pricePerPerson: 75.0,
-      membersCount: 15,
-      seatsTotal: 15,
-      ambassadorName: 'Youssef T.',
-      completedAt: "Aujourd'hui, 14:20",
-      commissionAssigned: false, // full — commission en attente
-      status: DealGroupStatus.waitingAdminValidation,
-    ),
-    AdminGroupItem(
-      id: 'mock-2',
-      productName: 'Artisan Tea Set Bundle',
-      pricePerPerson: 120.0,
-      membersCount: 9,
-      seatsTotal: 15,
-      ambassadorName: 'Fatima Z.',
-      completedAt: 'Hier',
-      commissionAssigned: false, // pas full — bouton désactivé
-      status: DealGroupStatus.open,
-    ),
-    AdminGroupItem(
-      id: 'mock-3',
-      productName: 'Olive Oil Lovers — 5L Pack',
-      pricePerPerson: 95.0,
-      membersCount: 15,
-      seatsTotal: 15,
-      ambassadorName: 'Amine B.',
-      completedAt: 'Oct 26',
-      commissionAssigned: true, // full + déjà payée
-      status: DealGroupStatus.closed,
-    ),
-    AdminGroupItem(
-      id: 'mock-4',
-      productName: 'Moroccan Honey Jar (500g)',
-      pricePerPerson: 60.0,
-      membersCount: 4,
-      seatsTotal: 15,
-      ambassadorName: 'Sara B.',
-      completedAt: 'Oct 24',
-      commissionAssigned: false, // pas full — bouton désactivé
-      status: DealGroupStatus.open,
-    ),
-  ];
-
   Future<void> fetchGroups() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
@@ -179,18 +130,14 @@ class AdminGroupsNotifier extends StateNotifier<AdminGroupsState> {
           .map((e) => AdminGroupItem.fromMap(e as Map<String, dynamic>))
           .toList();
 
-      // TODO: retirer _mockItems avant la mise en production
-      // On ajoute toujours les mocks pour visualiser tous les états
       state = state.copyWith(
-        groups: [...items, ..._mockItems],
+        groups: items,
         isLoading: false,
       );
     } catch (e) {
-      // On error, show mocks so the UI remains usable
       state = state.copyWith(
-        groups: _mockItems,
         isLoading: false,
-        error: 'Données hors-ligne — affichage mock.',
+        error: 'Impossible de charger les groupes: $e',
       );
     }
   }

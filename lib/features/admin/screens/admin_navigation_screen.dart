@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/widgets/shared_app_bar.dart';
 import '../../../features/admin/screens/admin_profile_screen.dart';
 import '../providers/admin_groups_provider.dart';
+import '../providers/pending_ambassadors_provider.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_invite_ambassador_screen.dart';
 import 'admin_ambassadors_pending_screen.dart';
@@ -155,7 +156,7 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
       bottomNavigationBar: _AdminBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
-        pendingAmbassadors: 3, // données factices, à remplacer
+        pendingAmbassadors: ref.watch(pendingAmbassadorsCountProvider).value ?? 0,
         pendingGroups: ref.watch(adminGroupsProvider).pendingCommissionCount,
       ),
     );
@@ -164,7 +165,7 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
 
 // ── Ambassadors tab with sub-tabs ─────────────────────────────────────────
 
-class _AmbassadorsTabWrapper extends StatelessWidget {
+class _AmbassadorsTabWrapper extends ConsumerWidget {
   final int currentSubTab;
   final void Function(int) onSubTabChanged;
 
@@ -174,7 +175,9 @@ class _AmbassadorsTabWrapper extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pendingAmbassadorsCount = ref.watch(pendingAmbassadorsCountProvider).value ?? 0;
+
     return Column(
       children: [
         // Sub-tab bar
@@ -186,7 +189,7 @@ class _AmbassadorsTabWrapper extends StatelessWidget {
               _SubTabChip(
                 label: 'En attente',
                 isActive: currentSubTab == 0,
-                badge: 3, // données factices
+                badge: pendingAmbassadorsCount,
                 onTap: () => onSubTabChanged(0),
               ),
               const SizedBox(width: 8),
@@ -374,8 +377,8 @@ class _AdminBottomNavBar extends StatelessWidget {
                 onTap: () => onTap(2),
               ),
               _AdminNavItem(
-                icon: Icons.settings_rounded,
-                label: 'Settings',
+                icon: Icons.account_balance_wallet_rounded,
+                label: 'Finances',
                 isActive: currentIndex == 3,
                 onTap: () => onTap(3),
               ),

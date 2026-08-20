@@ -53,6 +53,7 @@ class Payout {
   final double amount;
   final PayoutMethod method;
   final PayoutStatus status;
+  final String? reference;
   final DateTime? createdAt;
 
   const Payout({
@@ -62,6 +63,7 @@ class Payout {
     required this.amount,
     required this.method,
     required this.status,
+    this.reference,
     this.createdAt,
   });
 
@@ -73,6 +75,7 @@ class Payout {
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       method: PayoutMethodExtension.fromString(json['method'] as String? ?? 'bank'),
       status: PayoutStatusExtension.fromString(json['status'] as String? ?? 'pending'),
+      reference: json['reference'] as String?,
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'] as String) : null,
     );
   }
@@ -85,6 +88,7 @@ class Payout {
       'amount': amount,
       'method': method.value,
       'status': status.value,
+      'reference': reference,
       'created_at': createdAt?.toIso8601String(),
     };
   }
