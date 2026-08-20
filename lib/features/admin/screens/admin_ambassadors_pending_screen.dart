@@ -332,8 +332,7 @@ class _AdminAmbassadorsPendingScreenState
                       color: Colors.white, size: 16),
                 ],
               ),
-            ),
-        ],
+            ),        ],
       ),
     );
   }

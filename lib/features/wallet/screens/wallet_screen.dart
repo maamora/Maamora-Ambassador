@@ -29,7 +29,7 @@ class WalletScreen extends ConsumerWidget {
             children: [
               _buildBalanceCard(data.balance),
               const SizedBox(height: 32),
-              _buildEarningsBreakdown(data.commissions),
+              _buildEarningsBreakdown(data),
               const SizedBox(height: 32),
               if (ambassadorState.ambassador != null)
                 _buildPayoutMethod(ambassadorState.ambassador!),
@@ -182,7 +182,17 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEarningsBreakdown(List<Commission> commissions) {
+  Widget _buildEarningsBreakdown(WalletData data) {
+    // Combine commissions and payouts into a single list of transactions
+    final List<dynamic> transactions = [...data.commissions, ...data.payouts];
+    
+    // Sort transactions by date descending
+    transactions.sort((a, b) {
+      final aDate = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bDate = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bDate.compareTo(aDate);
+    });
+
     return Column(
       children: [
         Row(
@@ -224,10 +234,10 @@ class WalletScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 16),
-        if (commissions.isEmpty)
+        if (transactions.isEmpty)
           const Padding(
             padding: EdgeInsets.all(24.0),
-            child: Text('No earnings yet.'),
+            child: Text('No transactions yet.'),
           )
         else
           Container(
@@ -237,32 +247,57 @@ class WalletScreen extends ConsumerWidget {
               border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
             ),
             child: Column(
-              children: commissions.asMap().entries.map((entry) {
+              children: transactions.asMap().entries.map((entry) {
                 final index = entry.key;
-                final comm = entry.value;
-                final isLast = index == commissions.length - 1;
+                final tx = entry.value;
+                final isLast = index == transactions.length - 1;
                 
-                String title = 'Commission';
-                IconData icon = Icons.shopping_bag_rounded;
-                if (comm.source == CommissionSource.groupCommission) {
-                  title = comm.dealGroupName ?? 'Deal Group';
-                  icon = Icons.group_rounded;
-                } else if (comm.source == CommissionSource.recruitBonus) {
-                  title = 'Recruitment Bonus';
-                  icon = Icons.person_add_rounded;
+                String title = '';
+                String subtitle = '';
+                String amountStr = '';
+                IconData icon = Icons.attach_money;
+                Color iconColor = const Color(0xFF596374);
+                Color iconBgColor = const Color(0xFFd6e0f5);
+                bool isExpired = false;
+                String typeLabel = '';
+
+                if (tx is Commission) {
+                  title = 'Commission';
+                  icon = Icons.shopping_bag_rounded;
+                  if (tx.source == CommissionSource.groupCommission) {
+                    title = tx.dealGroupName ?? 'Deal Group';
+                    icon = Icons.group_rounded;
+                  } else if (tx.source == CommissionSource.recruitBonus) {
+                    title = 'Recruitment Bonus';
+                    icon = Icons.person_add_rounded;
+                  }
+                  subtitle = tx.status.value.toUpperCase();
+                  amountStr = '+${tx.amount.toStringAsFixed(0)} DH';
+                  isExpired = tx.status == CommissionStatus.voided;
+                  typeLabel = 'Commission';
+                } else if (tx is Payout) {
+                  final methodStr = tx.method == PayoutMethod.bank ? 'Virement Bancaire' : 'Espèces (Cash)';
+                  title = tx.reference != null ? '$methodStr (${tx.reference})' : methodStr;
+                  icon = Icons.account_balance_wallet_rounded;
+                  iconColor = const Color(0xFFB3261E);
+                  iconBgColor = const Color(0xFFF9DEDC);
+                  subtitle = tx.status.value.toUpperCase();
+                  amountStr = '-${tx.amount.toStringAsFixed(0)} DH';
+                  typeLabel = 'Payout';
                 }
                 
                 return Column(
                   children: [
                     _buildEarningRow(
                       icon: icon,
-                      iconColor: const Color(0xFF596374),
-                      iconBgColor: const Color(0xFFd6e0f5),
+                      iconColor: iconColor,
+                      iconBgColor: iconBgColor,
                       title: title,
-                      subtitle: comm.status.value.toUpperCase(),
-                      amount: '+${comm.amount.toStringAsFixed(0)} DH',
+                      subtitle: subtitle,
+                      amount: amountStr,
                       isLast: isLast,
-                      isExpired: comm.status == CommissionStatus.voided,
+                      isExpired: isExpired,
+                      typeLabel: typeLabel,
                     ),
                     if (!isLast)
                       const Divider(height: 1, color: AppColors.outlineVariant),
@@ -283,6 +318,7 @@ class WalletScreen extends ConsumerWidget {
     required String subtitle,
     required String amount,
     required bool isLast,
+    required String typeLabel,
     bool isExpired = false,
   }) {
     return Container(
@@ -344,13 +380,13 @@ class WalletScreen extends ConsumerWidget {
                   style: GoogleFonts.workSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isExpired ? AppColors.onSurfaceVariant : AppColors.primaryContainer,
+                    color: isExpired ? AppColors.onSurfaceVariant : (typeLabel == 'Payout' ? const Color(0xFFB3261E) : AppColors.primaryContainer),
                   ),
                 ),
                 if (!isExpired) ...[
                   const SizedBox(height: 2),
                   Text(
-                    'Commission',
+                    typeLabel,
                     style: GoogleFonts.workSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,

@@ -26,6 +26,7 @@ class AppRoutes {
   static const String adminInvite = '/admin/invite';
   static const String adminAmbassadorsPending = '/admin/ambassadors/pending';
   static const String adminAmbassadorsList = '/admin/ambassadors/list';
+  static const String adminAmbassadorDetails = '/admin/ambassadors/details';
   static const String adminGroupsPending = '/admin/groups';
   static const String adminCommissions = '/admin/commissions';
   static const String adminAuditLog = '/admin/audit-log';
