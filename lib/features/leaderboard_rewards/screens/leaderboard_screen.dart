@@ -70,33 +70,30 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 const SizedBox(height: 16),
                 // Ranked list (scrollable)
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      // Top 3 rows
-                      for (int i = 0; i < listData.length && i < 3; i++) ...[
-                        _RankRow(rank: i + 1, entry: listData[i], isMe: false, showMedal: true),
-                        const SizedBox(height: 10),
-                      ],
-                      // Ellipsis separator
-                      if (listData.length > 3) ...[
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Center(
-                            child: Text(
-                              '· · ·',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: _onSurfaceVariant,
-                                letterSpacing: 4,
-                              ),
-                            ),
+                  child: RefreshIndicator(
+                    color: _primary,
+                    onRefresh: () async {
+                      ref.invalidate(leaderboardProvider(city));
+                      await ref.read(leaderboardProvider(city).future);
+                    },
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        // All rows
+                        for (int i = 0; i < listData.length; i++) ...[
+                          _RankRow(
+                            rank: i + 1,
+                            entry: listData[i],
+                            isMe: ambassadorState.ambassador?.id == listData[i]['id'],
+                            showMedal: i < 3
                           ),
-                        ),
+                          const SizedBox(height: 10),
+                        ],
+                        // Bottom padding so the pinned row doesn't cover content
+                        const SizedBox(height: 80),
                       ],
-                      // Bottom padding so the pinned row doesn't cover content
-                      const SizedBox(height: 80),
-                    ],
+                    ),
                   ),
                 ),
                 // Pinned "You" row
@@ -204,11 +201,11 @@ class _RankRow extends StatelessWidget {
     final name = entry['full_name'] as String? ?? 'User';
     final city = entry['city'] as String? ?? 'Unknown';
     final level = entry['level'] as String? ?? 'neutral';
-    final orders = entry['total_validated_members'] as int? ?? 0;
+    final orders = (entry['total_validated_members'] as num?)?.toInt() ?? 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: _surface,
+        color: isMe ? const Color(0xFFFFF0E6) : _surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _cardBorder),
         boxShadow: [
@@ -341,13 +338,13 @@ class _MyPinnedRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orders = myEntry['total_validated_members'] as int? ?? 0;
+    final orders = (myEntry['total_validated_members'] as num?)?.toInt() ?? 0;
     
     int ordersToPass = 0;
     String nextName = '';
     
     if (nextPerson != null) {
-      final nextOrders = nextPerson!['total_validated_members'] as int? ?? 0;
+      final nextOrders = (nextPerson!['total_validated_members'] as num?)?.toInt() ?? 0;
       ordersToPass = nextOrders - orders + 1;
       nextName = (nextPerson!['full_name'] as String? ?? 'Next').split(' ').first;
     }
