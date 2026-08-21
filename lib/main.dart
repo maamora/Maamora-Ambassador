@@ -5,6 +5,7 @@ import 'core/constants/api_constants.dart';
 import 'shared/theme/app_theme.dart';
 import 'shared/navigation/app_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'core/services/deep_link_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +16,8 @@ Future<void> main() async {
     url: ApiConstants.supabaseUrl,
     publishableKey: ApiConstants.supabaseAnonKey,
   );
+
+  await DeepLinkService().initDeepLinks();
 
   runApp(const ProviderScope(child: AmbassadorsApp()));
 }

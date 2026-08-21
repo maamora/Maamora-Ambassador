@@ -57,7 +57,8 @@ final GoRouter appRouter = GoRouter(
         state.matchedLocation == AppRoutes.login ||
         state.matchedLocation == AppRoutes.register ||
         state.matchedLocation == AppRoutes.welcome ||
-        state.matchedLocation.startsWith(AppRoutes.callbackLogin);
+        state.matchedLocation.startsWith(AppRoutes.callbackLogin) ||
+        state.matchedLocation.startsWith('/join');
 
     if (!isLoggedIn && !isPublicRoute) {
       return AppRoutes.login;
@@ -73,6 +74,26 @@ final GoRouter appRouter = GoRouter(
         onLoginSuccess: () => context.go(AppRoutes.dashboard),
         onCreateAccount: () => context.go(AppRoutes.register),
       ),
+    ),
+    GoRoute(
+      path: '/join/:code',
+      builder: (context, state) {
+        final code = state.pathParameters['code'];
+        return RegisterScreen(
+          initialInviteCode: code,
+          onActivateSuccess: () => context.go(AppRoutes.pending),
+          onGoToLogin: () => context.go(AppRoutes.login),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/join',
+      builder: (context, state) {
+        return RegisterScreen(
+          onActivateSuccess: () => context.go(AppRoutes.pending),
+          onGoToLogin: () => context.go(AppRoutes.login),
+        );
+      },
     ),
     GoRoute(
       path: AppRoutes.register,
