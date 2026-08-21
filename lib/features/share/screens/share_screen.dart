@@ -92,25 +92,53 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     }
   }
 
+  String _updateMessageWithLink(String message, String oldLink, String newLink) {
+    final trimmedNew = newLink.trim();
+    if (message.isEmpty) return trimmedNew;
+
+    // 1. If oldLink was non-empty, try to replace it precisely
+    if (oldLink.isNotEmpty) {
+      final trimmedOld = oldLink.trim();
+      final trimmedMsg = message.trimRight();
+
+      // Check if message ends with oldLink
+      if (trimmedOld.isNotEmpty && trimmedMsg.endsWith(trimmedOld)) {
+        final prefix = trimmedMsg.substring(0, trimmedMsg.length - trimmedOld.length);
+        return '$prefix$trimmedNew';
+      }
+
+      // Check if oldLink appears as an isolated token separated by whitespace / newlines / punctuation
+      if (trimmedOld.isNotEmpty) {
+        final isolatedPattern = RegExp(
+          r'(^|[\s\n:])' + RegExp.escape(trimmedOld) + r'($|[\s\n.,!?])',
+        );
+        if (isolatedPattern.hasMatch(message)) {
+          return message.replaceFirstMapped(isolatedPattern, (match) {
+            final prefix = match.group(1) ?? '';
+            final suffix = match.group(2) ?? '';
+            return '$prefix$trimmedNew$suffix';
+          });
+        }
+      }
+    }
+
+    // 2. Check for standard URL / maamora pattern in message
+    final urlRegex = RegExp(r'(https?://[^\s]+|maamora\.ma/[^\s]+)');
+    final matches = urlRegex.allMatches(message);
+    if (matches.isNotEmpty) {
+      final lastMatch = matches.last;
+      return message.substring(0, lastMatch.start) + trimmedNew + message.substring(lastMatch.end);
+    }
+
+    // 3. Fallback: append at the end
+    return '${message.trimRight()}\n\n$trimmedNew';
+  }
+
   void _onLinkChanged(String newLink) {
     final trimmedLink = newLink.trim();
     final oldLink = _activeLink;
-    final currentMsg = _customMessage ?? _getDefaultMessage(_currentCity, oldLink.isNotEmpty ? oldLink : _defaultLink);
-
-    String updatedMsg;
-    if (oldLink.isNotEmpty && currentMsg.contains(oldLink)) {
-      updatedMsg = currentMsg.replaceAll(oldLink, trimmedLink);
-    } else {
-      // If old link not directly found, replace existing URL pattern or append
-      final urlRegex = RegExp(r'(https?://[^\s]+|maamora\.ma/[^\s]+)');
-      if (urlRegex.hasMatch(currentMsg)) {
-        updatedMsg = currentMsg.replaceAll(urlRegex, trimmedLink);
-      } else {
-        updatedMsg = currentMsg.trimRight().isEmpty
-            ? trimmedLink
-            : '${currentMsg.trimRight()}\n\n$trimmedLink';
-      }
-    }
+    final baseMsg = _customMessage ?? _getDefaultMessage(_currentCity, oldLink.isNotEmpty ? oldLink : _defaultLink);
+    final updatedMsg = _updateMessageWithLink(baseMsg, oldLink, trimmedLink);
 
     setState(() {
       _activeLink = trimmedLink;
@@ -159,10 +187,15 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
 
   void _resetLinkToDefault() {
     _linkController.text = _defaultLink;
-    _onLinkChanged(_defaultLink);
+    final defaultMsg = _getDefaultMessage(_currentCity, _defaultLink);
+    setState(() {
+      _activeLink = _defaultLink;
+      _customMessage = defaultMsg;
+    });
+    _persistData(_currentAmbassadorId, _defaultLink, defaultMsg);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Lien réinitialisé au lien par défaut'),
+        content: Text('Lien et message réinitialisés au défaut'),
         duration: Duration(seconds: 2),
       ),
     );
@@ -218,10 +251,37 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     );
   }
 
-  void _showQrDialog(BuildContext context, String fullLink, String referralSlug) {
-    final qrData = fullLink.startsWith('http://') || fullLink.startsWith('https://')
-        ? fullLink
-        : 'https://$fullLink';
+  String _getQrCodeData(String link, String defaultSlug) {
+    final trimmed = link.trim();
+    if (trimmed.isEmpty) {
+      return 'https://maamora.ma/join/$defaultSlug';
+    }
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    if (trimmed.contains('.')) {
+      return 'https://$trimmed';
+    }
+    return 'https://maamora.ma/join/$trimmed';
+  }
+
+  String _getDisplaySlug(String link, String defaultSlug) {
+    final trimmed = link.trim();
+    if (trimmed.isEmpty) return defaultSlug;
+    try {
+      final uriStr = trimmed.startsWith('http') ? trimmed : 'https://$trimmed';
+      final uri = Uri.parse(uriStr);
+      if (uri.pathSegments.isNotEmpty) {
+        final lastSeg = uri.pathSegments.last;
+        if (lastSeg.isNotEmpty) return lastSeg;
+      }
+    } catch (_) {}
+    return trimmed;
+  }
+
+  void _showQrDialog(BuildContext context, String currentLink, String defaultSlug) {
+    final qrData = _getQrCodeData(currentLink, defaultSlug);
+    final displaySlug = _getDisplaySlug(currentLink, defaultSlug);
 
     showDialog(
       context: context,
@@ -320,7 +380,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        referralSlug.isNotEmpty ? referralSlug : fullLink,
+                        displaySlug,
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -337,7 +397,8 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: fullLink));
+                    final linkToCopy = currentLink.trim().isNotEmpty ? currentLink.trim() : qrData;
+                    Clipboard.setData(ClipboardData(text: linkToCopy));
                     Navigator.of(ctx).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -622,12 +683,20 @@ class _MessagePreviewSection extends StatelessWidget {
     final spans = <InlineSpan>[];
     if (text.isEmpty) return spans;
 
-    final escapedLink = activeLink.isNotEmpty ? RegExp.escape(activeLink) : '';
-    final pattern = escapedLink.isNotEmpty
-        ? '(?:$escapedLink|https?://[^\\s]+|maamora\\.ma/[^\\s]+)'
-        : r'(?:https?://[^\s]+|maamora\.ma/[^\s]+)';
+    final trimmed = activeLink.trim();
+    final patterns = <String>[
+      r'https?://[^\s]+',
+      r'maamora\.ma/[^\s]+',
+    ];
 
-    final regex = RegExp(pattern);
+    if (trimmed.isNotEmpty) {
+      patterns.insert(
+        0,
+        r'(?:(?<=[\s\n:]|^)' + RegExp.escape(trimmed) + r'(?=[\s\n.,!?]|$))',
+      );
+    }
+
+    final regex = RegExp(patterns.join('|'), multiLine: true);
     int lastIndex = 0;
 
     for (final match in regex.allMatches(text)) {
