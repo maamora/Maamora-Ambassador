@@ -141,15 +141,20 @@ class _NextLevelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Logic: threshold for Bronze->Silver is 6, Silver->Gold is 27.
     int totalOrders = 6;
-    String nextLevelName = 'Silver Tier';
+    String nextLevelName = 'Bronze Tier';
     
-    if (ambassador.level == AmbassadorLevel.silver) {
+    if (ambassador.level == AmbassadorLevel.neutral) {
+      totalOrders = 6;
+      nextLevelName = 'Bronze Tier';
+    } else if (ambassador.level == AmbassadorLevel.bronze) {
       totalOrders = 27;
+      nextLevelName = 'Silver Tier';
+    } else if (ambassador.level == AmbassadorLevel.silver) {
+      totalOrders = 360; // 6 groups of 60+ orders
       nextLevelName = 'Gold Tier';
     } else if (ambassador.level == AmbassadorLevel.gold) {
-      totalOrders = ambassador.totalValidatedMembers; // max level
+      totalOrders = ambassador.totalValidatedMembers > 0 ? ambassador.totalValidatedMembers : 1; 
       nextLevelName = 'Max Tier';
     }
 
@@ -200,20 +205,36 @@ class _NextLevelCard extends StatelessWidget {
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  const Icon(Icons.timer_outlined, color: _primary, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    '5 days left',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: _primary,
+              if (ambassador.level != AmbassadorLevel.gold)
+                Row(
+                  children: [
+                    const Icon(Icons.timer_outlined, color: _primary, size: 16),
+                    const SizedBox(width: 4),
+                    Builder(
+                      builder: (context) {
+                        int daysLeft = 0;
+                        if (ambassador.activatedAt != null) {
+                          final now = DateTime.now();
+                          final diff = now.difference(ambassador.activatedAt!).inDays;
+                          if (diff <= 7) {
+                            daysLeft = 7 - diff;
+                          } else {
+                            final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+                            daysLeft = daysInMonth - now.day;
+                          }
+                        }
+                        return Text(
+                          '$daysLeft days left',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: _primary,
+                          ),
+                        );
+                      }
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
           const SizedBox(height: 16),
@@ -221,7 +242,9 @@ class _NextLevelCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '12 orders needed',
+                ambassador.level == AmbassadorLevel.gold 
+                    ? 'Max rank achieved' 
+                    : '${(totalOrders - completedOrders).clamp(0, totalOrders)} orders needed',
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -229,7 +252,9 @@ class _NextLevelCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '$completedOrders/$totalOrders',
+                ambassador.level == AmbassadorLevel.gold 
+                    ? '$completedOrders'
+                    : '$completedOrders/$totalOrders',
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
