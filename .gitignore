@@ -56,3 +56,4 @@ kotlin-compiler-*
 **/GeneratedPluginRegistrant.swift
 
 .env
+pubspec.lock
