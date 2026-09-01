@@ -471,15 +471,12 @@ class _MyPinnedRow extends StatelessWidget {
 
 class _Avatar extends StatelessWidget {
   final String name;
-  final String? initial;
-  final Color? bgColor;
 
-  const _Avatar({required this.name, this.initial, this.bgColor});
+  const _Avatar({required this.name});
 
   @override
   Widget build(BuildContext context) {
-    final hasInitial = initial != null;
-    final bg = bgColor ?? const Color(0xFFF5EDE4);
+    final bg = const Color(0xFFF5EDE4);
 
     return Container(
       width: 46,
@@ -490,23 +487,14 @@ class _Avatar extends StatelessWidget {
         border: Border.all(color: _cardBorder, width: 1.5),
       ),
       alignment: Alignment.center,
-      child: hasInitial
-          ? Text(
-              initial!,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            )
-          : Text(
-              _initials(name),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: _brownDark,
-              ),
-            ),
+      child: Text(
+        _initials(name),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+          color: _brownDark,
+        ),
+      ),
     );
   }
 

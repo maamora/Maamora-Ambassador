@@ -6,7 +6,7 @@ const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
 const Color _cardBorder = Color(0xFFE8DDD3);
-const Color _whatsappBubble = Color(0xFFDCF8C6);
+
 
 class EditMessageBottomSheet extends StatefulWidget {
   final String currentMessage;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
+
 import '../widgets/admin_status_badge.dart';
 import '../../../models/models.dart';
 
@@ -244,6 +244,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     );
 
     if (result == true) {
+      if (!mounted) return;
       try {
         showDialog(
           context: context,
@@ -625,7 +626,6 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       case AmbassadorLevel.neutral:
         return _onSurfaceVariant;
       case AmbassadorLevel.bronze:
-      default:
         return const Color(0xFFCD7F32);
     }
   }

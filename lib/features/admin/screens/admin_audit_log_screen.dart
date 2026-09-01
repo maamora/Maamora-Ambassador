@@ -61,14 +61,18 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
             .from('ambassadors')
             .select('id, full_name')
             .inFilter('id', ambassadorIds.toList());
-        for (final a in ambResp) newNames[a['id']] = a['full_name'] as String? ?? 'Ambassadeur';
+        for (final a in ambResp) {
+          newNames[a['id']] = a['full_name'] as String? ?? 'Ambassadeur';
+        }
       }
       if (groupIds.isNotEmpty) {
         final grpResp = await Supabase.instance.client
             .from('deal_groups')
             .select('id, product_name')
             .inFilter('id', groupIds.toList());
-        for (final g in grpResp) newNames[g['id']] = g['product_name'] as String? ?? 'Groupe';
+        for (final g in grpResp) {
+          newNames[g['id']] = g['product_name'] as String? ?? 'Groupe';
+        }
       }
 
       if (mounted) {
@@ -132,8 +136,8 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: _logs.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, i) {
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (context, i) {
         final entry = _logs[i];
         final targetId = entry['target_id'] as String?;
         final targetName = targetId != null ? _targetNames[targetId] : null;

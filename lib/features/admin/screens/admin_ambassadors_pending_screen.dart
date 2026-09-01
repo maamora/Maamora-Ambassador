@@ -260,7 +260,7 @@ class _AdminAmbassadorsPendingScreenState
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: _candidates.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final candidate = _candidates[index];
         final isExpanded = _expandedIndex == index;
@@ -522,14 +522,10 @@ class _CandidateCard extends StatelessWidget {
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
-  final Color? valueColor;
-  final IconData? valueIcon;
 
   const _DetailRow({
     required this.label,
     required this.value,
-    this.valueColor,
-    this.valueIcon,
   });
 
   @override
@@ -552,15 +548,12 @@ class _DetailRow extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            if (valueIcon != null)
-              Icon(valueIcon, size: 14, color: valueColor ?? _onBackground),
-            if (valueIcon != null) const SizedBox(width: 4),
             Text(
               value,
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: valueColor ?? _onBackground,
+                color: _onBackground,
               ),
             ),
           ],

@@ -221,8 +221,8 @@ class _AdminAmbassadorsListScreenState
       padding: const EdgeInsets.symmetric(
           horizontal: 16, vertical: 8),
       itemCount: displayedList.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, i) =>
+      separatorBuilder: (context, index) => const SizedBox(height: 10),
+      itemBuilder: (context, i) =>
           _AmbassadorRow(ambassador: displayedList[i]),
     );
   }

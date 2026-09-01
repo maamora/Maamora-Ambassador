@@ -121,8 +121,8 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: _payouts.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, i) {
+      separatorBuilder: (context, index) => const SizedBox(height: 10),
+      itemBuilder: (context, i) {
         final p = _payouts[i];
         return _PayoutRow(payoutData: p);
       },

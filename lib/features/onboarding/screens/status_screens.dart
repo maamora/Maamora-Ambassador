@@ -47,7 +47,7 @@ class PendingScreen extends ConsumerWidget {
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -112,7 +112,7 @@ class PendingScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -165,13 +165,11 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String? value;
-  final Widget? valueWidget;
 
   const _DetailRow({
     required this.icon,
     required this.label,
     this.value,
-    this.valueWidget,
   });
 
   @override
@@ -185,9 +183,7 @@ class _DetailRow extends StatelessWidget {
           style: AppTheme.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
         ),
         const Spacer(),
-        if (valueWidget != null)
-          valueWidget!
-        else if (value != null)
+        if (value != null)
           Text(
             value!,
             style: AppTheme.bodyMd.copyWith(
