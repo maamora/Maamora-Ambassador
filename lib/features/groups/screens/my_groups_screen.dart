@@ -30,8 +30,12 @@ class MyGroupsScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _onBackground, size: 20),
+                    onPressed: () => context.pop(),
+                  ),
+                  const SizedBox(width: 4),
                   Text(
                     'My Groups',
                     style: GoogleFonts.plusJakartaSans(
@@ -40,6 +44,7 @@ class MyGroupsScreen extends ConsumerWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
+                  const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.refresh, color: _onSurfaceVariant),
                     onPressed: () => ref.read(myGroupsProvider.notifier).refresh(),
@@ -92,7 +97,7 @@ class MyGroupsScreen extends ConsumerWidget {
                           membersTotal: g.seatsTotal,
                           statut: g.status.name,
                           progressRatio: g.progressRatio,
-                          isUnlocked: g.isComplete,
+                          isConfirmed: g.commissionAssigned,
                           prixGroupe: g.pricePerPerson,
                           originalPrice: g.pricePerPerson,
                           onTap: () {
@@ -137,11 +142,6 @@ class MyGroupsScreen extends ConsumerWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push(AppRoutes.createGroup),
-        backgroundColor: _primaryContainer,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
     );
   }
 }
@@ -153,7 +153,7 @@ class _GroupOrderCard extends StatelessWidget {
   final int membersTotal;
   final String statut;
   final double progressRatio;
-  final bool isUnlocked;
+  final bool isConfirmed;
   final double? prixGroupe;
   final double originalPrice;
   final VoidCallback onTap;
@@ -166,7 +166,7 @@ class _GroupOrderCard extends StatelessWidget {
     required this.membersTotal,
     required this.statut,
     required this.progressRatio,
-    required this.isUnlocked,
+    required this.isConfirmed,
     required this.originalPrice,
     this.prixGroupe,
     required this.onTap,
@@ -175,190 +175,93 @@ class _GroupOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isConfirmed = isUnlocked;
-    final statusLabel = isConfirmed ? 'CONFIRMÉ' : 'EN COURS';
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: _surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _outlineVariant.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
-        child: Column(
+        child: Row(
           children: [
-            // Product image
+            // Product image small
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               child: Container(
-                height: 140,
-                width: double.infinity,
-                color: const Color(0xFFF6DED2),
+                width: 64,
+                height: 64,
+                color: const Color(0xFFF5EDE4),
                 child: imageUrl.isNotEmpty
                     ? Image.network(imageUrl, fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => const Icon(
                           Icons.image_not_supported_outlined,
-                          size: 48,
+                          size: 24,
                           color: _outlineVariant,
                         ))
                     : const Icon(Icons.image_not_supported_outlined,
-                        size: 48, color: _outlineVariant),
+                        size: 24, color: _outlineVariant),
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.inter(
-                      color: _onBackground,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isConfirmed
-                        ? _primaryContainer
-                        : const Color(0xFFFBE3D8),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isConfirmed ? Icons.check_circle : Icons.circle,
-                        color: isConfirmed ? Colors.white : _primaryContainer,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        statusLabel,
-                        style: GoogleFonts.inter(
-                          color:
-                              isConfirmed ? Colors.white : _onBackground,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(color: _outlineVariant, height: 1),
-            const SizedBox(height: 16),
-            if (isConfirmed)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.people_outline,
-                          color: _onSurfaceVariant, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        '$membersCount/$membersTotal membres',
-                        style: GoogleFonts.inter(
-                          color: _onSurfaceVariant,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (prixGroupe != null)
-                    Text(
-                      '${prixGroupe!.toStringAsFixed(0)} DH',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: _primaryContainer,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                ],
-              )
-            else
-              Column(
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progressRatio,
-                      backgroundColor: const Color(0xFFFBE3D8),
-                      color: _primaryContainer,
-                      minHeight: 8,
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: _onBackground,
+                      height: 1.2,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.people_outline,
-                              color: _onSurfaceVariant, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            '$membersCount/$membersTotal membres',
-                            style: GoogleFonts.inter(
-                              color: _onSurfaceVariant,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                      const Icon(Icons.people_alt_outlined,
+                          size: 14, color: _onSurfaceVariant),
+                      const SizedBox(width: 4),
                       Text(
-                        '${membersTotal - membersCount} restants',
+                        '$membersCount/$membersTotal filled',
                         style: GoogleFonts.inter(
-                          color: _onSurfaceVariant,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
+                          color: _onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
-            // ── Invite Button ───────────────────────────────────────────
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: _primaryContainer, width: 1.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: onInvite,
-                icon: const Icon(Icons.group_add_outlined,
-                    color: _primaryContainer, size: 20),
-                label: Text(
-                  'Invite Friends',
-                  style: GoogleFonts.inter(
-                    color: _primaryContainer,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
+            ),
+            const SizedBox(width: 8),
+            // Status badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: isConfirmed ? const Color(0xFF198754).withValues(alpha: 0.1) : _outlineVariant.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                isConfirmed ? 'Confirmed' : 'Pending',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isConfirmed ? const Color(0xFF198754) : _onSurfaceVariant,
                 ),
               ),
             ),

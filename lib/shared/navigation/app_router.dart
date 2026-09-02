@@ -23,6 +23,7 @@ import '../../features/pickup/screens/pickup_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/rules/screens/rules_screen.dart';
 import '../../features/groups/screens/create_group_screen.dart';
+import '../../features/groups/screens/my_groups_screen.dart';
 
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -145,6 +146,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.createGroup,
       builder: (context, state) => const CreateGroupScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.myGroups,
+      builder: (context, state) => const MyGroupsScreen(),
     ),
 
     // ── Admin app ─────────────────────────────────────────────────────────

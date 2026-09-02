@@ -337,7 +337,7 @@ class _ActiveGroupsSection extends ConsumerWidget {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () => context.push(AppRoutes.myGroups),
               style: TextButton.styleFrom(
                 foregroundColor: _primary,
                 padding: EdgeInsets.zero,
@@ -654,37 +654,23 @@ class _AddMemberButton extends StatelessWidget {
         onTap: disabled ? null : onPressed,
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: disabled ? const Color(0xFFF5EDE4) : _orangeLight,
-            borderRadius: BorderRadius.circular(10),
+            shape: BoxShape.circle,
             border: Border.all(color: disabled ? _cardBorder : _primary),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              isLoading
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: _primary),
-                    )
-                  : Icon(
-                      Icons.group_add_rounded,
-                      size: 14,
-                      color: disabled ? _onSurfaceVariant : _primary,
-                    ),
-              const SizedBox(width: 6),
-              Text(
-                isFull ? 'Full' : 'Add Members',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+          child: isLoading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: _primary),
+                )
+              : Icon(
+                  Icons.group_add_rounded,
+                  size: 18,
                   color: disabled ? _onSurfaceVariant : _primary,
                 ),
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -20,6 +20,8 @@ class AppRoutes {
   static const String rewards = '/rewards';
   static const String notifications = '/notifications'; // phase 2
   static const String createGroup = '/create-group';
+  static const String myGroups = '/my-groups';
+
   // ── Admin app ────────────────────────────────────────────────────────────
   static const String admin = '/admin';
   static const String adminProfile = '/admin/profile';
