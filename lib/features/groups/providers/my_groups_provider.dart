@@ -36,8 +36,8 @@ class MyGroupsNotifier extends AsyncNotifier<List<DealGroup>> {
     await refresh();
   }
 
-  Future<void> addParticipant(String groupId) async {
-    await supabaseService.incrementGroupMember(groupId);
+  Future<void> addParticipant(String groupId, {int count = 1}) async {
+    await supabaseService.incrementGroupMember(groupId, count: count);
     await refresh();
   }
 }

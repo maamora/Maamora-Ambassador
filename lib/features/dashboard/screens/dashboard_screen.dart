@@ -423,14 +423,42 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
   bool get _isFull => widget.seatsFilled >= widget.totalSeats;
 
   Future<void> _handleAddMember() async {
-    if (_isAddingMember || _isFull) return;
+    if (_isFull) return;
+
+    // Show the bottom sheet and wait for the chosen count
+    final count = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AddMembersSheet(
+        groupName: widget.name,
+        available: widget.totalSeats - widget.seatsFilled,
+      ),
+    );
+
+    if (count == null || count <= 0) return;
+
     setState(() => _isAddingMember = true);
     try {
-      await ref.read(myGroupsProvider.notifier).addParticipant(widget.groupId);
+      await ref.read(myGroupsProvider.notifier).addParticipant(
+        widget.groupId,
+        count: count,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              count == 1 ? '1 member added ✓' : '$count members added ✓',
+            ),
+            backgroundColor: const Color(0xFF198754),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not add member: $e')),
+          SnackBar(content: Text('Could not add members: $e')),
         );
       }
     } finally {
@@ -642,13 +670,13 @@ class _AddMemberButton extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2, color: _primary),
                     )
                   : Icon(
-                      Icons.person_add_alt_1_rounded,
+                      Icons.group_add_rounded,
                       size: 14,
                       color: disabled ? _onSurfaceVariant : _primary,
                     ),
               const SizedBox(width: 6),
               Text(
-                isFull ? 'Full' : 'Add Member',
+                isFull ? 'Full' : 'Add Members',
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -657,6 +685,236 @@ class _AddMemberButton extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Add Members Bottom Sheet ────────────────────────────────────────────────
+
+class _AddMembersSheet extends StatefulWidget {
+  final String groupName;
+  final int available; // max seats left
+
+  const _AddMembersSheet({
+    required this.groupName,
+    required this.available,
+  });
+
+  @override
+  State<_AddMembersSheet> createState() => _AddMembersSheetState();
+}
+
+class _AddMembersSheetState extends State<_AddMembersSheet> {
+  int _count = 1;
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: '1');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _setCount(int v) {
+    final clamped = v.clamp(1, widget.available.clamp(1, 9999));
+    setState(() => _count = clamped);
+    _controller.text = '$clamped';
+    _controller.selection = TextSelection.collapsed(offset: _controller.text.length);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    return Container(
+      decoration: const BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(24, 12, 24, 24 + bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: _cardBorder,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          // Title
+          Text(
+            'How many members joined?',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: _onBackground,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            widget.groupName,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: _onSurfaceVariant,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 28),
+          // Stepper row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Decrement
+              _StepBtn(
+                icon: Icons.remove_rounded,
+                enabled: _count > 1,
+                onTap: () => _setCount(_count - 1),
+              ),
+              const SizedBox(width: 16),
+              // Number input
+              Container(
+                width: 80,
+                decoration: BoxDecoration(
+                  color: _orangeLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _cardBorder),
+                ),
+                child: TextField(
+                  controller: _controller,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  autofocus: true,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: _onBackground,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  onChanged: (v) {
+                    final parsed = int.tryParse(v);
+                    if (parsed != null) _setCount(parsed);
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Increment
+              _StepBtn(
+                icon: Icons.add_rounded,
+                enabled: _count < widget.available,
+                onTap: () => _setCount(_count + 1),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${widget.available} seat${widget.available == 1 ? '' : 's'} remaining',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: _onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 28),
+          // Quick select chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [5, 10, 20, 50]
+                .where((n) => n <= widget.available)
+                .map(
+                  (n) => GestureDetector(
+                    onTap: () => _setCount(n),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _count == n ? _primary : _orangeLight,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _count == n ? _primary : _cardBorder,
+                        ),
+                      ),
+                      child: Text(
+                        '+$n',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: _count == n ? Colors.white : _primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 28),
+          // Confirm button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(_count),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: Text(
+                _count == 1 ? 'Add 1 Member' : 'Add $_count Members',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepBtn extends StatelessWidget {
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _StepBtn({required this.icon, required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: enabled ? _primary : const Color(0xFFEDE8E4),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: enabled ? Colors.white : _onSurfaceVariant,
+          size: 22,
         ),
       ),
     );

@@ -79,9 +79,10 @@ class SupabaseService {
     });
   }
 
-  Future<void> incrementGroupMember(String groupId) async {
+  Future<void> incrementGroupMember(String groupId, {int count = 1}) async {
     await _client.rpc('increment_group_member', params: {
       'p_group_id': groupId,
+      'p_count': count,
     });
   }
 
