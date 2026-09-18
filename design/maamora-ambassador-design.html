@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maamora Ambassador — عرض التصميم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --orange:#FF6A3D;
+    --orange-dark:#E85423;
+    --orange-soft:#FFE7DA;
+    --navy:#FFFFFF;
+    --navy-2:#1B2844;
+    --gold:#D4A72C;
+    --gold-soft:#FCF0CE;
+    --bg:#FFFBF7;
+    --surface:#FFFFFF;
+    --ink:#1B2436;
+    --muted:#7C8598;
+    --line:#EFE6DE;
+    --shadow: 0 18px 40px -20px rgba(16,27,51,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1220;
+      --surface:#171C2C;
+      --ink:#F3F1EC;
+      --muted:#9AA3B8;
+      --line:#2A3350;
+      --orange-soft:#3A2620;
+      --gold-soft:#332A16;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1220; --surface:#171C2C; --ink:#F3F1EC; --muted:#9AA3B8; --line:#2A3350;
+    --orange-soft:#3A2620; --gold-soft:#332A16;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Almarai','Segoe UI',Tahoma,Arial,sans-serif;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{max-width:100%;display:block;}
+  a{color:inherit;}
+  :focus-visible{outline:3px solid var(--orange); outline-offset:2px; border-radius:6px;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 clamp(18px,4vw,48px);}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:clamp(48px,8vw,88px) 0 clamp(32px,5vw,56px);}
+  .brandline{display:flex; align-items:center; gap:10px; color:var(--orange-dark); font-weight:800; letter-spacing:.02em; margin-bottom:22px;}
+  .brandline .dot{width:7px;height:7px;border-radius:50%;background:var(--orange);}
+  .hero h1{
+    font-size:clamp(2.2rem, 5vw, 3.4rem);
+    font-weight:800;
+    margin:0 0 18px;
+    max-width:16ch;
+    color:var(--navy);
+  }
+  :root[data-theme="dark"] .hero h1, @media (prefers-color-scheme: dark){ .hero h1{color:var(--ink);} }
+  .hero p.lead{
+    font-size:clamp(1.05rem,1.6vw,1.25rem);
+    color:var(--muted);
+    max-width:52ch;
+    margin:0 0 28px;
+  }
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:34px;}
+  .meta-row span{
+    font-size:.85rem; color:var(--muted); background:var(--surface);
+    border:1px solid var(--line); border-radius:999px; padding:6px 14px;
+  }
+  .feature-chips{display:flex; flex-wrap:wrap; gap:10px;}
+  .chip{
+    display:flex; align-items:center; gap:8px;
+    background:var(--orange-soft); color:var(--orange-dark);
+    border-radius:14px; padding:10px 16px; font-weight:700; font-size:.92rem;
+  }
+  .chip .icon{width:18px;height:18px;flex:none;}
+
+  /* animation - single orchestrated load sequence */
+  .fade-up{opacity:0; transform:translateY(14px); animation:fadeUp .6s ease-out forwards;}
+  @keyframes fadeUp{to{opacity:1; transform:translateY(0);}}
+
+  /* ---------- GALLERY ---------- */
+  .gallery-section{padding:8px 0 clamp(40px,6vw,72px);}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:26px; flex-wrap:wrap;}
+  .section-head h2{font-size:clamp(1.4rem,2.4vw,1.9rem); margin:0; color:var(--navy);}
+  @media (prefers-color-scheme: dark){ .section-head h2{color:var(--ink);} }
+  :root[data-theme="dark"] .section-head h2{color:var(--ink);}
+  .section-head p{margin:0; color:var(--muted); font-size:.95rem; max-width:38ch;}
+
+  .gallery{
+    display:flex; gap:26px; overflow-x:auto; padding:10px 4px 26px;
+    scroll-snap-type:x proximate;
+  }
+  .gallery::-webkit-scrollbar{height:8px;}
+  .gallery::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
+
+  .phone-card{
+    flex:none; width:min(78vw,296px); scroll-snap-align:start;
+  }
+  .phone-label{
+    font-weight:800; color:var(--orange-dark); font-size:.95rem; margin-bottom:12px;
+  }
+  .phone-label small{color:var(--muted); font-weight:400; display:block; font-size:.82rem; margin-top:3px;}
+
+  .phone{
+    background:#000; border-radius:38px; padding:10px; box-shadow:var(--shadow);
+  }
+  .screen{
+    background:#FFFDFB; color:#1B2436; border-radius:30px; overflow:hidden;
+    height:600px; display:flex; flex-direction:column; position:relative;
+    font-size:.86rem;
+  }
+  .statusbar{
+    text-align:center; font-size:.72rem; color:#9AA0AE; font-weight:700;
+    padding:14px 0 4px;
+  }
+  .screen-scroll{flex:1; overflow:hidden; display:flex; flex-direction:column;}
+  .app-header{
+    padding:6px 18px 14px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .app-header h3{margin:0; font-size:1.05rem; font-weight:800; color:#101B33;}
+  .app-header .sub{font-size:.78rem; color:#8A90A0; margin-top:2px;}
+  .icon-btn{
+    width:34px;height:34px;border-radius:50%;background:#F4EFE9;
+    display:flex;align-items:center;justify-content:center;flex:none;
+  }
+  .icon-btn .icon{width:17px;height:17px;color:#101B33;}
+
+  .screen-body{flex:1; padding:0 18px 14px; overflow-y:auto;}
+  .screen-body::-webkit-scrollbar{display:none;}
+
+  .card{background:#fff; border:1px solid #F0E7DE; border-radius:18px; padding:16px; margin-bottom:14px;}
+  .card.orange{background:linear-gradient(135deg,#FF6A3D,#E85423); color:#fff; border:none;}
+  .card.navy{background:linear-gradient(135deg,#182448,#0F1830); color:#fff; border:none;}
+  .card.gold{background:#FCF0CE; border:1px solid #F2DFA0;}
+
+  .big-num{font-size:1.9rem; font-weight:800; margin:2px 0 0;}
+  .label-sm{font-size:.72rem; opacity:.85;}
+  .row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px;}
+  .stat-box{background:#fff; border:1px solid #F0E7DE; border-radius:14px; padding:10px; text-align:center;}
+  .stat-box .n{font-weight:800; font-size:1.05rem; color:#101B33;}
+  .stat-box .l{font-size:.68rem; color:#8A90A0; margin-top:2px;}
+
+  .btn{
+    display:block; width:100%; text-align:center; border:none; border-radius:14px;
+    padding:13px 16px; font-weight:800; font-size:.9rem; cursor:pointer;
+  }
+  .btn.primary{background:var(--orange); color:#fff;}
+  .btn.ghost{background:#F4EFE9; color:#101B33;}
+  .btn.dark{background:#101B33; color:#fff;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:.78rem; color:#8A90A0; margin-bottom:6px;}
+  .field .box{background:#F6F1EC; border-radius:12px; padding:12px 14px; font-size:.85rem; color:#B7BAC4;}
+
+  .list-row{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #F3EEE8;}
+  .list-row:last-child{border-bottom:none;}
+  .avatar{width:38px;height:38px;border-radius:50%;background:#FFE7DA;display:flex;align-items:center;justify-content:center;flex:none;}
+  .avatar .icon{width:18px;height:18px;color:#E85423;}
+  .list-row .grow{flex:1; min-width:0;}
+  .list-row .t{font-weight:700; font-size:.85rem; color:#101B33;}
+  .list-row .s{font-size:.72rem; color:#9AA0AE; margin-top:1px;}
+  .amount{font-weight:800; font-size:.88rem; color:#101B33; white-space:nowrap;}
+  .amount.pos{color:#1E8E5A;}
+
+  .badge{display:inline-block; font-size:.66rem; font-weight:800; padding:3px 9px; border-radius:999px;}
+  .badge.wait{background:#FDECD8; color:#B4611A;}
+  .badge.ok{background:#DFF3E7; color:#1E8E5A;}
+  .badge.paid{background:#E7ECFB; color:#3752C9;}
+
+  .tabs{display:flex; gap:8px; margin-bottom:14px;}
+  .tab{font-size:.75rem; font-weight:700; color:#8A90A0; background:#F4EFE9; border-radius:999px; padding:7px 14px;}
+  .tab.active{background:#101B33; color:#fff;}
+
+  .progress{height:8px; border-radius:999px; background:#F0E7DE; overflow:hidden; margin:10px 0;}
+  .progress > i{display:block; height:100%; background:#fff;}
+  .progress.dark{background:rgba(255,255,255,.25);}
+
+  .bottom-nav{
+    display:flex; justify-content:space-between; padding:10px 16px 16px;
+    border-top:1px solid #F1EBE4; background:#FFFDFB;
+  }
+  .nav-item{display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; color:#B3B7C2;}
+  .nav-item.active{color:var(--orange-dark);}
+  .nav-item .icon{width:19px;height:19px;}
+  .nav-item span{font-size:.62rem; font-weight:700;}
+
+  .icon{width:20px;height:20px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round;}
+
+  .rank-row{display:flex;align-items:center;gap:12px;padding:10px 0;}
+  .rank-n{width:26px; text-align:center; font-weight:800; color:#8A90A0; font-size:.85rem;}
+  .rank-row.me{background:#FFF3EC; border-radius:12px; padding:10px 12px; margin:4px -12px;}
+  .rank-row.me .rank-n{color:#E85423;}
+
+  .notif-icon{width:38px;height:38px;border-radius:12px;background:#EFF1F8;display:flex;align-items:center;justify-content:center;flex:none;}
+  .notif-icon .icon{width:18px;height:18px;color:#3752C9;}
+  .notif-icon.orange{background:#FFE7DA;} .notif-icon.orange .icon{color:#E85423;}
+  .notif-icon.gold{background:#FCF0CE;} .notif-icon.gold .icon{color:#B4881A;}
+
+  /* ---------- ADMIN PANEL ---------- */
+  .admin-section{padding:0 0 clamp(48px,7vw,84px);}
+  .browser{
+    background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .browser-bar{
+    display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--navy); 
+  }
+  .browser-dots{display:flex; gap:6px;}
+  .browser-dots i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35);}
+  .browser-url{
+    background:rgba(255,255,255,.12); color:#D9DEEB; font-size:.78rem; border-radius:8px;
+    padding:5px 14px; margin-inline-start:8px;
+  }
+  .admin-body{padding:clamp(20px,3vw,32px);}
+  .admin-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-bottom:24px;}
+  .astat{background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:16px;}
+  .astat .n{font-size:1.5rem; font-weight:800; color:var(--navy);}
+  @media (prefers-color-scheme: dark){ .astat .n{color:var(--ink);} }
+  :root[data-theme="dark"] .astat .n{color:var(--ink);}
+  .astat .l{font-size:.78rem; color:var(--muted); margin-top:4px;}
+  .admin-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:20px;}
+  @media (max-width:760px){.admin-grid{grid-template-columns:1fr;}}
+  .admin-list .arow{display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); gap:12px;}
+  .admin-list .arow:last-child{border-bottom:none;}
+  .admin-list .name{font-weight:700; font-size:.88rem;}
+  .admin-list .sub{font-size:.75rem; color:var(--muted);}
+  .approve{background:var(--navy); color:#fff; border:none; border-radius:10px; padding:8px 16px; font-size:.78rem; font-weight:700; flex:none;}
+  .capabilities{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px;}
+  .capabilities li{display:flex; gap:10px; font-size:.88rem; color:var(--ink);}
+  .capabilities .icon{width:18px;height:18px; color:var(--orange-dark); flex:none; margin-top:2px;}
+
+  /* ---------- FOOTER ---------- */
+  footer{border-top:1px solid var(--line); padding:28px 0 40px;}
+  footer .wrap{display:flex; flex-wrap:wrap; justify-content:space-between; gap:14px; align-items:center;}
+  footer p{margin:0; color:var(--muted); font-size:.82rem; max-width:60ch;}
+  footer .team{font-size:.82rem; color:var(--muted);}
+  footer .team b{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<!-- ICON SPRITE -->
+<svg style="display:none">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M9.5 14.5 14.5 9.5"/><path d="M8 16c-1.7 1.7-4.3 1.7-6 0s-1.7-4.3 0-6l2.5-2.5c1.7-1.7 4.3-1.7 6 0"/><path d="M16 8c1.7-1.7 4.3-1.7 6 0s1.7 4.3 0 6L19.5 16.5c-1.7 1.7-4.3 1.7-6 0"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-2.5-1.5L13 21l-2.5-1.5L8 21l-2-1.5Z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h13A1.5 1.5 0 0 1 19 7.5V9H4.5A1.5 1.5 0 0 1 3 7.5Z"/><path d="M3 9h16.5A1.5 1.5 0 0 1 21 10.5v7A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5Z"/><circle cx="16" cy="14" r="1.3"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 3.5c-2.5 0-4.3 2-4.3 4.6V12L6 15.5h12L16.3 12V8.1c0-2.6-1.8-4.6-4.3-4.6Z"/><path d="M10 18.5a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4.5A2.5 2.5 0 0 0 4.5 11H7M17 6h2.5A2.5 2.5 0 1 1 19.5 11H17"/><path d="M10 15.5h4v2.5h-4Z"/><path d="M8 20.5h8"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V6M16 20v-7M4 20h16"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M6 15.5H5A1.5 1.5 0 0 1 3.5 14V5A1.5 1.5 0 0 1 5 3.5h9A1.5 1.5 0 0 1 15.5 5v1"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.3"/><circle cx="17" cy="6" r="2.3"/><circle cx="17" cy="18" r="2.3"/><path d="M8 10.8 15 7M8 13.2 15 17"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.3 11 15l5-6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v13"/><path d="M6.5 12 12 17.5 17.5 12"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3.5" y="9.5" width="17" height="4" rx="1"/><rect x="4.5" y="13.5" width="15" height="7" rx="1"/><path d="M12 9.5v11"/><path d="M12 9.5C10 6 6.5 6 6.5 8.5S9.5 9.5 12 9.5ZM12 9.5c2-3.5 5.5-3.5 5.5-1S14.5 9.5 12 9.5Z"/></symbol>
+</svg>
+
+<div class="wrap hero">
+  <div class="brandline fade-up"><span class="dot"></span> MAAMORA · معمورة</div>
+  <h1 class="fade-up" style="animation-delay:.05s">تصميم تطبيق السفراء<br>Maamora Ambassador</h1>
+  
+  <div class="feature-chips fade-up" style="animation-delay:.2s">
+    <span class="chip"><svg class="icon"><use href="#i-link"/></svg> رابط دعوة فريد</span>
+    <span class="chip"><svg class="icon"><use href="#i-chart"/></svg> عمولة بالمستويات</span>
+    <span class="chip"><svg class="icon"><use href="#i-trophy"/></svg> لوحة متصدرين</span>
+    <span class="chip"><svg class="icon"><use href="#i-wallet"/></svg> سحب أسبوعي</span>
+  </div>
+</div>
+
+<div class="wrap gallery-section">
+  <div class="section-head">
+    <h2>رحلة السفير عبر التطبيق</h2>
+    <p>من فتح البرنامج بعد 3 دعوات، إلى تتبّع العمولة والمستوى والمحفظة.</p>
+  </div>
+
+  <div class="gallery">
+
+    <!-- 01 · الترحيب -->
+    <figure class="phone-card">
+      <div class="phone-label">01 · فتح البرنامج<small>تأكيد شرط الوصول</small></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="screen-scroll" style="justify-content:center; padding:26px 22px; text-align:center;">
+          <div style="width:64px;height:64px;border-radius:50%;background:#FFE7DA;display:flex;align-items:center;justify-content:center;margin:0 auto 22px;">
+            <svg class="icon" style="width:30px;height:30px;color:#E85423;"><use href="#i-check"/></svg>
+          </div>
+          <h3 style="font-size:1.2rem;margin:0 0 10px;color:#101B33;">تطبيق السفراء مفتوح لك</h3>
+          <p style="color:#8A90A0; font-size:.85rem; margin:0 0 22px;">
+            3 من أصدقائك اشتروا معك — أصبح بإمكانك الوصول إلى لوحة أرباحك الخاصة كسفير.
+          </p>
+          <div class="card" style="text-align:right;">
+            <div class="row"><span style="font-size:.8rem;color:#8A90A0;">أصدقاء اشتروا معك</span><b>3 / 3</b></div>
+            <div class="progress"><i style="width:100%;background:#FF6A3D;"></i></div>
+          </div>
+        </div>
+        <div style="padding:0 18px 22px;">
+          <button class="btn primary">دخول إلى لوحة السفراء</button>
+        </div>
+      </div></div>
+    </figure>
+
+    <!-- 02 · تسجيل الدخول -->
+    <figure class="phone-card">
+      <div class="phone-label">02 · تسجيل الدخول<small>حساب مستقل عن التطبيق الأساسي</small></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="screen-body" style="padding-top:18px;">
+          <div style="text-align:center; margin-bottom:26px;">
+            <div style="font-weight:800; color:#101B33; font-size:1.05rem;">Maamora Ambassador</div>
+            <div style="color:#8A90A0; font-size:.78rem; margin-top:4px;">اربح من كل دعوة تتحوّل إلى طلب</div>
+          </div>
+          <div class="field"><label>البريد الإلكتروني</label><div class="box">maamora@gmail.com</div></div>
+          <div class="field"><label>كلمة السر</label><div class="box">••••••••</div></div>
+          <p style="text-align:end; font-size:.78rem; color:#E85423; margin:-4px 0 20px;">نسيت كلمة السر؟</p>
+          <button class="btn primary" style="margin-bottom:10px;">دخول</button>
+          <p style="text-align:center; font-size:.78rem; color:#8A90A0;">
+            نفس بيانات حساب معمورة — <b style="color:#101B33;">تأكيد سريع</b>
+          </p>
+        </div>
+      </div></div>
+    </figure>
+
+    <!-- 03 · لوحة القيادة -->
+    <figure class="phone-card">
+      <div class="phone-label">03 · لوحة القيادة<small>ملخص الأرباح والنشاط</small></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="app-header">
+          <div><h3 style="font-size:1rem;">أهلاً، وليد</h3><div class="sub">سفير · المستوى الفضي</div></div>
+          <div class="icon-btn"><svg class="icon"><use href="#i-bell"/></svg></div>
+        </div>
+        <div class="screen-body">
+          <div class="card orange">
+            <div class="label-sm">أرباح هذا الشهر</div>
+            <div class="big-num">640 درهم</div>
+            <div class="label-sm" style="margin-top:6px;">+22% عن الشهر الماضي</div>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="n">9</div><div class="l">أصدقاء</div></div>
+            <div class="stat-box"><div class="n">27</div><div class="l">طلبات منسوبة</div></div>
+            <div class="stat-box"><div class="n">2,180</div><div class="l">إجمالي (درهم)</div></div>
+          </div>
+          <div class="card" style="padding:14px 16px;">
+            <div class="row" style="margin-bottom:10px;"><b style="font-size:.85rem;">آخر النشاط</b></div>
+            <div class="list-row">
+              <div class="avatar"><svg class="icon"><use href="#i-link"/></svg></div>
+              <div class="grow"><div class="t">ياسين أنشأ طلباً</div><div class="s">منذ ساعتين</div></div>
+              <div class="amount pos">+15 درهم</div>
+            </div>
+            <div class="list-row">
+              <div class="avatar"><svg class="icon"><use href="#i-wallet"/></svg></div>
+              <div class="grow"><div class="t">إيداع أسبوعي</div><div class="s">الجمعة الماضية</div></div>
+              <div class="amount">320 درهم</div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item active"><svg class="icon"><use href="#i-home"/></svg><span>الرئيسية</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-link"/></svg><span>الدعوات</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-receipt"/></svg><span>الطلبات</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-wallet"/></svg><span>المحفظة</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-user"/></svg><span>حسابي</span></div>
+        </div>
+      </div></div>
+    </figure>
+
+    <!-- 04 · دعوة الأصدقاء -->
+    <figure class="phone-card">
+      <div class="phone-label">04 · دعوة الأصدقاء<small>الرابط ورمز المشاركة</small></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="app-header"><h3>ادعُ أصدقاءك</h3></div>
+        <div class="screen-body">
+          <div class="card navy" style="text-align:center;">
+            <div class="label-sm" style="margin-bottom:10px;">رابطك الخاص</div>
+            <div style="width:120px;height:120px;background:#fff;border-radius:16px;margin:0 auto 14px; display:flex; align-items:center; justify-content:center;">
+              <div style="width:92px;height:92px;background:repeating-linear-gradient(45deg,#101B33 0 6px,#fff 6px 12px);border-radius:6px;"></div>
+            </div>
+            <div style="font-weight:800; letter-spacing:.03em;">maamora.ma/r/94</div>
+          </div>
+          <button class="btn ghost" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
+            <svg class="icon" style="width:16px;height:16px;"><use href="#i-copy"/></svg> نسخ الرابط
+          </button>
+          <button class="btn primary" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;">
+            <svg class="icon" style="width:16px;height:16px;"><use href="#i-share"/></svg> مشاركة مع الأصدقاء
+          </button>
+          <div class="card" style="padding:14px 16px;">
+            <div class="s" style="color:#8A90A0; font-size:.78rem;">
+              كل صديق يشتري من خلال رابطك يمنحك عمولة تلقائياً على طلبه — بدون أي خطوة إضافية.
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </figure>
+
+    <!-- 05 · الطلبات المنسوبة -->
+    <figure class="phone-card">
+      <div class="phone-label">05 · الطلبات المنسوبة<small>عمولتك على كل طلب</small></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="app-header"><h3>طلباتي</h3></div>
+        <div class="screen-body">
+          <div class="tabs">
+            <span class="tab active">الكل 27</span><span class="tab">قيد التأكيد</span><span class="tab">مدفوعة</span>
+          </div>
+          <div class="list-row">
+            <div class="avatar"><svg class="icon"><use href="#i-user"/></svg></div>
+            <div class="grow"><div class="t">صديق #114 · طلب 149 درهم</div><div class="s">اليوم</div></div>
+            <div style="text-align:end;"><div class="amount pos">+15 درهم</div><span class="badge ok">مؤكدة</span></div>
+          </div>
+          <div class="list-row">
+            <div class="avatar"><svg class="icon"><use href="#i-user"/></svg></div>
+            <div class="grow"><div class="t">صديق #098 · طلب 89 درهم</div><div class="s">أمس</div></div>
+            <div style="text-align:end;"><div class="amount pos">+9 درهم</div><span class="badge wait">قيد التأكيد</span></div>
+          </div>
+          <div class="list-row">
+            <div class="avatar"><svg class="icon"><use href="#i-user"/></svg></div>
+            <div class="grow"><div class="t">صديق #076 · طلب 240 درهم</div><div class="s">الإثنين</div></div>
+            <div style="text-align:end;"><div class="amount pos">+24 درهم</div><span class="badge paid">مدفوعة</span></div>
+          </div>
+          <div class="list-row">
+            <div class="avatar"><svg class="icon"><use href="#i-user"/></svg></div>
+            <div class="grow"><div class="t">صديق #052 · طلب 67 درهم</div><div class="s">الأحد</div></div>
+            <div style="text-align:end;"><div class="amount pos">+6 درهم</div><span class="badge paid">مدفوعة</span></div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><svg class="icon"><use href="#i-home"/></svg><span>الرئيسية</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-link"/></svg><span>الدعوات</span></div>
+          <div class="nav-item active"><svg class="icon"><use href="#i-receipt"/></svg><span>الطلبات</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-wallet"/></svg><span>المحفظة</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-user"/></svg><span>حسابي</span></div>
+        </div>
+      </div></div>
+    </figure>
+
+    <!-- 06 · المستوى والعمولة -->
+    <figure class="phone-card">
+      <div class="phone-label">06 · المستوى والعمولة<small>من برونزي إلى ماسي</small></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="app-header"><h3>مستواك</h3></div>
+        <div class="screen-body">
+          <div class="card gold">
+            <div class="row">
+              <div><div style="font-weight:800; color:#101B33;">سفير فضي</div><div class="s" style="color:#8A90A0;">عمولة 7% على كل طلب</div></div>
+              <svg class="icon" style="width:26px;height:26px;color:#B4881A;"><use href="#i-trophy"/></svg>
+            </div>
+            <div class="progress"><i style="width:78%;background:#D4A72C;"></i></div>
+            <div class="s" style="font-size:.75rem;color:#8A90A0;">3 طلبات متبقية للمستوى الذهبي (10%)</div>
+          </div>
+          <div class="card" style="padding:6px 16px;">
+            <div class="list-row"><div class="grow t">برونزي</div><span style="color:#8A90A0;font-size:.8rem;">5% · 0 طلبات</span></div>
+            <div class="list-row"><div class="grow t">فضي</div><span style="color:#E85423;font-size:.8rem;font-weight:800;">7% · 15 طلب</span></div>
+            <div class="list-row"><div class="grow t">ذهبي</div><span style="color:#8A90A0;font-size:.8rem;">10% · 30 طلب</span></div>
+            <div class="list-row"><div class="grow t">ماسي</div><span style="color:#8A90A0;font-size:.8rem;">12% · 60 طلب</span></div>
+          </div>
+        </div>
+      </div></div>
+    </figure>
+
+    <!-- 07 · المتصدرون -->
+    <figure class="phone-card">
+      <div class="phone-label">07 · المتصدرون<small>سفراء هذا الشهر</small></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="app-header"><h3>المتصدرون</h3></div>
+        <div class="screen-body">
+          <div class="tabs"><span class="tab active">هذا الشهر</span><span class="tab">كل الوقت</span></div>
+          <div class="rank-row"><div class="rank-n">1</div><div class="avatar"><svg class="icon"><use href="#i-user"/></svg></div><div class="grow t">سفير #204</div><div class="amount">2,980 درهم</div></div>
+          <div class="rank-row"><div class="rank-n">2</div><div class="avatar"><svg class="icon"><use href="#i-user"/></svg></div><div class="grow t">سفير #118</div><div class="amount">2,410 درهم</div></div>
+          <div class="rank-row"><div class="rank-n">3</div><div class="avatar"><svg class="icon"><use href="#i-user"/></svg></div><div class="grow t">سفير #066</div><div class="amount">1,870 درهم</div></div>
+          <div class="rank-row me"><div class="rank-n">5</div><div class="avatar"><svg class="icon"><use href="#i-user"/></svg></div><div class="grow t">أنت</div><div class="amount">640 درهم</div></div>
+        </div>
+      </div></div>
+    </figure>
+
+    <!-- 08 · المحفظة -->
+    <figure class="phone-card">
+      <div class="phone-label">08 · المحفظة<small>السحب الأسبوعي</small></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="app-header"><h3>محفظتي</h3></div>
+        <div class="screen-body">
+          <div class="card navy" style="text-align:center;">
+            <div class="label-sm">الرصيد المتاح للسحب</div>
+            <div class="big-num">410 درهم</div>
+            <div class="progress dark" style="margin-top:14px;"><i style="width:60%;background:#FF6A3D;"></i></div>
+            <div class="label-sm" style="margin-top:4px;">السحب المقبل: الجمعة</div>
+          </div>
+          <button class="btn primary" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;">
+            <svg class="icon" style="width:16px;height:16px;"><use href="#i-down"/></svg> طلب سحب الآن
+          </button>
+          <div class="card" style="padding:14px 16px;">
+            <b style="font-size:.85rem;">سجل السحوبات</b>
+            <div class="list-row"><div class="grow"><div class="t">تحويل بنكي</div><div class="s">7 سبتمبر</div></div><div class="amount">320 درهم</div></div>
+            <div class="list-row"><div class="grow"><div class="t">تحويل بنكي</div><div class="s">31 غشت</div></div><div class="amount">280 درهم</div></div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><svg class="icon"><use href="#i-home"/></svg><span>الرئيسية</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-link"/></svg><span>الدعوات</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-receipt"/></svg><span>الطلبات</span></div>
+          <div class="nav-item active"><svg class="icon"><use href="#i-wallet"/></svg><span>المحفظة</span></div>
+          <div class="nav-item"><svg class="icon"><use href="#i-user"/></svg><span>حسابي</span></div>
+        </div>
+      </div></div>
+    </figure>
+
+    <!-- 09 · الإشعارات -->
+    <figure class="phone-card">
+      <div class="phone-label">09 · الإشعارات<small>تنبيهات العمولة والمستوى</small></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar">9:41</div>
+        <div class="app-header"><h3>الإشعارات</h3></div>
+        <div class="screen-body">
+          <div class="list-row">
+            <div class="notif-icon orange"><svg class="icon"><use href="#i-link"/></svg></div>
+            <div class="grow"><div class="t">ياسين أكمل أول طلب له</div><div class="s">+15 درهم عمولة · منذ ساعتين</div></div>
+          </div>
+          <div class="list-row">
+            <div class="notif-icon"><svg class="icon"><use href="#i-wallet"/></svg></div>
+            <div class="grow"><div class="t">تم إيداع 320 درهم في محفظتك</div><div class="s">الجمعة الماضية</div></div>
+          </div>
+          <div class="list-row">
+            <div class="notif-icon gold"><svg class="icon"><use href="#i-trophy"/></svg></div>
+            <div class="grow"><div class="t">بقي 3 طلبات فقط للمستوى الذهبي</div><div class="s">أمس</div></div>
+          </div>
+          <div class="list-row">
+            <div class="notif-icon"><svg class="icon"><use href="#i-gift"/></svg></div>
+            <div class="grow"><div class="t">مكافأة الأسبوع: عمولة مضاعفة على أول طلب جديد</div><div class="s">منذ 3 أيام</div></div>
+          </div>
+        </div>
+      </div></div>
+    </figure>
+
+  </div>
+</div>
+
+<div class="wrap admin-section">
+  <div class="section-head">
+    <h2>لوحة تحكم المشرفين</h2>
+    <p>الجانب الإداري لمتابعة السفراء والعمولات والسحوبات.</p>
+  </div>
+  <div class="browser">
+    <div class="browser-bar">
+      <div class="browser-dots"><i></i><i></i><i></i></div>
+      <div class="browser-url">admin.maamora.ma/ambassadors</div>
+    </div>
+    <div class="admin-body">
+      <div class="admin-stats">
+        <div class="astat"><div class="n">128</div><div class="l">سفير نشط</div></div>
+        <div class="astat"><div class="n">6</div><div class="l">طلبات سحب معلّقة</div></div>
+        <div class="astat"><div class="n">18,400</div><div class="l">عمولات هذا الأسبوع (درهم)</div></div>
+        <div class="astat"><div class="n">4</div><div class="l">مستويات عمولة</div></div>
+      </div>
+      <div class="admin-grid">
+        <div class="admin-list">
+          <div class="arow">
+            <div><div class="name">سفير #204 — سحب 640 درهم</div><div class="sub">طُلب منذ 3 ساعات</div></div>
+            <button class="approve">مراجعة</button>
+          </div>
+          <div class="arow">
+            <div><div class="name">سفير #118 — سحب 410 درهم</div><div class="sub">طُلب منذ 5 ساعات</div></div>
+            <button class="approve">مراجعة</button>
+          </div>
+          <div class="arow">
+            <div><div class="name">سفير #066 — سحب 280 درهم</div><div class="sub">طُلب أمس</div></div>
+            <button class="approve">مراجعة</button>
+          </div>
+        </div>
+        <ul class="capabilities">
+          <li><svg class="icon"><use href="#i-check"/></svg> مراجعة والتحقق من طلبات السحب الأسبوعية</li>
+          <li><svg class="icon"><use href="#i-chart"/></svg> تعديل نسب العمولة لكل مستوى</li>
+          <li><svg class="icon"><use href="#i-trophy"/></svg> رصد أفضل السفراء ومؤشرات النمو</li>
+          <li><svg class="icon"><use href="#i-link"/></svg> سجل تدقيق لكل رابط دعوة وطلب منسوب</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</body>
+</html>
