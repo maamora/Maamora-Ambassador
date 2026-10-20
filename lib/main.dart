@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/api_constants.dart';
@@ -22,15 +24,22 @@ Future<void> main() async {
   runApp(const ProviderScope(child: AmbassadorsApp()));
 }
 
-class AmbassadorsApp extends StatelessWidget {
+class AmbassadorsApp extends ConsumerWidget {
   const AmbassadorsApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
       title: 'Maamora Ambassadeurs',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      locale: ref.watch(localeProvider),
+      supportedLocales: const [Locale('ar'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: appRouter,
     );
   }
