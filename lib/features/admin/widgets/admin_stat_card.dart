@@ -67,7 +67,7 @@ class AdminStatCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               value,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.cairo(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 color: _onBackground,
@@ -77,7 +77,7 @@ class AdminStatCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: _onSurfaceVariant,
@@ -89,7 +89,7 @@ class AdminStatCard extends StatelessWidget {
                 children: [
                   Text(
                     'View',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: _primary,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/l10n/app_strings.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
 import '../../features/share/screens/share_screen.dart';
@@ -18,7 +19,9 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  // 4 tabs: Home (0), Board (1), Share (2), Wallet (3)
+  // 4 pages, matching the wireframe exactly: Home (0), Board (1), Share (2),
+  // Wallet (3). Profile is reached from the avatar in the top bar, not from
+  // a 5th tab.
   final List<Widget> _pages = const [
     HomeScreen(),
     LeaderboardScreen(),
@@ -34,16 +37,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   String _getTitle(int index) {
     switch (index) {
-      case 0:
-        return 'Home';
       case 1:
-        return 'Leaderboard';
+        return context.tr('title_board');
       case 2:
-        return 'Share';
+        return context.tr('title_share');
       case 3:
-        return 'Wallet';
+        return context.tr('title_wallet');
       default:
-        return 'Home';
+        return context.tr('title_home');
     }
   }
 

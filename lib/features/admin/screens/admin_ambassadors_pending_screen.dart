@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -219,7 +220,7 @@ class _AdminAmbassadorsPendingScreenState
   
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: _primary));
+      return const AppLoader();
     }
     
     if (_errorMessage != null) {
@@ -234,7 +235,7 @@ class _AdminAmbassadorsPendingScreenState
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(color: _onBackground, fontSize: 14),
+                style: GoogleFonts.cairo(color: _onBackground, fontSize: 14),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -252,7 +253,7 @@ class _AdminAmbassadorsPendingScreenState
       return Center(
         child: Text(
           'Aucune candidature en attente.',
-          style: GoogleFonts.inter(color: _onSurfaceVariant, fontSize: 14),
+          style: GoogleFonts.cairo(color: _onSurfaceVariant, fontSize: 14),
         ),
       );
     }
@@ -281,7 +282,7 @@ class _AdminAmbassadorsPendingScreenState
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
       child: Row(
         children: [
           Expanded(
@@ -290,7 +291,7 @@ class _AdminAmbassadorsPendingScreenState
               children: [
                 Text(
                   'Candidatures',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.cairo(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                     color: _onBackground,
@@ -298,7 +299,7 @@ class _AdminAmbassadorsPendingScreenState
                 ),
                 Text(
                   'Examiner les demandes d\'ambassadeurs',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 13,
                     color: _onSurfaceVariant,
                   ),
@@ -320,7 +321,7 @@ class _AdminAmbassadorsPendingScreenState
                   Text(
                     '${_candidates.length}\npending',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -386,7 +387,7 @@ class _CandidateCard extends StatelessWidget {
                     backgroundColor: const Color(0xFFE8DDD3),
                     child: Text(
                       candidate.initials,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.cairo(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: _onSurfaceVariant,
@@ -402,7 +403,7 @@ class _CandidateCard extends StatelessWidget {
                           children: [
                             Text(
                               candidate.fullName,
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.cairo(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 color: _onBackground,
@@ -411,7 +412,7 @@ class _CandidateCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               candidate.createdAt,
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.cairo(
                                 fontSize: 11,
                                 color: _onSurfaceVariant,
                               ),
@@ -420,12 +421,12 @@ class _CandidateCard extends StatelessWidget {
                         ),
                         Row(
                           children: [
-                            const Icon(Icons.location_on_rounded,
+                            const Icon(Icons.location_on_outlined,
                                 size: 12, color: _onSurfaceVariant),
                             const SizedBox(width: 2),
                             Text(
                               candidate.city,
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.cairo(
                                 fontSize: 12,
                                 color: _onSurfaceVariant,
                               ),
@@ -475,7 +476,7 @@ class _CandidateCard extends StatelessWidget {
                           ),
                           child: Text(
                             'Reject',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.cairo(
                               fontWeight: FontWeight.w700,
                               color: _onBackground,
                             ),
@@ -490,7 +491,7 @@ class _CandidateCard extends StatelessWidget {
                               color: Colors.white, size: 16),
                           label: Text(
                             'Accept',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.cairo(
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
@@ -535,14 +536,14 @@ class _DetailRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFFAF5F0),
+          color: const Color(0xFFFFFFFF),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
             Text(
               label,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 13,
                 color: _onSurfaceVariant,
               ),
@@ -550,7 +551,7 @@ class _DetailRow extends StatelessWidget {
             const Spacer(),
             Text(
               value,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: _onBackground,
@@ -594,7 +595,7 @@ class _RejectDialogState extends State<_RejectDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
         'Refuser ${widget.candidate.fullName}',
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.cairo(
           fontSize: 17,
           fontWeight: FontWeight.w800,
           color: _onBackground,
@@ -606,7 +607,7 @@ class _RejectDialogState extends State<_RejectDialog> {
         children: [
           Text(
             'Raison du refus (obligatoire)',
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 13,
               color: _onSurfaceVariant,
             ),
@@ -618,7 +619,7 @@ class _RejectDialogState extends State<_RejectDialog> {
             decoration: InputDecoration(
               hintText: 'Ex: Profil incomplet, zone non couverte...',
               hintStyle:
-                  GoogleFonts.inter(color: _onSurfaceVariant, fontSize: 13),
+                  GoogleFonts.cairo(color: _onSurfaceVariant, fontSize: 13),
               filled: true,
               fillColor: const Color(0xFFF5EDE4),
               border: OutlineInputBorder(
@@ -627,7 +628,7 @@ class _RejectDialogState extends State<_RejectDialog> {
               ),
               contentPadding: const EdgeInsets.all(12),
             ),
-            style: GoogleFonts.inter(fontSize: 14, color: _onBackground),
+            style: GoogleFonts.cairo(fontSize: 14, color: _onBackground),
           ),
         ],
       ),
@@ -636,7 +637,7 @@ class _RejectDialogState extends State<_RejectDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Annuler',
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               color: _onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
@@ -666,7 +667,7 @@ class _RejectDialogState extends State<_RejectDialog> {
           ),
           child: Text(
             'Confirmer le refus',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+            style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
           ),
         ),
       ],

@@ -53,7 +53,7 @@ class _RedemptionConfirmationSheetState extends State<RedemptionConfirmationShee
           color: _surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsetsDirectional.fromSTEB(20, 12, 20, 20 + MediaQuery.of(context).viewInsets.bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -192,7 +192,7 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-const Color _surface = Color(0xFFFFF8F5);
+const Color _surface = Color(0xFFFFFFFF);
 const Color _surfaceContainerLow = Color(0xFFFFF1EA);
 const Color _onSurface = Color(0xFF251912);
 const Color _onSurfaceVariant = Color(0xFF584236);

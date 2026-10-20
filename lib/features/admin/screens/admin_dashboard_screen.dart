@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 // ── Design tokens (match project palette) ─────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
 const Color _secondary = Color(0xFF1A2433);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -28,7 +28,7 @@ final _mockStats = [
     iconBg: _orangeLight,
   ),
   _DashStat(
-    icon: Icons.link_rounded,
+    icon: Icons.link,
     value: '12',
     label: 'Invitations\nenvoyées',
     iconColor: const Color(0xFF3F7A5A),
@@ -83,7 +83,7 @@ class AdminDashboardScreen extends StatelessWidget {
             children: [
               Text(
                 'Tableau de bord',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.cairo(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                   color: _onBackground,
@@ -93,7 +93,7 @@ class AdminDashboardScreen extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Vue d\'ensemble de la plateforme',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                   color: _onSurfaceVariant,
@@ -117,7 +117,7 @@ class AdminDashboardScreen extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 'Admin',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -136,7 +136,7 @@ class AdminDashboardScreen extends StatelessWidget {
       children: [
         Text(
           'Résumé',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.cairo(
             fontSize: 17,
             fontWeight: FontWeight.w800,
             color: _onBackground,
@@ -164,7 +164,7 @@ class AdminDashboardScreen extends StatelessWidget {
       children: [
         Text(
           'Actions rapides',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.cairo(
             fontSize: 17,
             fontWeight: FontWeight.w800,
             color: _onBackground,
@@ -172,7 +172,7 @@ class AdminDashboardScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _QuickActionRow(
-          icon: Icons.link_rounded,
+          icon: Icons.link,
           label: 'Inviter un ambassadeur',
           subtitle: 'Générer un lien d\'invitation',
           onTap: () => onNavigateTo?.call('invites'),
@@ -273,7 +273,7 @@ class _DashStatCard extends StatelessWidget {
               children: [
                 Text(
                   stat.value,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.cairo(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
                     color: _onBackground,
@@ -283,7 +283,7 @@ class _DashStatCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   stat.label,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: _onSurfaceVariant,
@@ -344,7 +344,7 @@ class _QuickActionRow extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: _onBackground,
@@ -352,7 +352,7 @@ class _QuickActionRow extends StatelessWidget {
                   ),
                   Text(
                     subtitle,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
                       color: _onSurfaceVariant,
@@ -372,7 +372,7 @@ class _QuickActionRow extends StatelessWidget {
                 ),
                 child: Text(
                   '$badgeCount',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,

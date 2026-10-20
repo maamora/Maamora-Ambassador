@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'admin_profile_screen.dart';
+import '../../../shared/widgets/shared_app_bar.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
@@ -8,7 +11,7 @@ import '../../../models/models.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -160,7 +163,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: _surface,
-        title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(title, style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18)),
         content: TextField(
           controller: tc,
           decoration: InputDecoration(
@@ -172,7 +175,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, null),
-            child: Text('Annuler', style: GoogleFonts.inter(color: _onSurfaceVariant)),
+            child: Text('Annuler', style: GoogleFonts.cairo(color: _onSurfaceVariant)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, tc.text.trim()),
@@ -195,14 +198,14 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
           builder: (context, setStateModal) {
             return AlertDialog(
               backgroundColor: _surface,
-              title: Text('Régler le wallet', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 18)),
+              title: Text('Régler le wallet', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Montant à régler : ${_walletBalance.toStringAsFixed(2)} DH', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  Text('Montant à régler : ${_walletBalance.toStringAsFixed(2)} DH', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 16),
-                  Text('Méthode', style: GoogleFonts.inter(fontSize: 12, color: _onSurfaceVariant)),
+                  Text('Méthode', style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
                   DropdownButton<String>(
                     value: method,
                     isExpanded: true,
@@ -215,7 +218,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                     },
                   ),
                   const SizedBox(height: 16),
-                  Text('Référence (N° virement, capture WhatsApp, etc.)', style: GoogleFonts.inter(fontSize: 12, color: _onSurfaceVariant)),
+                  Text('Référence (N° virement, capture WhatsApp, etc.)', style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
                   const SizedBox(height: 8),
                   TextField(
                     controller: tcRef,
@@ -229,7 +232,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: Text('Annuler', style: GoogleFonts.inter(color: _onSurfaceVariant)),
+                  child: Text('Annuler', style: GoogleFonts.cairo(color: _onSurfaceVariant)),
                 ),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(ctx, true),
@@ -280,17 +283,10 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
-      appBar: AppBar(
-        backgroundColor: _surface,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: _onBackground),
-        title: Text(
-          'Fiche Ambassadeur',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: _onBackground,
-          ),
+      appBar: SharedAppBar(
+        pageTitle: 'Fiche Ambassadeur',
+        onAvatarTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const AdminProfileScreen()),
         ),
       ),
       body: _buildBody(),
@@ -298,7 +294,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
   }
 
   Widget _buildBody() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator(color: _primary));
+    if (_isLoading) return const AppLoader();
     if (_errorMessage != null) {
       return Center(
         child: Column(
@@ -306,7 +302,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
           children: [
             const Icon(Icons.error_outline, color: _errorColor, size: 48),
             const SizedBox(height: 16),
-            Text(_errorMessage!, style: GoogleFonts.inter()),
+            Text(_errorMessage!, style: GoogleFonts.cairo()),
             TextButton(onPressed: _fetchDetails, child: const Text('Réessayer'))
           ],
         ),
@@ -364,7 +360,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                 backgroundColor: _cardBorder,
                 child: Text(
                   initials,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800, color: _onSurfaceVariant),
+                  style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w800, color: _onSurfaceVariant),
                 ),
               ),
               const SizedBox(width: 16),
@@ -372,7 +368,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(a.fullName, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: _onBackground)),
+                    Text(a.fullName, style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w700, color: _onBackground)),
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -386,7 +382,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                           ),
                           child: Text(
                             a.level.label,
-                            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: _levelColor(a.level)),
+                            style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: _levelColor(a.level)),
                           ),
                         ),
                       ],
@@ -399,7 +395,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
           const SizedBox(height: 20),
           _buildInfoRow(Icons.phone_rounded, 'Téléphone', a.phone),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.location_on_rounded, 'Ville', a.city),
+          _buildInfoRow(Icons.location_on_outlined, 'Ville', a.city),
           const SizedBox(height: 12),
           _buildInfoRow(Icons.calendar_today_rounded, 'Date d\'activation', joinedDate),
           const SizedBox(height: 12),
@@ -418,9 +414,9 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       children: [
         Icon(icon, size: 16, color: _onSurfaceVariant),
         const SizedBox(width: 8),
-        Text(label, style: GoogleFonts.inter(fontSize: 13, color: _onSurfaceVariant)),
+        Text(label, style: GoogleFonts.cairo(fontSize: 13, color: _onSurfaceVariant)),
         const Spacer(),
-        Text(value, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: _onBackground)),
+        Text(value, style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w600, color: _onBackground)),
       ],
     );
   }
@@ -437,7 +433,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Actions Administratives', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text('Actions Administratives', style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Wrap(
             spacing: 10,
@@ -462,8 +458,8 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Solde disponible', style: GoogleFonts.inter(fontSize: 12, color: _onSurfaceVariant)),
-                    Text('${_walletBalance.toStringAsFixed(2)} DH', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: _successColor)),
+                    Text('Solde disponible', style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
+                    Text('${_walletBalance.toStringAsFixed(2)} DH', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: _successColor)),
                   ],
                 ),
                 ElevatedButton.icon(
@@ -486,8 +482,8 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Solde disponible', style: GoogleFonts.inter(fontSize: 12, color: _onSurfaceVariant)),
-                      Text('0.00 DH', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: _onBackground)),
+                      Text('Solde disponible', style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
+                      Text('0.00 DH', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: _onBackground)),
                     ],
                   ),
                 ],
@@ -502,10 +498,10 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Historique des commissions', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text('Historique des commissions', style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         if (_commissions.isEmpty)
-          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text('Aucune commission.', style: GoogleFonts.inter(color: _onSurfaceVariant)))),
+          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text('Aucune commission.', style: GoogleFonts.cairo(color: _onSurfaceVariant)))),
         ..._commissions.map((c) {
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -527,15 +523,15 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(c.dealGroupName ?? (c.source == CommissionSource.recruitBonus ? 'Bonus Parrainage' : 'Commission'), style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13)),
-                      Text(c.createdAt != null ? DateFormat('dd/MM/yy HH:mm').format(c.createdAt!) : '', style: GoogleFonts.inter(fontSize: 11, color: _onSurfaceVariant)),
+                      Text(c.dealGroupName ?? (c.source == CommissionSource.recruitBonus ? 'Bonus Parrainage' : 'Commission'), style: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 13)),
+                      Text(c.createdAt != null ? DateFormat('dd/MM/yy HH:mm').format(c.createdAt!) : '', style: GoogleFonts.cairo(fontSize: 11, color: _onSurfaceVariant)),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('+${c.amount.toStringAsFixed(2)} DH', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: _successColor)),
+                    Text('+${c.amount.toStringAsFixed(2)} DH', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 13, color: _successColor)),
                     const SizedBox(height: 2),
                     _buildCommissionBadge(c.status),
                   ],
@@ -575,7 +571,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
       ),
-      child: Text(label, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+      child: Text(label, style: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
     );
   }
 
@@ -583,10 +579,10 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Groupes créés', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text('Groupes créés', style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         if (_dealGroups.isEmpty)
-          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text('Aucun groupe créé.', style: GoogleFonts.inter(color: _onSurfaceVariant)))),
+          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text('Aucun groupe créé.', style: GoogleFonts.cairo(color: _onSurfaceVariant)))),
         ..._dealGroups.map((g) {
           final title = g['product_name'] ?? 'Groupe inconnu';
           final members = g['members_count'] ?? 0;
@@ -603,12 +599,12 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13)),
-                      Text('$members / $maxMembers membres', style: GoogleFonts.inter(fontSize: 11, color: _onSurfaceVariant)),
+                      Text(title, style: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 13)),
+                      Text('$members / $maxMembers membres', style: GoogleFonts.cairo(fontSize: 11, color: _onSurfaceVariant)),
                     ],
                   ),
                 ),
-                Text(status.toString().toUpperCase(), style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: _primary)),
+                Text(status.toString().toUpperCase(), style: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.bold, color: _primary)),
               ],
             ),
           );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
@@ -8,7 +9,7 @@ import '../../../shared/navigation/app_routes.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -177,7 +178,7 @@ class _AdminAmbassadorsListScreenState
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: _primary));
+      return const AppLoader();
     }
     
     if (_errorMessage != null) {
@@ -192,7 +193,7 @@ class _AdminAmbassadorsListScreenState
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(color: _onBackground, fontSize: 14),
+                style: GoogleFonts.cairo(color: _onBackground, fontSize: 14),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -212,7 +213,7 @@ class _AdminAmbassadorsListScreenState
       return Center(
         child: Text(
           'Aucun ambassadeur trouvé.',
-          style: GoogleFonts.inter(color: _onSurfaceVariant, fontSize: 14),
+          style: GoogleFonts.cairo(color: _onSurfaceVariant, fontSize: 14),
         ),
       );
     }
@@ -229,13 +230,13 @@ class _AdminAmbassadorsListScreenState
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Tous les ambassadeurs',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.cairo(
               fontSize: 24,
               fontWeight: FontWeight.w800,
               color: _onBackground,
@@ -244,7 +245,7 @@ class _AdminAmbassadorsListScreenState
           if (!_isLoading && _errorMessage == null)
             Text(
               '${_displayed.length} ambassadeur(s)',
-              style: GoogleFonts.inter(fontSize: 13, color: _onSurfaceVariant),
+              style: GoogleFonts.cairo(fontSize: 13, color: _onSurfaceVariant),
             ),
         ],
       ),
@@ -319,7 +320,7 @@ class _FilterDropdown extends StatelessWidget {
             color: isActive ? Colors.white : _onSurfaceVariant,
           ),
           dropdownColor: _surface,
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: isActive ? Colors.white : _onBackground,
@@ -385,7 +386,7 @@ class _AmbassadorRow extends StatelessWidget {
               backgroundColor: const Color(0xFFE8DDD3),
               child: Text(
                 ambassador.initials,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: _onSurfaceVariant,
@@ -402,7 +403,7 @@ class _AmbassadorRow extends StatelessWidget {
                     children: [
                       Text(
                         ambassador.fullName,
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: _onBackground,
@@ -419,7 +420,7 @@ class _AmbassadorRow extends StatelessWidget {
                         ),
                         child: Text(
                           ambassador.level,
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.cairo(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: _levelColor(ambassador.level),
@@ -431,12 +432,12 @@ class _AmbassadorRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_rounded,
+                      const Icon(Icons.location_on_outlined,
                           size: 11, color: _onSurfaceVariant),
                       const SizedBox(width: 2),
                       Text(
                         ambassador.city,
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                             fontSize: 12, color: _onSurfaceVariant),
                       ),
                       const SizedBox(width: 8),
@@ -445,7 +446,7 @@ class _AmbassadorRow extends StatelessWidget {
                       const SizedBox(width: 2),
                       Text(
                         '${ambassador.totalValidatedMembers} membres',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                             fontSize: 12, color: _onSurfaceVariant),
                       ),
                     ],

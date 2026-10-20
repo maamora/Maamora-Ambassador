@@ -1,25 +1,107 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
   AppTheme._();
 
   static ThemeData get lightTheme {
-    return ThemeData(
+    final base = ThemeData(
       useMaterial3: true,
-      colorSchemeSeed: AppColors.primary,
+      colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary).copyWith(
+        primary: AppColors.primary,
+        onPrimary: Colors.white,
+        secondary: AppColors.secondary,
+        surface: AppColors.surface,
+        error: AppColors.error,
+      ),
       scaffoldBackgroundColor: AppColors.background,
+    );
+    final cairo = GoogleFonts.cairoTextTheme(base.textTheme).apply(
+      bodyColor: AppColors.onBackground,
+      displayColor: AppColors.onBackground,
+    );
+    final r16 = BorderRadius.circular(16);
+    OutlineInputBorder border(Color c, [double w = 1]) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: c, width: w),
+        );
+
+    return base.copyWith(
+      textTheme: cairo,
       cardTheme: CardThemeData(
         elevation: 0,
+        color: AppColors.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           side: const BorderSide(color: AppColors.cardBorder),
         ),
       ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        foregroundColor: AppColors.secondary,
+        titleTextStyle: GoogleFonts.cairo(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: AppColors.secondary,
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: Colors.white,
+        border: border(AppColors.outlineVariant),
+        enabledBorder: border(AppColors.outlineVariant),
+        focusedBorder: border(AppColors.primary, 1.5),
+        errorBorder: border(AppColors.error),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(54),
+          shape: RoundedRectangleBorder(borderRadius: r16),
+          textStyle:
+              GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w800),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.secondary,
+          backgroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(54),
+          side: const BorderSide(color: AppColors.outlineVariant),
+          shape: RoundedRectangleBorder(borderRadius: r16),
+          textStyle:
+              GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w700),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          textStyle:
+              GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w700),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.secondary,
+        contentTextStyle: GoogleFonts.cairo(color: Colors.white, fontSize: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+      ),
+      // Every spinner / progress bar in the app becomes Maamora orange.
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.primary,
+        linearTrackColor: AppColors.surfaceContainerLow,
       ),
     );
   }
@@ -53,7 +135,7 @@ class AppTheme {
   static const TextStyle labelMd = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w700,
-    letterSpacing: 0.4,
+
     color: AppColors.onBackground,
   );
 
@@ -70,29 +152,4 @@ class AppTheme {
     color: AppColors.onBackground,
     height: 1.15,
   );
-
-  // static ThemeData get lightTheme {
-  //   return ThemeData(
-  //     useMaterial3: true,
-  //     brightness: Brightness.light, // force light, ignore system dark mode
-  //     colorScheme: ColorScheme.fromSeed(
-  //       seedColor: AppColors.primary,
-  //       brightness: Brightness.light,
-  //     ),
-  //     scaffoldBackgroundColor: AppColors.background,
-  //     cardTheme: CardThemeData(
-  //       elevation: 0,
-  //       color: AppColors.surface,
-  //       shape: RoundedRectangleBorder(
-  //         borderRadius: BorderRadius.circular(14),
-  //         side: const BorderSide(color: AppColors.cardBorder),
-  //       ),
-  //     ),
-  //     inputDecorationTheme: InputDecorationTheme(
-  //       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-  //       filled: true,
-  //       fillColor: Colors.grey.shade50,
-  //     ),
-  //   );
-  // }
 }

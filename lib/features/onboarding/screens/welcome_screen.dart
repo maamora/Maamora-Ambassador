@@ -65,7 +65,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF4EE),
+      backgroundColor: const Color(0xFFFFFFFF),
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeIn,
@@ -199,7 +199,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFFAF4EE),
+              color: const Color(0xFFFFFFFF),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFFE8DFDA)),
             ),

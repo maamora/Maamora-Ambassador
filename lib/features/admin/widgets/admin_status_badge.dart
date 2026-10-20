@@ -28,11 +28,10 @@ class AdminStatusBadge extends StatelessWidget {
       ),
       child: Text(
         config.label,
-        style: GoogleFonts.inter(
+        style: GoogleFonts.cairo(
           fontSize: 11,
           fontWeight: FontWeight.w700,
           color: config.foreground,
-          letterSpacing: 0.3,
         ),
       ),
     );

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/admin_groups_provider.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -101,7 +102,7 @@ class _AdminGroupsPendingScreenState
           children: [
             // ── Header ───────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -111,7 +112,7 @@ class _AdminGroupsPendingScreenState
                       children: [
                         Text(
                           'Groupes',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.cairo(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
                             color: _onBackground,
@@ -122,7 +123,7 @@ class _AdminGroupsPendingScreenState
                             '$countEnCours en cours · '
                             '$countEnAttente en attente · '
                             '$countTraites traité${countTraites > 1 ? 's' : ''}',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.cairo(
                                 fontSize: 13, color: _onSurfaceVariant),
                           ),
                       ],
@@ -139,7 +140,7 @@ class _AdminGroupsPendingScreenState
 
             // ── Filter chips (3 états exclusifs) ─────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
               child: Row(
                 children: [
                   _FilterChip(
@@ -177,9 +178,7 @@ class _AdminGroupsPendingScreenState
             // ── List ─────────────────────────────────────────────────────
             Expanded(
               child: state.isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: _primary),
-                    )
+                  ? const AppLoader()
                   : state.error != null && state.groups.isEmpty
                       ? _buildError(notifier.fetchGroups)
                       : filtered.isEmpty
@@ -227,7 +226,7 @@ class _AdminGroupsPendingScreenState
               'Impossible de charger les groupes.',
               textAlign: TextAlign.center,
               style:
-                  GoogleFonts.inter(fontSize: 14, color: _onSurfaceVariant),
+                  GoogleFonts.cairo(fontSize: 14, color: _onSurfaceVariant),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -259,7 +258,7 @@ class _AdminGroupsPendingScreenState
               'Aucun groupe dans cette catégorie.',
               textAlign: TextAlign.center,
               style:
-                  GoogleFonts.inter(fontSize: 14, color: _onSurfaceVariant),
+                  GoogleFonts.cairo(fontSize: 14, color: _onSurfaceVariant),
             ),
           ],
         ),
@@ -277,11 +276,11 @@ class _AdminGroupsPendingScreenState
       builder: (_) => AlertDialog(
         title: Text(
           'Assigner la commission',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
         ),
         content: Text(
           'Confirmer l\'assignation de la commission pour\n"${group.productName}" ?',
-          style: GoogleFonts.inter(fontSize: 14),
+          style: GoogleFonts.cairo(fontSize: 14),
         ),
         actions: [
           TextButton(
@@ -364,7 +363,7 @@ class _FilterChip extends StatelessWidget {
             ],
             Text(
               label,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: isActive ? Colors.white : _onSurfaceVariant,
@@ -381,7 +380,7 @@ class _FilterChip extends StatelessWidget {
               ),
               child: Text(
                 '$count',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   color: isActive ? Colors.white : activeColor,
@@ -438,7 +437,7 @@ class _GroupCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   group.productName,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.cairo(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: _onBackground,
@@ -468,7 +467,7 @@ class _GroupCard extends StatelessWidget {
                   isFull
                       ? '${group.membersCount}/${group.seatsTotal} Full'
                       : '${group.membersCount}/${group.seatsTotal}',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: isFull
@@ -498,12 +497,12 @@ class _GroupCard extends StatelessWidget {
           // ── Ambassador + date ──────────────────────────────────────
           Row(
             children: [
-              const Icon(Icons.person_outline_rounded,
+              const Icon(Icons.person_outline,
                   size: 14, color: _onSurfaceVariant),
               const SizedBox(width: 4),
               Text(
                 'Ambassador: ${group.ambassadorName}',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                     fontSize: 13, color: _onSurfaceVariant),
               ),
               const SizedBox(width: 12),
@@ -513,7 +512,7 @@ class _GroupCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   group.completedAt,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                       fontSize: 13, color: _onSurfaceVariant),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -523,7 +522,7 @@ class _GroupCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '${group.pricePerPerson.toStringAsFixed(0)} DH/personne',
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: _primary,
@@ -533,7 +532,7 @@ class _GroupCard extends StatelessWidget {
 
           // ── Action button ──────────────────────────────────────────
           Align(
-            alignment: Alignment.centerRight,
+            alignment: AlignmentDirectional.centerEnd,
             child: group.commissionAssigned
                 // Already paid
                 ? Container(
@@ -551,7 +550,7 @@ class _GroupCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           'Commission Paid',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.cairo(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF888888),
@@ -576,7 +575,7 @@ class _GroupCard extends StatelessWidget {
                         ),
                         child: Text(
                           'Assign Commission',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.cairo(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                           ),
@@ -598,7 +597,7 @@ class _GroupCard extends StatelessWidget {
                             const SizedBox(width: 6),
                             Text(
                               'Groupe incomplet',
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.cairo(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFFB0A89E),
