@@ -7,6 +7,7 @@ import '../widgets/payout_method_bottom_sheet.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../../core/services/ambassador_state_provider.dart';
 import '../../../models/models.dart';
+import '../../../shared/widgets/design_kit.dart';
 
 class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
@@ -22,9 +23,9 @@ class WalletScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: walletAsync.when(
         data: (data) => SingleChildScrollView(
-          padding: const EdgeInsets.only(
-            left: 20,
-            right: 20,
+          padding: const EdgeInsetsDirectional.only(
+            start: 20,
+            end: 20,
             top: 24,
             bottom: 100, // For bottom nav bar padding
           ),
@@ -40,7 +41,7 @@ class WalletScreen extends ConsumerWidget {
             ],
           ),
         ),
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryContainer)),
+        loading: () => const AppLoader(),
         error: (err, _) => Center(child: Text('Error: $err')),
       ),
     );
@@ -63,8 +64,8 @@ class WalletScreen extends ConsumerWidget {
       child: Stack(
         children: [
           // Decorative elements
-          Positioned(
-            right: -32,
+          PositionedDirectional(
+            end: -32,
             top: -32,
             child: Container(
               width: 128,
@@ -75,8 +76,8 @@ class WalletScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Positioned(
-            left: -16,
+          PositionedDirectional(
+            start: -16,
             bottom: -16,
             child: Container(
               width: 96,
@@ -101,10 +102,9 @@ class WalletScreen extends ConsumerWidget {
                       children: [
                         Text(
                           'ARRIVING THIS FRIDAY',
-                          style: GoogleFonts.workSans(
+                          style: GoogleFonts.cairo(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            letterSpacing: 1.0,
                             color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
@@ -115,16 +115,15 @@ class WalletScreen extends ConsumerWidget {
                           children: [
                             Text(
                               '${balance.toStringAsFixed(0)} ',
-                              style: GoogleFonts.beVietnamPro(
+                              style: GoogleFonts.cairo(
                                 fontSize: 36,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
-                                letterSpacing: -0.5,
                               ),
                             ),
                             Text(
                               'DH',
-                              style: GoogleFonts.beVietnamPro(
+                              style: GoogleFonts.cairo(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
@@ -162,14 +161,14 @@ class WalletScreen extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
-                        Icons.verified_user_rounded,
+                        Icons.verified_user_outlined,
                         color: Colors.white,
                         size: 16,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'ID Verification Complete',
-                        style: GoogleFonts.workSans(
+                        style: GoogleFonts.cairo(
                           fontSize: 14,
                           color: Colors.white,
                           fontWeight: FontWeight.w500,
@@ -204,7 +203,7 @@ class WalletScreen extends ConsumerWidget {
           children: [
             Text(
               'Earnings Breakdown',
-              style: GoogleFonts.beVietnamPro(
+              style: GoogleFonts.cairo(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: AppColors.onSurface,
@@ -220,7 +219,7 @@ class WalletScreen extends ConsumerWidget {
                 children: [
                   Text(
                     'All Time',
-                    style: GoogleFonts.workSans(
+                    style: GoogleFonts.cairo(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primaryContainer,
@@ -239,9 +238,10 @@ class WalletScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         if (transactions.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Text('No transactions yet.'),
+          const EmptyState(
+            icon: Icons.receipt_long_outlined,
+            title: 'No transactions yet',
+            subtitle: 'Your commissions and payouts will show up here.',
           )
         else
           Container(
@@ -282,7 +282,7 @@ class WalletScreen extends ConsumerWidget {
                 } else if (tx is Payout) {
                   final methodStr = tx.method == PayoutMethod.bank ? 'Virement Bancaire' : 'Espèces (Cash)';
                   title = tx.reference != null ? '$methodStr (${tx.reference})' : methodStr;
-                  icon = Icons.account_balance_wallet_rounded;
+                  icon = Icons.account_balance_wallet_outlined;
                   iconColor = const Color(0xFFB3261E);
                   iconBgColor = const Color(0xFFF9DEDC);
                   subtitle = tx.status.value.toUpperCase();
@@ -358,7 +358,7 @@ class WalletScreen extends ConsumerWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.workSans(
+                    style: GoogleFonts.cairo(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: AppColors.onSurface,
@@ -367,7 +367,7 @@ class WalletScreen extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: GoogleFonts.workSans(
+                    style: GoogleFonts.cairo(
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                       color: AppColors.onSurfaceVariant,
@@ -381,7 +381,7 @@ class WalletScreen extends ConsumerWidget {
               children: [
                 Text(
                   amount,
-                  style: GoogleFonts.workSans(
+                  style: GoogleFonts.cairo(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: isExpired ? AppColors.onSurfaceVariant : (typeLabel == 'Payout' ? const Color(0xFFB3261E) : AppColors.primaryContainer),
@@ -391,7 +391,7 @@ class WalletScreen extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     typeLabel,
-                    style: GoogleFonts.workSans(
+                    style: GoogleFonts.cairo(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
                       color: AppColors.onSurfaceVariant,
@@ -448,7 +448,7 @@ class WalletScreen extends ConsumerWidget {
           children: [
             Text(
               'Payout Method',
-              style: GoogleFonts.beVietnamPro(
+              style: GoogleFonts.cairo(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: AppColors.onSurface,
@@ -468,7 +468,7 @@ class WalletScreen extends ConsumerWidget {
                     const SizedBox(width: 4),
                     Text(
                       'Configuré',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: const Color(0xFF166534),
@@ -526,7 +526,7 @@ class WalletScreen extends ConsumerWidget {
                     children: [
                       Text(
                         title,
-                        style: GoogleFonts.workSans(
+                        style: GoogleFonts.cairo(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: AppColors.onSurface,
@@ -535,7 +535,7 @@ class WalletScreen extends ConsumerWidget {
                       const SizedBox(height: 3),
                       Text(
                         subtitle,
-                        style: GoogleFonts.workSans(
+                        style: GoogleFonts.cairo(
                           fontSize: 13,
                           fontWeight: FontWeight.w400,
                           color: hasMethod ? AppColors.onSurface : AppColors.onSurfaceVariant,

@@ -6,12 +6,13 @@ import '../../../models/models.dart';
 import '../../groups/providers/my_groups_provider.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../shared/navigation/app_routes.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:go_router/go_router.dart';
 
 // ── Design tokens (match project palette) ─────────────────────────────────
 const Color _primary = Color(0xFFFB7701); // orange
 const Color _secondary = Color(0xFF1A2433); // dark navy
-const Color _background = Color(0xFFFAF5F0); // warm cream
+const Color _background = Color(0xFFFFFFFF); // warm cream
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -30,7 +31,7 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: _background,
       body: SafeArea(
         child: ambassadorState.isLoading
-            ? const Center(child: CircularProgressIndicator(color: _primary))
+            ? const AppLoader()
             : ambassadorState.ambassador == null
                 ? Center(child: Text(ambassadorState.errorMessage ?? 'Error'))
                 : SingleChildScrollView(
@@ -39,6 +40,8 @@ class HomeScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _GreetingHeader(ambassador: ambassadorState.ambassador!),
+                        const SizedBox(height: 16),
+                        _StatsRow(ambassador: ambassadorState.ambassador!, groupsAsync: groupsAsync),
                         const SizedBox(height: 16),
                         _NextLevelCard(ambassador: ambassadorState.ambassador!),
                         const SizedBox(height: 16),
@@ -55,6 +58,28 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
+// ── Stats row (groups / invited friends / level) ────────────────────────────
+
+class _StatsRow extends StatelessWidget {
+  final Ambassador ambassador;
+  final AsyncValue<List<DealGroup>> groupsAsync;
+  const _StatsRow({required this.ambassador, required this.groupsAsync});
+
+  @override
+  Widget build(BuildContext context) {
+    final groupsCount = groupsAsync.value?.length ?? 0;
+    return Row(
+      children: [
+        Expanded(child: StatBox(value: '$groupsCount', label: 'Groups', icon: Icons.groups_outlined)),
+        const SizedBox(width: 10),
+        Expanded(child: StatBox(value: '${ambassador.totalValidatedMembers}', label: 'Referrals', icon: Icons.link)),
+        const SizedBox(width: 10),
+        Expanded(child: StatBox(value: ambassador.level.label, label: 'Level', icon: Icons.military_tech_outlined)),
+      ],
+    );
+  }
+}
+
 // ── Greeting Header ─────────────────────────────────────────────────────────
 
 class _GreetingHeader extends StatelessWidget {
@@ -74,7 +99,7 @@ class _GreetingHeader extends StatelessWidget {
             children: [
               Text(
                 'Salam, $name 👋',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.cairo(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                   color: _onBackground,
@@ -84,7 +109,7 @@ class _GreetingHeader extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Here is a quick look at your earnings and active groups.',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                   color: _onSurfaceVariant,
@@ -95,39 +120,8 @@ class _GreetingHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        _LevelBadge(label: '${ambassador.level.label} · ${(ambassador.level.commissionRate * 100).toInt()}%'),
+        LevelBadge(level: ambassador.level),
       ],
-    );
-  }
-}
-
-class _LevelBadge extends StatelessWidget {
-  final String label;
-  const _LevelBadge({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: _primary,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.military_tech_rounded, color: Colors.white, size: 14),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -187,17 +181,16 @@ class _NextLevelCard extends StatelessWidget {
                 children: [
                   Text(
                     ambassador.level == AmbassadorLevel.gold ? 'CURRENT LEVEL' : 'NEXT LEVEL',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: _onSurfaceVariant,
-                      letterSpacing: 0.8,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     nextLevelName,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.cairo(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: _onBackground,
@@ -225,7 +218,7 @@ class _NextLevelCard extends StatelessWidget {
                         }
                         return Text(
                           '$daysLeft days left',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.cairo(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: _primary,
@@ -245,7 +238,7 @@ class _NextLevelCard extends StatelessWidget {
                 ambassador.level == AmbassadorLevel.gold 
                     ? 'Max rank achieved' 
                     : '${(totalOrders - completedOrders).clamp(0, totalOrders)} orders needed',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: _onSurfaceVariant,
@@ -255,7 +248,7 @@ class _NextLevelCard extends StatelessWidget {
                 ambassador.level == AmbassadorLevel.gold 
                     ? '$completedOrders'
                     : '$completedOrders/$totalOrders',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: _onBackground,
@@ -292,7 +285,7 @@ class _ShareButton extends StatelessWidget {
         icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
         label: Text(
           'Propose a new group',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: Colors.white,
@@ -330,7 +323,7 @@ class _ActiveGroupsSection extends ConsumerWidget {
           children: [
             Text(
               'My groups',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.cairo(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: _onBackground,
@@ -346,7 +339,7 @@ class _ActiveGroupsSection extends ConsumerWidget {
               ),
               child: Text(
                 'See all',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: _primary,
@@ -360,9 +353,10 @@ class _ActiveGroupsSection extends ConsumerWidget {
           data: (groups) {
             final activeGroups = groups.where((g) => g.status != DealGroupStatus.cancelled).take(2).toList();
             if (activeGroups.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Text('No active groups.'),
+              return const EmptyState(
+                icon: Icons.groups_outlined,
+                title: 'No active groups yet',
+                subtitle: 'Start a group and invite your neighbors to earn your first commission.',
               );
             }
             return Column(
@@ -382,7 +376,7 @@ class _ActiveGroupsSection extends ConsumerWidget {
               )).toList(),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator(color: _primary)),
+          loading: () => const AppSkeletonList(count: 2),
           error: (err, _) => Text('Error loading groups: $err'),
         ),
       ],
@@ -505,7 +499,7 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
                   children: [
                     Text(
                       _isFull ? '${widget.name} · closed ✓' : widget.name,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: _onBackground,
@@ -524,7 +518,7 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
                           _isFull 
                               ? '${widget.seatsFilled} of ${widget.totalSeats} seats'
                               : '${widget.seatsFilled}/${widget.totalSeats} filled',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.cairo(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: _onSurfaceVariant,
@@ -537,16 +531,16 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
                                 ? Icons.timer_outlined
                                 : Icons.access_time_rounded,
                             size: 14,
-                            color: widget.isCountdown ? Colors.red.shade400 : _onSurfaceVariant,
+                            color: widget.isCountdown ? _primary : _onSurfaceVariant,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             widget.timeRemaining,
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.cairo(
                               fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w700,
                               color: widget.isCountdown
-                                  ? Colors.red.shade400
+                                  ? _primary
                                   : _onSurfaceVariant,
                             ),
                           ),
@@ -560,7 +554,7 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
               if (_isFull)
                 Text(
                   '+${widget.estimatedEarnings} DH',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.cairo(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF198754),
@@ -586,7 +580,7 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
                 children: [
                   Text(
                     'Product Price',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: _onSurfaceVariant,
@@ -594,7 +588,7 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
                   ),
                   Text(
                     '${widget.productPrice} DH',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.cairo(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: _onBackground,
@@ -607,7 +601,7 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
                 children: [
                   Text(
                     'Estimated Earnings',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: _onSurfaceVariant,
@@ -615,7 +609,7 @@ class _GroupCardState extends ConsumerState<_GroupCard> {
                   ),
                   Text(
                     '${widget.estimatedEarnings} DH',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.cairo(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: const Color(0xFF1A5FAD),
@@ -723,7 +717,7 @@ class _AddMembersSheetState extends State<_AddMembersSheet> {
         color: _surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(24, 12, 24, 24 + bottomInset),
+      padding: EdgeInsetsDirectional.fromSTEB(24, 12, 24, 24 + bottomInset),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -740,7 +734,7 @@ class _AddMembersSheetState extends State<_AddMembersSheet> {
           // Title
           Text(
             'How many members joined?',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.cairo(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: _onBackground,
@@ -749,7 +743,7 @@ class _AddMembersSheetState extends State<_AddMembersSheet> {
           const SizedBox(height: 4),
           Text(
             widget.groupName,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 13,
               color: _onSurfaceVariant,
             ),
@@ -781,7 +775,7 @@ class _AddMembersSheetState extends State<_AddMembersSheet> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   autofocus: true,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.cairo(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     color: _onBackground,
@@ -808,7 +802,7 @@ class _AddMembersSheetState extends State<_AddMembersSheet> {
           const SizedBox(height: 8),
           Text(
             '${widget.available} seat${widget.available == 1 ? '' : 's'} remaining',
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 12,
               color: _onSurfaceVariant,
             ),
@@ -836,7 +830,7 @@ class _AddMembersSheetState extends State<_AddMembersSheet> {
                       ),
                       child: Text(
                         '+$n',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: _count == n ? Colors.white : _primary,
@@ -864,7 +858,7 @@ class _AddMembersSheetState extends State<_AddMembersSheet> {
               ),
               child: Text(
                 _count == 1 ? 'Add 1 Member' : 'Add $_count Members',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -932,70 +926,21 @@ class _TotalEarnedCardState extends State<_TotalEarnedCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-      decoration: BoxDecoration(
-        color: _orangeLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFD4A8)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Total earned',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: _onBackground,
+    return GradientHeroCard(
+      label: 'Total earned',
+      value: '${_balance.toStringAsFixed(0)} DH',
+      tone: HeroTone.orange,
+      footer: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'View rank and history',
+              style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
             ),
-          ),
-          const SizedBox(height: 6),
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: '${_balance.toStringAsFixed(0)} ',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
-                    color: _primary,
-                  ),
-                ),
-                TextSpan(
-                  text: 'DH',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: _primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: () {},
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'View rank and history',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _secondary,
-                    decoration: TextDecoration.underline,
-                    decorationColor: _secondary,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward, size: 14, color: _secondary),
-              ],
-            ),
-          ),
-        ],
-      ),
+            const SizedBox(width: 4),
+            const Icon(Icons.arrow_forward, size: 14, color: Colors.white),
+          ],
+        ),
     );
   }
 }

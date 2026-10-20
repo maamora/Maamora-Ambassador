@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/shared_app_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/theme/app_colors.dart';
 import '../providers/my_groups_provider.dart';
+import '../../../shared/widgets/app_button.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
   const CreateGroupScreen({super.key});
@@ -64,12 +66,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Create Group', style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.onSurface)),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.onSurface),
-      ),
+      appBar: const SharedAppBar(pageTitle: 'Create Group'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -79,14 +76,13 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
             children: [
               Text(
                 'Group Details',
-                style: GoogleFonts.beVietnamPro(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.onSurface),
+                style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.onSurface),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Product Name',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelText: 'Product Name'
                 ),
                 validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
               ),
@@ -94,8 +90,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
               TextFormField(
                 controller: _descController,
                 decoration: InputDecoration(
-                  labelText: 'Product Description',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelText: 'Product Description'
                 ),
                 maxLines: 3,
                 validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
@@ -107,8 +102,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                     child: TextFormField(
                       controller: _priceController,
                       decoration: InputDecoration(
-                        labelText: 'Price per person (DH)',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        labelText: 'Price per person (DH)'
                       ),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
@@ -119,8 +113,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                     child: TextFormField(
                       controller: _seatsController,
                       decoration: InputDecoration(
-                        labelText: 'Total Seats',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        labelText: 'Total Seats'
                       ),
                       keyboardType: TextInputType.number,
                       validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
@@ -129,17 +122,10 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                 ],
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
+              AppButton(
+                label: 'Create Group',
+                isLoading: _isLoading,
                 onPressed: _isLoading ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryContainer,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _isLoading 
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text('Create Group', style: GoogleFonts.workSans(fontWeight: FontWeight.w600, fontSize: 16)),
               ),
             ],
           ),

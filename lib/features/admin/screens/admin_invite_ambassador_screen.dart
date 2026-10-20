@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -6,7 +7,7 @@ import '../widgets/admin_status_badge.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -226,7 +227,7 @@ class _AdminInviteAmbassadorScreenState
       children: [
         Text(
           'Inviter un ambassadeur',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.cairo(
             fontSize: 24,
             fontWeight: FontWeight.w800,
             color: _onBackground,
@@ -235,7 +236,7 @@ class _AdminInviteAmbassadorScreenState
         const SizedBox(height: 4),
         Text(
           'Générez un code d\'invitation unique.',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 13,
             color: _onSurfaceVariant,
           ),
@@ -258,7 +259,7 @@ class _AdminInviteAmbassadorScreenState
           // Ville (optionnel, visuel uniquement — non envoyé en DB)
           Text(
             'Ville (optionnel, pour votre référence)',
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: _onBackground,
@@ -269,7 +270,7 @@ class _AdminInviteAmbassadorScreenState
             controller: _cityController,
             decoration: InputDecoration(
               hintText: 'Ex: Casablanca',
-              hintStyle: GoogleFonts.inter(color: _onSurfaceVariant),
+              hintStyle: GoogleFonts.cairo(color: _onSurfaceVariant),
               filled: true,
               fillColor: const Color(0xFFF5EDE4),
               border: OutlineInputBorder(
@@ -281,19 +282,19 @@ class _AdminInviteAmbassadorScreenState
                 vertical: 12,
               ),
             ),
-            style: GoogleFonts.inter(fontSize: 14, color: _onBackground),
+            style: GoogleFonts.cairo(fontSize: 14, color: _onBackground),
           ),
           const SizedBox(height: 4),
           Text(
             'Note : Ce champ est local uniquement — le code généré n\'est pas lié à une ville en base.',
-            style: GoogleFonts.inter(fontSize: 11, color: _onSurfaceVariant),
+            style: GoogleFonts.cairo(fontSize: 11, color: _onSurfaceVariant),
           ),
           const SizedBox(height: 16),
 
           // Date d'expiration (optionnel)
           Text(
             'Date d\'expiration (optionnel)',
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: _onBackground,
@@ -316,7 +317,7 @@ class _AdminInviteAmbassadorScreenState
                       _selectedExpiry != null
                           ? '${_selectedExpiry!.day}/${_selectedExpiry!.month}/${_selectedExpiry!.year}'
                           : 'Choisir une date',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 14,
                         color: _selectedExpiry != null
                             ? _onBackground
@@ -348,10 +349,10 @@ class _AdminInviteAmbassadorScreenState
                 child: CircularProgressIndicator(
                     color: Colors.white, strokeWidth: 2),
               )
-            : const Icon(Icons.link_rounded, color: Colors.white, size: 20),
+            : const Icon(Icons.link, color: Colors.white, size: 20),
         label: Text(
           _isGenerating ? 'Génération...' : 'Générer le code d\'invitation',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: Colors.white,
@@ -386,11 +387,10 @@ class _AdminInviteAmbassadorScreenState
               const SizedBox(width: 8),
               Text(
                 'CODE GÉNÉRÉ',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   color: _primary,
-                  letterSpacing: 1.0,
                 ),
               ),
             ],
@@ -410,11 +410,10 @@ class _AdminInviteAmbassadorScreenState
               children: [
                 Text(
                   _generatedCode ?? '',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
                     color: _primary,
-                    letterSpacing: 2,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -426,7 +425,7 @@ class _AdminInviteAmbassadorScreenState
                       color: _orangeLight,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.copy_rounded,
+                    child: const Icon(Icons.content_copy_outlined,
                         color: _primary, size: 18),
                   ),
                 ),
@@ -447,7 +446,7 @@ class _AdminInviteAmbassadorScreenState
                 Expanded(
                   child: Text(
                     _generatedLink,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 12,
                       color: _onSurfaceVariant,
                     ),
@@ -457,7 +456,7 @@ class _AdminInviteAmbassadorScreenState
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: _copyLink,
-                  child: const Icon(Icons.copy_rounded,
+                  child: const Icon(Icons.content_copy_outlined,
                       color: _onSurfaceVariant, size: 16),
                 ),
               ],
@@ -500,7 +499,7 @@ class _AdminInviteAmbassadorScreenState
             Expanded(
               child: Text(
                 'Invitations envoyées',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.cairo(
                   fontSize: 17,
                   fontWeight: FontWeight.w800,
                   color: _onBackground,
@@ -519,15 +518,11 @@ class _AdminInviteAmbassadorScreenState
         if (!_isLoadingInvites && _invitesError == null)
           Text(
             '${_invites.length} invitation${_invites.length > 1 ? 's' : ''}',
-            style: GoogleFonts.inter(fontSize: 12, color: _onSurfaceVariant),
+            style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant),
           ),
         const SizedBox(height: 12),
         if (_isLoadingInvites)
-          const Center(
-              child: Padding(
-            padding: EdgeInsets.all(24),
-            child: CircularProgressIndicator(),
-          ))
+          const AppSkeletonList(count: 3)
         else if (_invitesError != null)
           Container(
             padding: const EdgeInsets.all(14),
@@ -543,7 +538,7 @@ class _AdminInviteAmbassadorScreenState
                 Expanded(
                   child: Text(
                     _invitesError!,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                         fontSize: 13, color: Colors.red.shade700),
                   ),
                 ),
@@ -561,7 +556,7 @@ class _AdminInviteAmbassadorScreenState
                   const SizedBox(height: 8),
                   Text(
                     'Aucune invitation envoyée',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                         fontSize: 13, color: _onSurfaceVariant),
                   ),
                 ],
@@ -602,7 +597,7 @@ class _ActionButton extends StatelessWidget {
       return OutlinedButton.icon(
         onPressed: onTap,
         icon: Icon(icon, size: 16),
-        label: Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+        label: Text(label, style: GoogleFonts.cairo(fontWeight: FontWeight.w700)),
         style: OutlinedButton.styleFrom(
           foregroundColor: resolvedColor,
           side: BorderSide(color: resolvedColor),
@@ -618,7 +613,7 @@ class _ActionButton extends StatelessWidget {
       icon: Icon(icon, color: Colors.white, size: 16),
       label: Text(
         label,
-        style: GoogleFonts.inter(
+        style: GoogleFonts.cairo(
           fontWeight: FontWeight.w700,
           color: Colors.white,
         ),
@@ -691,21 +686,20 @@ class _InviteCodeRow extends StatelessWidget {
                     children: [
                       Text(
                         invite.code,
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: _primary,
-                          letterSpacing: 0.5,
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.copy_rounded, size: 14, color: _onSurfaceVariant),
+                      const Icon(Icons.content_copy_outlined, size: 14, color: _onSurfaceVariant),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Créé: ${_formatDate(invite.createdAt)}',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 11,
                       color: _onSurfaceVariant,
                     ),
@@ -713,7 +707,7 @@ class _InviteCodeRow extends StatelessWidget {
                   if (invite.expiresAt != null)
                     Text(
                       'Expire: ${invite.expiresAt!.day}/${invite.expiresAt!.month}/${invite.expiresAt!.year}',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 11,
                         color: _onSurfaceVariant,
                       ),
@@ -721,7 +715,7 @@ class _InviteCodeRow extends StatelessWidget {
                   else
                     Text(
                       'Pas d\'expiration',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 11,
                         color: _onSurfaceVariant,
                       ),

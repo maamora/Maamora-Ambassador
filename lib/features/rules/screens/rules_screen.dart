@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/shared_app_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,51 +12,21 @@ class RulesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: const SharedAppBar(pageTitle: 'Rules'),
       body: CustomScrollView(
         slivers: [
           // ── Header ─────────────────────────────────────────────────────────
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: const Color(0xFFFFF8F5).withValues(alpha: 0.95),
-            elevation: 0,
-            surfaceTintColor: Colors.transparent,
-            shadowColor: Colors.black.withValues(alpha: 0.06),
-            forceElevated: true,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              color: AppColors.onSurface,
-              onPressed: () => context.pop(),
-            ),
-            title: Text(
-              'Rules',
-              style: GoogleFonts.beVietnamPro(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
-              ),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: AppColors.outlineVariant,
-                  child: const Icon(Icons.person_rounded, size: 18, color: AppColors.onSurfaceVariant),
-                ),
-              ),
-            ],
-          ),
-
+          
           // ── Body ───────────────────────────────────────────────────────────
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 32, 20, 40),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 32, 20, 40),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // ── Intro ────────────────────────────────────────────────────
                 Text(
                   'Ambassador Tiers',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.beVietnamPro(
+                  style: GoogleFonts.cairo(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: AppColors.onSurface,
@@ -65,7 +36,7 @@ class RulesScreen extends StatelessWidget {
                 Text(
                   'Climb the ranks to unlock higher commissions and exclusive perks.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.workSans(
+                  style: GoogleFonts.cairo(
                     fontSize: 15,
                     color: AppColors.onSurfaceVariant,
                     height: 1.5,
@@ -167,7 +138,7 @@ class RulesScreen extends StatelessWidget {
                 children: [
                   Text(
                     name,
-                    style: GoogleFonts.beVietnamPro(
+                    style: GoogleFonts.cairo(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: AppColors.onSurface,
@@ -175,7 +146,7 @@ class RulesScreen extends StatelessWidget {
                   ),
                   Text(
                     range,
-                    style: GoogleFonts.workSans(
+                    style: GoogleFonts.cairo(
                       fontSize: 14,
                       color: AppColors.onSurfaceVariant,
                     ),
@@ -188,19 +159,17 @@ class RulesScreen extends StatelessWidget {
               children: [
                 Text(
                   commission,
-                  style: GoogleFonts.beVietnamPro(
+                  style: GoogleFonts.cairo(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
                     color: AppColors.onSurface,
-                    letterSpacing: -0.5,
                   ),
                 ),
                 Text(
                   'COMMISSION',
-                  style: GoogleFonts.workSans(
+                  style: GoogleFonts.cairo(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: 0.8,
                     color: AppColors.onSurfaceVariant,
                   ),
                 ),
@@ -230,8 +199,8 @@ class RulesScreen extends StatelessWidget {
       child: Stack(
         children: [
           // Decorative circle in top-right
-          Positioned(
-            right: -24,
+          PositionedDirectional(
+            end: -24,
             top: -24,
             child: Container(
               width: 96,
@@ -243,18 +212,18 @@ class RulesScreen extends StatelessWidget {
             ),
           ),
           // "Current Level" ribbon
-          Positioned(
+          PositionedDirectional(
             top: 0,
-            right: 0,
+            end: 0,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: const BoxDecoration(
                 color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12)),
+                borderRadius: BorderRadiusDirectional.only(bottomStart: Radius.circular(12)),
               ),
               child: Text(
                 'Current Level',
-                style: GoogleFonts.workSans(
+                style: GoogleFonts.cairo(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -263,7 +232,7 @@ class RulesScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 36, 16, 16),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 36, 16, 16),
             child: Column(
               children: [
                 Row(
@@ -275,7 +244,7 @@ class RulesScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: AppColors.primaryContainer,
                       ),
-                      child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 24),
+                      child: const Icon(Icons.workspace_premium_outlined, color: Colors.white, size: 24),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -284,7 +253,7 @@ class RulesScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Bronze',
-                            style: GoogleFonts.beVietnamPro(
+                            style: GoogleFonts.cairo(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primaryContainer,
@@ -292,7 +261,7 @@ class RulesScreen extends StatelessWidget {
                           ),
                           Text(
                             '6 - 20 orders/mo',
-                            style: GoogleFonts.workSans(fontSize: 14, color: AppColors.onSurfaceVariant),
+                            style: GoogleFonts.cairo(fontSize: 14, color: AppColors.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -302,19 +271,17 @@ class RulesScreen extends StatelessWidget {
                       children: [
                         Text(
                           '6%',
-                          style: GoogleFonts.beVietnamPro(
+                          style: GoogleFonts.cairo(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
                             color: AppColors.primaryContainer,
-                            letterSpacing: -0.5,
                           ),
                         ),
                         Text(
                           'COMMISSION',
-                          style: GoogleFonts.workSans(
+                          style: GoogleFonts.cairo(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            letterSpacing: 0.8,
                             color: AppColors.onSurfaceVariant,
                           ),
                         ),
@@ -331,11 +298,11 @@ class RulesScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Next tier: Silver',
-                      style: GoogleFonts.workSans(fontSize: 13, color: AppColors.onSurfaceVariant),
+                      style: GoogleFonts.cairo(fontSize: 13, color: AppColors.onSurfaceVariant),
                     ),
                     Text(
                       '14 orders to go',
-                      style: GoogleFonts.workSans(
+                      style: GoogleFonts.cairo(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primaryContainer,
@@ -389,7 +356,7 @@ class RulesScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 'Good to know',
-                style: GoogleFonts.beVietnamPro(
+                style: GoogleFonts.cairo(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: AppColors.onSurface,
@@ -404,7 +371,7 @@ class RulesScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top: 6, right: 10),
+                      padding: const EdgeInsetsDirectional.only(top: 6, end: 10),
                       child: Container(
                         width: 6,
                         height: 6,
@@ -417,7 +384,7 @@ class RulesScreen extends StatelessWidget {
                     Expanded(
                       child: Text(
                         rule,
-                        style: GoogleFonts.workSans(
+                        style: GoogleFonts.cairo(
                           fontSize: 14,
                           color: AppColors.onSurfaceVariant,
                           height: 1.5,

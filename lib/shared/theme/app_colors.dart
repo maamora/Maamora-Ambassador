@@ -10,11 +10,12 @@ class AppColors {
   static const Color secondary = Color(0xFF1a2433); // dark navy
 
   // ── Background & surface ──────────────────────────────────────────────────
-  static const Color background = Color(0xFFFAF5F0); // warm cream
+  // Pure white everywhere, per the Maamora wireframe review.
+  static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceContainer = Color(0xFFFFFFFF);
-  static const Color surfaceContainerHigh = Color(0xFFFCF8F2);
-  static const Color surfaceContainerLow = Color(0xFFF5EDE4); // light input fill
+  static const Color surfaceContainerHigh = Color(0xFFFFFFFF);
+  static const Color surfaceContainerLow = Color(0xFFF2F2F2); // light input fill
 
   // ── Text / on-surface tokens ───────────────────────────────────────────────
   static const Color onBackground = Color(0xFF1a2433);

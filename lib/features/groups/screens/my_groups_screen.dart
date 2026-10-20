@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/shared_app_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/navigation/app_routes.dart';
 import '../providers/my_groups_provider.dart';
+import '../../../shared/widgets/design_kit.dart';
 
 // Colors matched with dashboard
 const Color _primaryContainer = Color(0xFFFB7701);
-const Color _surface = Color(0xFFFFF8F5);
+const Color _surface = Color(0xFFFFFFFF);
 const Color _surfaceContainerLowest = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF251912);
 const Color _onSurfaceVariant = Color(0xFF584236);
@@ -22,6 +24,7 @@ class MyGroupsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: _surface,
+      appBar: const SharedAppBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -38,7 +41,7 @@ class MyGroupsScreen extends ConsumerWidget {
                   const SizedBox(width: 4),
                   Text(
                     'My Groups',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.cairo(
                       color: _onBackground,
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
@@ -56,32 +59,10 @@ class MyGroupsScreen extends ConsumerWidget {
                 child: groupsAsync.when(
                   data: (groups) {
                     if (groups.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.group_outlined,
-                                size: 64, color: _outlineVariant),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No groups yet',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: _onBackground,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Share a product to create your first group!',
-                              style: GoogleFonts.inter(
-                                color: _onSurfaceVariant,
-                                fontSize: 14,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
+                      return const EmptyState(
+                        icon: Icons.group_outlined,
+                        title: 'No groups yet',
+                        subtitle: 'Share a product to create your first group!',
                       );
                     }
                     return ListView.separated(
@@ -116,16 +97,14 @@ class MyGroupsScreen extends ConsumerWidget {
                       },
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: _primaryContainer),
-                  ),
+                  loading: () => const AppSkeletonList(count: 4),
                   error: (err, _) => Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           'Failed to load groups',
-                          style: GoogleFonts.inter(color: Colors.red),
+                          style: GoogleFonts.cairo(color: Colors.red),
                         ),
                         const SizedBox(height: 12),
                         ElevatedButton(
@@ -220,7 +199,7 @@ class _GroupOrderCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: _onBackground,
@@ -237,7 +216,7 @@ class _GroupOrderCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         '$membersCount/$membersTotal filled',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: _onSurfaceVariant,
@@ -245,6 +224,8 @@ class _GroupOrderCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  ThinProgress(value: progressRatio, height: 6),
                 ],
               ),
             ),
@@ -258,7 +239,7 @@ class _GroupOrderCard extends StatelessWidget {
               ),
               child: Text(
                 isConfirmed ? 'Confirmed' : 'Pending',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   color: isConfirmed ? const Color(0xFF198754) : _onSurfaceVariant,

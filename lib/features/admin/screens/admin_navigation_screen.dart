@@ -15,7 +15,7 @@ import 'admin_audit_log_screen.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
-const Color _surface = Color(0xFFFFF8F5);
+const Color _surface = Color(0xFFFFFFFF);
 const Color _onSurfaceVariant = Color(0xFF584236);
 
 /// Admin navigation shell with 4 bottom-nav tabs that match the screenshots:
@@ -126,7 +126,7 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
             expand: false,
             builder: (ctx, scrollController) => Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFFAF5F0),
+                color: Color(0xFFFFFFFF),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Column(
@@ -287,7 +287,7 @@ class _SubTabChip extends StatelessWidget {
           children: [
             Text(
               label,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: isActive ? Colors.white : _onSurfaceVariant,
@@ -307,7 +307,7 @@ class _SubTabChip extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Text(
                   '$badge',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                     color: isActive ? Colors.white : Colors.white,
@@ -377,7 +377,7 @@ class _AdminBottomNavBar extends StatelessWidget {
                 onTap: () => onTap(2),
               ),
               _AdminNavItem(
-                icon: Icons.account_balance_wallet_rounded,
+                icon: Icons.account_balance_wallet_outlined,
                 label: 'Finances',
                 isActive: currentIndex == 3,
                 onTap: () => onTap(3),
@@ -424,9 +424,9 @@ class _AdminNavItem extends StatelessWidget {
                   size: 24,
                 ),
                 if (badge != null && badge! > 0)
-                  Positioned(
+                  PositionedDirectional(
                     top: -4,
-                    right: -6,
+                    end: -6,
                     child: Container(
                       width: 16,
                       height: 16,
@@ -437,7 +437,7 @@ class _AdminNavItem extends StatelessWidget {
                       alignment: Alignment.center,
                       child: Text(
                         '$badge',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
@@ -450,7 +450,7 @@ class _AdminNavItem extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 color: isActive ? _primary : _onSurfaceVariant,
                 fontSize: 11,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,

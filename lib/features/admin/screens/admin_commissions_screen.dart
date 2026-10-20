@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/admin_status_badge.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -98,7 +99,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: _primary));
+      return const AppLoader();
     }
     if (_errorMessage != null) {
       return Center(
@@ -107,7 +108,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
-            Text(_errorMessage!, style: GoogleFonts.inter()),
+            Text(_errorMessage!, style: GoogleFonts.cairo()),
             TextButton(onPressed: _fetchData, child: const Text('Réessayer'))
           ],
         ),
@@ -131,13 +132,13 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
 
   Widget _buildHeader(double totalPaid, double totalPending) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Commissions & Paiements',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.cairo(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: _onBackground,
@@ -198,12 +199,12 @@ class _SummaryChip extends StatelessWidget {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
                 fontSize: 11, fontWeight: FontWeight.w600, color: color),
           ),
           Text(
             value,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.cairo(
                 fontSize: 17, fontWeight: FontWeight.w800, color: color),
           ),
         ],
@@ -263,7 +264,7 @@ class _PayoutRow extends StatelessWidget {
             backgroundColor: const Color(0xFFE8DDD3),
             child: Text(
               initials,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.cairo(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
                 color: _onSurfaceVariant,
@@ -278,7 +279,7 @@ class _PayoutRow extends StatelessWidget {
               children: [
                 Text(
                   ambassadorName,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: _onBackground,
@@ -286,7 +287,7 @@ class _PayoutRow extends StatelessWidget {
                 ),
                 Text(
                   details,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 12,
                     color: _onSurfaceVariant,
                   ),
@@ -294,7 +295,7 @@ class _PayoutRow extends StatelessWidget {
                 ),
                 Text(
                   formattedDate,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 11,
                     color: _onSurfaceVariant,
                   ),
@@ -309,7 +310,7 @@ class _PayoutRow extends StatelessWidget {
             children: [
               Text(
                 '${amount.toStringAsFixed(0)} DH',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.cairo(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
                   color: _primary,

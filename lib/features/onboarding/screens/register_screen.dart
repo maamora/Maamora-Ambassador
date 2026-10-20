@@ -238,7 +238,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final canActivate = _isCodeValidated && _isFormComplete() && _ndaAccepted && isAuthenticated;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF4EE),
+      backgroundColor: const Color(0xFFFFFFFF),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -439,9 +439,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
             decoration: const BoxDecoration(
               color: Color(0xFFF0E9E2),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(11),
-                bottomLeft: Radius.circular(11),
+              borderRadius: BorderRadiusDirectional.only(
+                topStart: Radius.circular(11),
+                bottomStart: Radius.circular(11),
               ),
             ),
             child: Text(
@@ -642,9 +642,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Widget _buildBottomSection(bool canActivate) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 24),
       decoration: const BoxDecoration(
-        color: Color(0xFFFAF4EE),
+        color: Color(0xFFFFFFFF),
       ),
       child: Column(
         children: [

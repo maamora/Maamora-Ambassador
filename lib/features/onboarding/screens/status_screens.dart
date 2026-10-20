@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/shared_app_bar.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/theme/app_colors.dart';
@@ -15,21 +17,13 @@ class PendingScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.secondary),
-          onPressed: () {
-            ref.read(authProvider.notifier).signOut();
-            context.go('/login');
-          },
-        ),
-        title: Text(
-          'Application Submitted',
-          style: AppTheme.headlineSm.copyWith(color: AppColors.secondary, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
+      appBar: SharedAppBar(
+        pageTitle: 'Application Submitted',
+        profileEnabled: false,
+        onBack: () {
+          ref.read(authProvider.notifier).signOut();
+          context.go('/login');
+        },
       ),
       body: profileAsync.when(
         data: (profile) {
@@ -56,14 +50,14 @@ class PendingScreen extends ConsumerWidget {
                         color: AppColors.primary,
                       ),
                     ),
-                    const Positioned(
+                    const PositionedDirectional(
                       top: 10,
-                      right: 10,
+                      end: 10,
                       child: Icon(Icons.star, size: 16, color: AppColors.primary),
                     ),
-                    const Positioned(
+                    const PositionedDirectional(
                       bottom: 20,
-                      left: 10,
+                      start: 10,
                       child: Icon(Icons.star_border, size: 20, color: AppColors.primary),
                     ),
                   ],
@@ -154,7 +148,7 @@ class PendingScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoader(),
         error: (err, stack) => const Center(child: Text('Error loading profile')),
       ),
     );
@@ -263,7 +257,8 @@ class _StatusScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF4EE),
+      backgroundColor: const Color(0xFFFFFFFF),
+      appBar: const SharedAppBar(profileEnabled: false),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),

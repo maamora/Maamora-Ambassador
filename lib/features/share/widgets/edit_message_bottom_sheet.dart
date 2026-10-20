@@ -137,7 +137,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
         color: _surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottomInset),
+      padding: EdgeInsetsDirectional.fromSTEB(20, 12, 20, 20 + bottomInset),
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
@@ -168,7 +168,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                   children: [
                     Text(
                       'Customize Message',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.cairo(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: _onBackground,
@@ -177,7 +177,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                     const SizedBox(height: 2),
                     Text(
                       'Personalize your WhatsApp invitation',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 13,
                         color: _onSurfaceVariant,
                       ),
@@ -196,11 +196,10 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
             // Templates label
             Text(
               'QUICK TEMPLATES',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 color: _onSurfaceVariant,
-                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: 8),
@@ -213,11 +212,11 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                   final t = _templates[index];
                   final isSelected = _selectedTemplateIndex == index;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsetsDirectional.only(end: 8),
                     child: ChoiceChip(
                       label: Text(
                         t['title']!,
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 12,
                           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                           color: isSelected ? Colors.white : _onBackground,
@@ -243,11 +242,10 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
               children: [
                 Text(
                   'MESSAGE CONTENT',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     color: _onSurfaceVariant,
-                    letterSpacing: 1.0,
                   ),
                 ),
                 TextButton.icon(
@@ -255,7 +253,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                   icon: const Icon(Icons.restart_alt_rounded, size: 14, color: _primary),
                   label: Text(
                     'Reset',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: _primary,
@@ -274,7 +272,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
             // Text Input Box
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFFAF5F0),
+                color: const Color(0xFFFFFFFF),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: _cardBorder),
               ),
@@ -285,7 +283,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                     controller: _controller,
                     maxLines: 7,
                     minLines: 4,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 14,
                       color: _onBackground,
                       height: 1.45,
@@ -311,7 +309,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                         Expanded(
                           child: Text(
                             'Referral link is missing.',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.cairo(
                               fontSize: 11,
                               color: const Color(0xFFE65100),
                               fontWeight: FontWeight.w600,
@@ -326,7 +324,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                                 horizontal: 8, vertical: 4),
                             child: Text(
                               '+ Add link',
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.cairo(
                                 fontSize: 12,
                                 color: _primary,
                                 fontWeight: FontWeight.w700,
@@ -357,7 +355,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                     ),
                     child: Text(
                       'Cancel',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -380,7 +378,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                     ),
                     child: Text(
                       'Save Changes',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,

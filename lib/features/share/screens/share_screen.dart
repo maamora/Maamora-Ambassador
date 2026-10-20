@@ -7,10 +7,11 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../services/native_share_service.dart';
 import '../widgets/edit_message_bottom_sheet.dart';
+import '../../../shared/widgets/design_kit.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -301,7 +302,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                     child: Text(
                       'Votre QR Code Maamora',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.cairo(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         color: _onBackground,
@@ -325,7 +326,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
               Text(
                 'Faites scanner ce code pour rejoindre directement votre groupe.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 13,
                   color: _onSurfaceVariant,
                   height: 1.4,
@@ -367,7 +368,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                           child: Text(
                             'Impossible de générer le QR code',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(fontSize: 12, color: Colors.red),
+                            style: GoogleFonts.cairo(fontSize: 12, color: Colors.red),
                           ),
                         );
                       },
@@ -381,7 +382,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                       ),
                       child: Text(
                         displaySlug,
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: _primary,
@@ -407,7 +408,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  icon: const Icon(Icons.content_copy_outlined, size: 18),
                   label: const Text('Copier le lien'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primary,
@@ -432,7 +433,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     return Scaffold(
       backgroundColor: _background,
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: _primary)),
+        loading: () => const AppLoader(),
         error: (err, _) => Center(child: Text('Error: $err')),
         data: (ambassador) {
           if (ambassador == null) return const Center(child: Text('Not logged in'));
@@ -460,7 +461,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                   // Title
                   Text(
                     'Share your link',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.cairo(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
                       color: _onBackground,
@@ -470,7 +471,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Invite your neighbors and start earning\ntogether.',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
                       color: _onSurfaceVariant,
@@ -573,7 +574,7 @@ class _ReferralLinkBox extends StatelessWidget {
             child: TextField(
               controller: controller,
               onChanged: onChanged,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: _onBackground,
@@ -639,7 +640,7 @@ class _ReferralLinkBox extends StatelessWidget {
                   color: const Color(0xFFFFF0E6),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.copy_rounded, color: _primary, size: 19),
+                child: const Icon(Icons.content_copy_outlined, color: _primary, size: 19),
               ),
             ),
           ),
@@ -703,7 +704,7 @@ class _MessagePreviewSection extends StatelessWidget {
       if (match.start > lastIndex) {
         spans.add(TextSpan(
           text: text.substring(lastIndex, match.start),
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: _onBackground,
@@ -713,12 +714,12 @@ class _MessagePreviewSection extends StatelessWidget {
       }
       spans.add(TextSpan(
         text: match.group(0),
-        style: GoogleFonts.inter(
+        style: GoogleFonts.cairo(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: Colors.blue.shade700,
+          color: _primary,
           decoration: TextDecoration.underline,
-          decorationColor: Colors.blue.shade700,
+          decorationColor: _primary,
           height: 1.5,
         ),
       ));
@@ -728,7 +729,7 @@ class _MessagePreviewSection extends StatelessWidget {
     if (lastIndex < text.length) {
       spans.add(TextSpan(
         text: text.substring(lastIndex),
-        style: GoogleFonts.inter(
+        style: GoogleFonts.cairo(
           fontSize: 14,
           fontWeight: FontWeight.w400,
           color: _onBackground,
@@ -751,11 +752,10 @@ class _MessagePreviewSection extends StatelessWidget {
           children: [
             Text(
               'MESSAGE PREVIEW',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 color: _onSurfaceVariant,
-                letterSpacing: 1.0,
               ),
             ),
             InkWell(
@@ -770,7 +770,7 @@ class _MessagePreviewSection extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       'Modifier',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: _primary,
@@ -786,19 +786,19 @@ class _MessagePreviewSection extends StatelessWidget {
 
         // WhatsApp Chat Bubble (Tappable to Edit)
         Align(
-          alignment: Alignment.centerRight,
+          alignment: AlignmentDirectional.centerEnd,
           child: GestureDetector(
             onTap: onEditTap,
             child: Container(
               constraints: const BoxConstraints(maxWidth: 320),
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+              padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 8),
               decoration: BoxDecoration(
                 color: _whatsappBubble,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(4),
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
+                borderRadius: const BorderRadiusDirectional.only(
+                  topStart: Radius.circular(16),
+                  topEnd: Radius.circular(4),
+                  bottomStart: Radius.circular(16),
+                  bottomEnd: Radius.circular(16),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -831,7 +831,7 @@ class _MessagePreviewSection extends StatelessWidget {
                           const SizedBox(width: 2),
                           Text(
                             'Tap to edit',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.cairo(
                               fontSize: 10,
                               color: _onSurfaceVariant.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w500,
@@ -841,7 +841,7 @@ class _MessagePreviewSection extends StatelessWidget {
                       ),
                       Text(
                         '10:42 AM',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 11,
                           color: _onSurfaceVariant,
                           fontWeight: FontWeight.w400,
@@ -875,7 +875,7 @@ class _WhatsAppButton extends StatelessWidget {
         icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
         label: Text(
           'Send to WhatsApp group',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: Colors.white,

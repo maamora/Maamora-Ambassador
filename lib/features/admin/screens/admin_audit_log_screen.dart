@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -112,7 +113,7 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
   
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: _primary));
+      return const AppLoader();
     }
     
     if (_errorMessage != null) {
@@ -122,7 +123,7 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
-            Text(_errorMessage!, style: GoogleFonts.inter()),
+            Text(_errorMessage!, style: GoogleFonts.cairo()),
             TextButton(onPressed: _fetchLogs, child: const Text('Réessayer'))
           ],
         ),
@@ -148,13 +149,13 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Journal d\'audit',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.cairo(
               fontSize: 24,
               fontWeight: FontWeight.w800,
               color: _onBackground,
@@ -163,7 +164,7 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
           if (!_isLoading)
             Text(
               '${_logs.length} entrées récentes',
-              style: GoogleFonts.inter(fontSize: 13, color: _onSurfaceVariant),
+              style: GoogleFonts.cairo(fontSize: 13, color: _onSurfaceVariant),
             ),
         ],
       ),
@@ -182,13 +183,13 @@ class _AuditEntryRow extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Détails', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+        title: Text('Détails', style: GoogleFonts.cairo(fontWeight: FontWeight.w700)),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: metadata.entries.map((e) => Padding(
               padding: const EdgeInsets.only(bottom: 6),
-              child: Text('${e.key}: ${e.value}', style: GoogleFonts.inter(fontSize: 14)),
+              child: Text('${e.key}: ${e.value}', style: GoogleFonts.cairo(fontSize: 14)),
             )).toList(),
           ),
         ),
@@ -221,14 +222,14 @@ class _AuditEntryRow extends StatelessWidget {
         icon = Icons.block_rounded;
         actionLabel = 'Ambassadeur suspendu';
       } else {
-        icon = Icons.person_outline_rounded;
+        icon = Icons.person_outline;
         actionLabel = 'Statut ambassadeur modifié';
       }
     } else if (action == 'assign_commission') {
       icon = Icons.payments_outlined;
       actionLabel = 'Commission assignée';
     } else if (action == 'create_invite_code') {
-      icon = Icons.link_rounded;
+      icon = Icons.link;
       actionLabel = 'Invitation créée';
     } else if (action == 'revoke_invite_code') {
       icon = Icons.link_off_rounded;
@@ -315,7 +316,7 @@ class _AuditEntryRow extends StatelessWidget {
                     Expanded(
                       child: Text(
                         actionLabel,
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: _onBackground,
@@ -332,7 +333,7 @@ class _AuditEntryRow extends StatelessWidget {
                       ),
                     Text(
                       formattedDate,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 11,
                         color: _onSurfaceVariant,
                       ),
@@ -342,7 +343,7 @@ class _AuditEntryRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   target,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: _primary,
@@ -351,7 +352,7 @@ class _AuditEntryRow extends StatelessWidget {
                 if (detailText.isNotEmpty)
                   Text(
                     detailText,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 12,
                       color: _onSurfaceVariant,
                       height: 1.3,

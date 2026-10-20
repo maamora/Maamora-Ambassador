@@ -3,10 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/leaderboard_provider.dart';
 import '../../../core/services/ambassador_state_provider.dart';
+import '../../../models/models.dart';
+import '../../../shared/widgets/design_kit.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFFB7701); // orange
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -34,7 +36,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     return Scaffold(
       backgroundColor: _background,
       body: leaderboardAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: _primary)),
+        loading: () => const AppLoader(),
         error: (err, _) => Center(child: Text('Error: $err')),
         data: (data) {
           final listData = _isMyCity ? data.cityRankings : data.nationalRankings;
@@ -169,7 +171,7 @@ class _Pill extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             label,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: isActive ? Colors.white : _onSurfaceVariant,
@@ -226,9 +228,9 @@ class _RankRow extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 if (showMedal)
-                  Positioned(
+                  PositionedDirectional(
                     top: -4,
-                    left: 0,
+                    start: 0,
                     child: Text(
                       _medal(rank),
                       style: const TextStyle(fontSize: 16),
@@ -238,7 +240,7 @@ class _RankRow extends StatelessWidget {
                   padding: EdgeInsets.only(top: showMedal ? 12 : 0),
                   child: Text(
                     '$rank',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: _onSurfaceVariant,
@@ -261,26 +263,28 @@ class _RankRow extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: _onBackground,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     const Icon(Icons.location_on_outlined,
                         size: 12, color: _onSurfaceVariant),
                     const SizedBox(width: 2),
                     Text(
-                      '$city · $level',
-                      style: GoogleFonts.inter(
+                      city,
+                      style: GoogleFonts.cairo(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: _onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(width: 6),
+                    LevelBadge(level: AmbassadorLevelExtension.fromString(level), showRate: false, compact: true),
                   ],
                 ),
               ],
@@ -292,7 +296,7 @@ class _RankRow extends StatelessWidget {
             children: [
               Text(
                 '$orders',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.cairo(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: _primary,
@@ -300,7 +304,7 @@ class _RankRow extends StatelessWidget {
               ),
               Text(
                 'orders',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                   color: _onSurfaceVariant,
@@ -350,7 +354,7 @@ class _MyPinnedRow extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: _brownDark,
@@ -376,7 +380,7 @@ class _MyPinnedRow extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               '$myRank',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.cairo(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -393,7 +397,7 @@ class _MyPinnedRow extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.25),
               border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 2),
             ),
-            child: const Icon(Icons.person_rounded, color: Colors.white, size: 24),
+            child: const Icon(Icons.person_outline, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 12),
           // Name & nudge
@@ -403,7 +407,7 @@ class _MyPinnedRow extends StatelessWidget {
               children: [
                 Text(
                   'You',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
@@ -415,7 +419,7 @@ class _MyPinnedRow extends StatelessWidget {
                     if (nextPerson != null) ...[
                       Text(
                         '$ordersToPass more orders to pass $nextName',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.85),
@@ -427,7 +431,7 @@ class _MyPinnedRow extends StatelessWidget {
                     ] else ...[
                       Text(
                         'You are #1!',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.cairo(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.85),
@@ -445,7 +449,7 @@ class _MyPinnedRow extends StatelessWidget {
             children: [
               Text(
                 '$orders',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.cairo(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
@@ -453,7 +457,7 @@ class _MyPinnedRow extends StatelessWidget {
               ),
               Text(
                 'orders',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                   color: Colors.white.withValues(alpha: 0.75),
@@ -489,7 +493,7 @@ class _Avatar extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         _initials(name),
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.cairo(
           fontSize: 16,
           fontWeight: FontWeight.w800,
           color: _brownDark,

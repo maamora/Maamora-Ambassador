@@ -309,11 +309,11 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Supprimer la méthode ?',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
         ),
         content: Text(
           'Vos prochains paiements de commission seront en attente jusqu\'à configuration d\'une nouvelle méthode.',
-          style: GoogleFonts.inter(fontSize: 14, color: AppColors.onSurfaceVariant),
+          style: GoogleFonts.cairo(fontSize: 14, color: AppColors.onSurfaceVariant),
         ),
         actions: [
           TextButton(
@@ -404,7 +404,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                   children: [
                     Text(
                       'Mode de versement',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.cairo(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: AppColors.onBackground,
@@ -413,7 +413,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                     const SizedBox(height: 2),
                     Text(
                       'Recevez vos gains chaque vendredi',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.cairo(
                         fontSize: 13,
                         color: AppColors.onSurfaceVariant,
                       ),
@@ -436,7 +436,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
 
           // Method Tab Selector (RIB vs Cash Pickup)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 12),
             child: Container(
               height: 44,
               padding: const EdgeInsets.all(4),
@@ -461,11 +461,11 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                 ),
                 labelColor: AppColors.primary,
                 unselectedLabelColor: AppColors.onSurfaceVariant,
-                labelStyle: GoogleFonts.plusJakartaSans(
+                labelStyle: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
-                unselectedLabelStyle: GoogleFonts.inter(
+                unselectedLabelStyle: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -526,7 +526,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
-                          Icons.verified_user_rounded,
+                          Icons.verified_user_outlined,
                           size: 18,
                           color: Color(0xFF2E7D32),
                         ),
@@ -534,7 +534,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                         Expanded(
                           child: Text(
                             'Paiement sécurisé : Vos coordonnées sont protégées et utilisées exclusivement pour verser vos commissions chaque vendredi.',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.cairo(
                               fontSize: 12,
                               color: AppColors.onSurfaceVariant,
                               height: 1.4,
@@ -571,7 +571,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                             )
                           : Text(
                               'Enregistrer la méthode',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.cairo(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -587,7 +587,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                         icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
                         label: Text(
                           'Supprimer cette méthode',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.cairo(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: AppColors.error,
@@ -613,11 +613,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         // Bank Selector
         Text(
           'BANQUE',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
             color: AppColors.onSurfaceVariant,
-            letterSpacing: 0.8,
           ),
         ),
         const SizedBox(height: 6),
@@ -646,7 +645,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                         ),
                         child: Text(
                           bank.code != '999' ? bank.code : '•••',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.cairo(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary,
@@ -657,7 +656,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                       Expanded(
                         child: Text(
                           bank.name,
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.cairo(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.onBackground,
@@ -682,11 +681,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         // Account Holder Name
         Text(
           'TITULAIRE DU COMPTE',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
             color: AppColors.onSurfaceVariant,
-            letterSpacing: 0.8,
           ),
         ),
         const SizedBox(height: 6),
@@ -699,7 +697,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
           ),
           child: TextField(
             controller: _bankAccountHolderController,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.onBackground,
@@ -708,7 +706,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
               border: InputBorder.none,
               hintText: 'Ex: Mohammed Alami',
               hintStyle: TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
-              icon: Icon(Icons.person_outline_rounded, size: 20, color: AppColors.onSurfaceVariant),
+              icon: Icon(Icons.person_outline, size: 20, color: AppColors.onSurfaceVariant),
             ),
           ),
         ),
@@ -720,16 +718,15 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
           children: [
             Text(
               'RIB MAROCAIN (24 CHIFFRES)',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 color: AppColors.onSurfaceVariant,
-                letterSpacing: 0.8,
               ),
             ),
             Text(
               '${ribDigits.length}/24',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: isRibComplete ? AppColors.success : (ribDigits.isNotEmpty ? AppColors.primary : AppColors.onSurfaceVariant),
@@ -766,7 +763,6 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
                     color: AppColors.onBackground,
                   ),
                   decoration: const InputDecoration(
@@ -775,7 +771,6 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                     hintStyle: TextStyle(
                       color: Color(0xFFBBBBBB),
                       fontSize: 13,
-                      letterSpacing: 0,
                     ),
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 8),
@@ -801,7 +796,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                         const SizedBox(width: 4),
                         Text(
                           'Coller',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.cairo(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary,
@@ -818,7 +813,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         const SizedBox(height: 6),
         Text(
           'Trouvez votre RIB sur votre relevé bancaire ou application bancaire mobile.',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 11,
             color: AppColors.onSurfaceVariant,
           ),
@@ -834,11 +829,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         // Provider Dropdown
         Text(
           'ORGANISME DE TRANSFERT',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
             color: AppColors.onSurfaceVariant,
-            letterSpacing: 0.8,
           ),
         ),
         const SizedBox(height: 6),
@@ -859,7 +853,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                   value: provider,
                   child: Text(
                     provider,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.cairo(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: AppColors.onBackground,
@@ -880,11 +874,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         // Recipient Full Name
         Text(
           'NOM ET PRÉNOM DU BÉNÉFICIAIRE',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
             color: AppColors.onSurfaceVariant,
-            letterSpacing: 0.8,
           ),
         ),
         const SizedBox(height: 6),
@@ -897,7 +890,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
           ),
           child: TextField(
             controller: _cashRecipientController,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.onBackground,
@@ -915,11 +908,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         // CIN
         Text(
           'NUMÉRO DE CIN (CARTE D\'IDENTITÉ NATIONALE)',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
             color: AppColors.onSurfaceVariant,
-            letterSpacing: 0.8,
           ),
         ),
         const SizedBox(height: 6),
@@ -951,11 +943,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         // Agency Note / City
         Text(
           'VILLE OU AGENCE SOUHAITÉE (OPTIONNEL)',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
             color: AppColors.onSurfaceVariant,
-            letterSpacing: 0.8,
           ),
         ),
         const SizedBox(height: 6),
@@ -968,7 +959,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
           ),
           child: TextField(
             controller: _cashAgencyNoteController,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.cairo(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: AppColors.onBackground,

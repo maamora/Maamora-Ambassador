@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/shared_app_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,6 +14,7 @@ import '../providers/profile_provider.dart';
 import '../../wallet/providers/wallet_provider.dart';
 import '../../wallet/widgets/payout_method_bottom_sheet.dart';
 import '../../../models/models.dart';
+import '../../../shared/widgets/design_kit.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -39,8 +41,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: const SharedAppBar(pageTitle: 'Profile', profileEnabled: false),
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryContainer)),
+        loading: () => const AppLoader(),
         error: (err, _) => Center(child: Text('Error: $err')),
         data: (ambassador) {
           if (ambassador == null) return const Center(child: Text('Profile not found'));
@@ -49,38 +52,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           return CustomScrollView(
             slivers: [
           // ── Header ────────────────────────────────────────────────────────
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: const Color(0xFFFFF8F5).withValues(alpha: 0.95),
-            elevation: 0,
-            surfaceTintColor: Colors.transparent,
-            shadowColor: Colors.black.withValues(alpha: 0.06),
-            forceElevated: true,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              color: AppColors.onSurface,
-              onPressed: () => context.pop(),
-            ),
-            title: Text(
-              'Profile',
-              style: GoogleFonts.beVietnamPro(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
-              ),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: AppColors.outlineVariant,
-                  child: const Icon(Icons.person_rounded, size: 18, color: AppColors.onSurfaceVariant),
-                ),
-              ),
-            ],
-          ),
-
+          
           // ── Body ──────────────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
@@ -89,7 +61,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   // ── Avatar + name + location ─────────────────────────────
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                    padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 24),
                     child: Column(
                       children: [
                         Stack(
@@ -112,27 +84,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               child: const CircleAvatar(
                                 radius: 44,
                                 backgroundColor: AppColors.outlineVariant,
-                                child: Icon(Icons.person_rounded, size: 48, color: AppColors.onSurfaceVariant),
+                                child: Icon(Icons.person_outline, size: 48, color: AppColors.onSurfaceVariant),
                               ),
                             ),
-                            Positioned(
+                            PositionedDirectional(
                               bottom: 0,
-                              right: 0,
+                              end: 0,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryContainer,
+                                  color: LevelBadge.colorFor(ambassador.level),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(color: Colors.white, width: 2),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.star_rounded, color: Colors.white, size: 14),
+                                    Icon(LevelBadge.iconFor(ambassador.level), color: Colors.white, size: 14),
                                     const SizedBox(width: 3),
                                     Text(
                                       ambassador.level.label,
-                                      style: GoogleFonts.workSans(
+                                      style: GoogleFonts.cairo(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
                                         color: Colors.white,
@@ -147,7 +119,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         const SizedBox(height: 12),
                         Text(
                           ambassador.fullName,
-                          style: GoogleFonts.beVietnamPro(
+                          style: GoogleFonts.cairo(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
                             color: AppColors.onSurface,
@@ -157,11 +129,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.location_on_rounded, size: 16, color: AppColors.onSurfaceVariant),
+                            Icon(Icons.location_on_outlined, size: 16, color: AppColors.onSurfaceVariant),
                             const SizedBox(width: 4),
                             Text(
                               ambassador.city.isEmpty ? 'Unknown City' : ambassador.city,
-                              style: GoogleFonts.workSans(
+                              style: GoogleFonts.cairo(
                                 fontSize: 14,
                                 color: AppColors.onSurfaceVariant,
                               ),
@@ -241,7 +213,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             const Divider(height: 1, color: AppColors.outlineVariant),
                             // Payout Method
                             _buildSettingRow(
-                              icon: Icons.account_balance_wallet_rounded,
+                              icon: Icons.account_balance_wallet_outlined,
                               iconBg: AppColors.outlineVariant.withValues(alpha: 0.6),
                               iconColor: AppColors.onSurface,
                               title: 'Payout Method',
@@ -260,7 +232,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                           : (ambassador.payoutMethod == 'cash_pickup'
                                               ? (ambassador.payoutCashPoint?.split(' - ').first ?? 'Mise à dispo')
                                               : 'Configurer'),
-                                      style: GoogleFonts.workSans(
+                                      style: GoogleFonts.cairo(
                                         fontSize: 13,
                                         fontWeight: ambassador.payoutMethod != null ? FontWeight.w600 : FontWeight.w400,
                                         color: ambassador.payoutMethod != null ? AppColors.primary : AppColors.onSurfaceVariant,
@@ -291,7 +263,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   children: [
                                     const Icon(Icons.verified_rounded, size: 14, color: Color(0xFF166534)),
                                     const SizedBox(width: 4),
-                                    Text('Verified', style: GoogleFonts.workSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF166534))),
+                                    Text('Verified', style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF166534))),
                                   ],
                                 ),
                               ),
@@ -306,7 +278,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('Français', style: GoogleFonts.workSans(fontSize: 13, color: AppColors.onSurfaceVariant)),
+                                  Text('Français', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.onSurfaceVariant)),
                                   const SizedBox(width: 4),
                                   const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant, size: 20),
                                 ],
@@ -340,7 +312,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15),
                         child: _buildSettingRow(
-                          icon: Icons.workspace_premium_rounded,
+                          icon: Icons.workspace_premium_outlined,
                           iconBg: AppColors.primaryContainer.withValues(alpha: 0.12),
                           iconColor: AppColors.primaryContainer,
                           title: 'Ambassador Rules',
@@ -410,7 +382,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             const SizedBox(width: 8),
                             Text(
                               'Log Out',
-                              style: GoogleFonts.workSans(
+                              style: GoogleFonts.cairo(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.error,
@@ -439,7 +411,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Text(
             value,
-            style: GoogleFonts.beVietnamPro(
+            style: GoogleFonts.cairo(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: AppColors.primaryContainer,
@@ -448,7 +420,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.workSans(
+            style: GoogleFonts.cairo(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: AppColors.onSurfaceVariant,
@@ -463,13 +435,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Align(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         child: Text(
           title.toUpperCase(),
-          style: GoogleFonts.workSans(
+          style: GoogleFonts.cairo(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
             color: AppColors.onSurfaceVariant,
           ),
         ),
@@ -493,15 +464,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     color: AppColors.primaryContainer.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.link_rounded, color: AppColors.primaryContainer, size: 20),
+                  child: Icon(Icons.link, color: AppColors.primaryContainer, size: 20),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('My Link', style: GoogleFonts.workSans(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
-                      Text(link, style: GoogleFonts.workSans(fontSize: 13, color: AppColors.onSurfaceVariant), overflow: TextOverflow.ellipsis),
+                      Text('My Link', style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
+                      Text(link, style: GoogleFonts.cairo(fontSize: 13, color: AppColors.onSurfaceVariant), overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -532,7 +503,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
-                    Text('Copied!', style: GoogleFonts.workSans(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+                    Text('Copied!', style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
                   ],
                 ),
               ),
@@ -565,7 +536,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(title, style: GoogleFonts.workSans(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
+              child: Text(title, style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
             ),
             trailing,
           ],
@@ -597,8 +568,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Help via WhatsApp', style: GoogleFonts.workSans(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
-                  Text('Fastest response', style: GoogleFonts.workSans(fontSize: 13, color: AppColors.onSurfaceVariant)),
+                  Text('Help via WhatsApp', style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
+                  Text('Fastest response', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.onSurfaceVariant)),
                 ],
               ),
             ),

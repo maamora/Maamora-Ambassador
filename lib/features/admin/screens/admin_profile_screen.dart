@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/shared_app_bar.dart';
+import '../../../shared/widgets/design_kit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -7,7 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/navigation/app_routes.dart';
 
 const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFAF5F0);
+const Color _background = Color(0xFFFFFFFF);
 const Color _surface = Color(0xFFFFFFFF);
 const Color _onBackground = Color(0xFF1A2433);
 const Color _onSurfaceVariant = Color(0xFF8A8078);
@@ -22,21 +24,7 @@ class AdminProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
-      appBar: AppBar(
-        backgroundColor: _background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: _onBackground),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Profil Admin',
-          style: GoogleFonts.plusJakartaSans(
-            fontWeight: FontWeight.w700,
-            color: _onBackground,
-          ),
-        ),
-      ),
+      appBar: const SharedAppBar(pageTitle: 'Profil Admin', profileEnabled: false),
       body: const SafeArea(child: AdminProfileContent()),
     );
   }
@@ -109,7 +97,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Se déconnecter',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.cairo(
             fontSize: 17,
             fontWeight: FontWeight.w800,
             color: _onBackground,
@@ -117,7 +105,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
         ),
         content: Text(
           'Voulez-vous vraiment vous déconnecter ?',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.cairo(
             fontSize: 14,
             color: _onSurfaceVariant,
           ),
@@ -127,7 +115,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
               'Annuler',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 color: _onSurfaceVariant,
                 fontWeight: FontWeight.w600,
               ),
@@ -148,7 +136,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
             ),
             child: Text(
               'Déconnexion',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+              style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -186,7 +174,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
     if (_isLoading) {
       return const Padding(
         padding: EdgeInsets.all(48),
-        child: Center(child: CircularProgressIndicator(color: _primary)),
+        child: AppLoader(),
       );
     }
 
@@ -200,7 +188,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
             const SizedBox(height: 16),
             Text(
               _errorMessage!,
-              style: GoogleFonts.inter(color: _onBackground),
+              style: GoogleFonts.cairo(color: _onBackground),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -233,7 +221,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
             ),
             alignment: Alignment.center,
             child: const Icon(
-              Icons.person_rounded,
+              Icons.person_outline,
               size: 48,
               color: Color(0xFF8A8078),
             ),
@@ -241,7 +229,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
           const SizedBox(height: 16),
           Text(
             _fullName ?? 'Admin',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.cairo(
               fontSize: 24,
               fontWeight: FontWeight.w800,
               color: _onBackground,
@@ -267,7 +255,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
                 const SizedBox(width: 4),
                 Text(
                   _isActive ? 'Actif' : 'Inactif',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.cairo(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: _isActive ? _success : _errorColor,
@@ -291,7 +279,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
               children: [
                 Text(
                   'Informations',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.cairo(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: _onBackground,
@@ -325,7 +313,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
               icon: const Icon(Icons.logout_rounded, size: 20),
               label: Text(
                 'Se déconnecter',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.cairo(
                   fontWeight: FontWeight.w700,
                   fontSize: 15,
                 ),
@@ -371,7 +359,7 @@ class _InfoRow extends StatelessWidget {
           children: [
             Text(
               label,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 12,
                 color: _onSurfaceVariant,
               ),
@@ -379,7 +367,7 @@ class _InfoRow extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               value,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.cairo(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: _onBackground,
