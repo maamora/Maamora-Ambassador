@@ -62,6 +62,30 @@ revoke select on public.admins from anon;
 -- ── 3. authenticated ne modifie pas la table admins ──────────────────────
 revoke insert, update, delete, truncate on public.admins from authenticated;
 
+-- ── 3bis. Fonctions admin : EXECUTE réservé aux connectés ────────────────
+-- Les 4 RPC admin sont gardées en interne par is_admin(), mais on ferme
+-- aussi l'accès EXECUTE à l'anonyme (défense en profondeur). Idempotent.
+do $$
+declare
+  r record;
+begin
+  for r in
+    select p.oid::regprocedure as fn
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname in (
+        'admin_set_ambassador_status',
+        'admin_create_invite_code',
+        'assign_commission',
+        'admin_create_payout'
+      )
+  loop
+    execute format('revoke execute on function %s from anon, public', r.fn);
+    execute format('grant execute on function %s to authenticated', r.fn);
+  end loop;
+end $$;
+
 -- ── 4. Fonction utilitaire is_admin : défense en profondeur ──────────────
 -- (recreate conservatrice : ne touche que la fonction, pas les policies)
 -- Vérifie dans verify_security.sql si elle existe déjà sous cette forme.
