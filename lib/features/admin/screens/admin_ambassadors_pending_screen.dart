@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../design_system/design_system.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../providers/pending_ambassadors_provider.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = MaamoraColors.primary;
@@ -77,16 +79,16 @@ class Candidate {
   }
 }
 
-class AdminAmbassadorsPendingScreen extends StatefulWidget {
+class AdminAmbassadorsPendingScreen extends ConsumerStatefulWidget {
   const AdminAmbassadorsPendingScreen({super.key});
 
   @override
-  State<AdminAmbassadorsPendingScreen> createState() =>
+  ConsumerState<AdminAmbassadorsPendingScreen> createState() =>
       _AdminAmbassadorsPendingScreenState();
 }
 
 class _AdminAmbassadorsPendingScreenState
-    extends State<AdminAmbassadorsPendingScreen> {
+    extends ConsumerState<AdminAmbassadorsPendingScreen> {
   int? _expandedIndex;
   
   List<Candidate> _candidates = [];
@@ -117,6 +119,9 @@ class _AdminAmbassadorsPendingScreenState
         _candidates = data.map((e) => Candidate.fromMap(e)).toList();
         _isLoading = false;
       });
+      // Synchroniser le badge navbar avec la liste réelle (sinon les deux
+      // sources divergent quand une candidature arrive pendant la session).
+      ref.invalidate(pendingAmbassadorsCountProvider);
     } catch (e) {
       debugPrint('Erreur lors de la récupération des candidatures : $e');
       setState(() {
@@ -138,6 +143,7 @@ class _AdminAmbassadorsPendingScreenState
         _candidates.removeWhere((c) => c.id == candidate.id);
         _expandedIndex = null;
       });
+      ref.invalidate(pendingAmbassadorsCountProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -179,6 +185,7 @@ class _AdminAmbassadorsPendingScreenState
               _candidates.removeWhere((c) => c.id == candidate.id);
               _expandedIndex = null;
             });
+            ref.invalidate(pendingAmbassadorsCountProvider);
 
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -254,17 +261,36 @@ class _AdminAmbassadorsPendingScreenState
     }
     
     if (_candidates.isEmpty) {
-      return Center(
-        child: Text(
-          context.tr('ad_apps_empty'),
-          style: GoogleFonts.cairo(color: _onSurfaceVariant, fontSize: 14),
+      // Pull-to-refresh possible même sur l'état vide (une candidature peut
+      // arriver pendant que l'écran est ouvert).
+      return RefreshIndicator(
+        color: _primary,
+        onRefresh: _fetchPendingCandidates,
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: constraints.maxHeight,
+              child: Center(
+                child: Text(
+                  context.tr('ad_apps_empty'),
+                  style: GoogleFonts.cairo(color: _onSurfaceVariant, fontSize: 14),
+                ),
+              ),
+            ),
+          ),
         ),
       );
     }
     
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: _candidates.length,
+    return RefreshIndicator(
+      color: _primary,
+      onRefresh: _fetchPendingCandidates,
+      child: ListView.separated(
+        // AlwaysScrollable : permet le pull-to-refresh même avec peu d'éléments.
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        itemCount: _candidates.length,
       separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final candidate = _candidates[index];
@@ -281,6 +307,7 @@ class _AdminAmbassadorsPendingScreenState
           onReject: () => _showRejectDialog(candidate),
         );
       },
+      ),
     );
   }
 
