@@ -23,8 +23,8 @@ begin
     'payouts',
     'admin_audit_log',
     'invite_codes',
-    'product_groups',
-    'products'
+    'deal_groups',
+    'level_history'
   ]
   loop
     -- Activer le RLS si absent (no-op si déjà actif)
@@ -48,7 +48,8 @@ begin
     'payouts',
     'admin_audit_log',
     'invite_codes',
-    'product_groups'
+    'deal_groups',
+    'level_history'
   ]
   loop
     execute format('revoke insert, update, delete, truncate on public.%I from anon', t);
