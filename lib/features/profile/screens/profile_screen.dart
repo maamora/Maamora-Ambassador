@@ -15,6 +15,9 @@ import '../../wallet/providers/wallet_provider.dart';
 import '../../wallet/widgets/payout_method_bottom_sheet.dart';
 import '../../../models/models.dart';
 import '../../../shared/widgets/design_kit.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
+import '../../../core/l10n/locale_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -41,12 +44,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const SharedAppBar(pageTitle: 'Profile', profileEnabled: false),
+      appBar: SharedAppBar(pageTitle: context.tr('profile_title'), profileEnabled: false),
       body: profileAsync.when(
         loading: () => const AppLoader(),
-        error: (err, _) => Center(child: Text('Error: $err')),
+        error: (err, _) => Center(child: Text(context.tr('common_error', args: {'e': err.toString()}))),
         data: (ambassador) {
-          if (ambassador == null) return const Center(child: Text('Profile not found'));
+          if (ambassador == null) return Center(child: Text(context.tr('profile_not_found')));
           final link = 'maamora.ma/join/${ambassador.referralSlug}';
           
           return CustomScrollView(
@@ -132,7 +135,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             Icon(Icons.location_on_outlined, size: 16, color: AppColors.onSurfaceVariant),
                             const SizedBox(width: 4),
                             Text(
-                              ambassador.city.isEmpty ? 'Unknown City' : ambassador.city,
+                              ambassador.city.isEmpty ? context.tr('profile_unknown_city') : ambassador.city,
                               style: GoogleFonts.cairo(
                                 fontSize: 14,
                                 color: AppColors.onSurfaceVariant,
@@ -163,21 +166,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         child: IntrinsicHeight(
                           child: Row(
                             children: [
-                              Expanded(child: _buildStatItem('${ambassador.totalValidatedMembers}', 'Orders')),
+                              Expanded(child: _buildStatItem('${ambassador.totalValidatedMembers}', context.tr('profile_orders'))),
                               VerticalDivider(
                                 width: 1,
                                 thickness: 1,
                                 color: AppColors.outlineVariant.withValues(alpha: 0.6),
                               ),
-                              Expanded(child: _buildStatItem('-', 'City Rank')),
+                              Expanded(child: _buildStatItem('-', context.tr('profile_city_rank'))),
                               VerticalDivider(
                                 width: 1,
                                 thickness: 1,
                                 color: AppColors.outlineVariant.withValues(alpha: 0.6),
                               ),
                               Expanded(child: walletAsync.maybeWhen(
-                                data: (w) => _buildStatItem(w.balance.toStringAsFixed(0), 'DH Total'),
-                                orElse: () => _buildStatItem('-', 'DH Total'),
+                                data: (w) => _buildStatItem(w.balance.toStringAsFixed(0), context.tr('profile_dh_total')),
+                                orElse: () => _buildStatItem('-', context.tr('profile_dh_total')),
                               )),
                             ],
                           ),
@@ -187,7 +190,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 32),
 
                   // ── Account Settings ───────────────────────────────────────
-                  _buildSectionHeader('Account Settings'),
+                  _buildSectionHeader(context.tr('profile_settings')),
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -216,7 +219,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               icon: Icons.account_balance_wallet_outlined,
                               iconBg: AppColors.outlineVariant.withValues(alpha: 0.6),
                               iconColor: AppColors.onSurface,
-                              title: 'Payout Method',
+                              title: context.tr('profile_payout'),
                               onTap: () => PayoutMethodBottomSheet.show(
                                 context: context,
                                 ambassador: ambassador,
@@ -228,10 +231,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     constraints: const BoxConstraints(maxWidth: 140),
                                     child: Text(
                                       ambassador.payoutMethod == 'bank'
-                                          ? (ambassador.payoutBankRib?.split(' - ').first ?? 'Virement bancaire')
+                                          ? (ambassador.payoutBankRib?.split(' - ').first ?? context.tr('profile_payout_bank'))
                                           : (ambassador.payoutMethod == 'cash_pickup'
-                                              ? (ambassador.payoutCashPoint?.split(' - ').first ?? 'Mise à dispo')
-                                              : 'Configurer'),
+                                              ? (ambassador.payoutCashPoint?.split(' - ').first ?? context.tr('profile_payout_cash'))
+                                              : context.tr('profile_configure')),
                                       style: GoogleFonts.cairo(
                                         fontSize: 13,
                                         fontWeight: ambassador.payoutMethod != null ? FontWeight.w600 : FontWeight.w400,
@@ -251,19 +254,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               icon: Icons.badge_rounded,
                               iconBg: AppColors.outlineVariant.withValues(alpha: 0.6),
                               iconColor: AppColors.onSurface,
-                              title: 'ID Status',
+                              title: context.tr('profile_id_status'),
                               trailing: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFDCFCE7),
+                                  color: MaamoraColors.successSoft,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.verified_rounded, size: 14, color: Color(0xFF166534)),
+                                    const Icon(MaamoraIcons.checkFilled, size: 14, color: MaamoraColors.successOn),
                                     const SizedBox(width: 4),
-                                    Text('Verified', style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF166534))),
+                                    Text(context.tr('profile_verified'), style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w600, color: MaamoraColors.successOn)),
                                   ],
                                 ),
                               ),
@@ -274,11 +277,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               icon: Icons.language_rounded,
                               iconBg: AppColors.outlineVariant.withValues(alpha: 0.6),
                               iconColor: AppColors.onSurface,
-                              title: 'Language',
+                              title: context.tr('profile_language'),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('Français', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.onSurfaceVariant)),
+                                  Text(
+                                    ref.watch(localeProvider).languageCode ==
+                                            'ar'
+                                        ? 'العربية'
+                                        : 'Français',
+                                    style: GoogleFonts.cairo(fontSize: 13, color: AppColors.onSurfaceVariant),
+                                  ),
                                   const SizedBox(width: 4),
                                   const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant, size: 20),
                                 ],
@@ -292,7 +301,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 32),
 
                   // ── Support ────────────────────────────────────────────────
-                  _buildSectionHeader('Programme'),
+                  _buildSectionHeader(context.tr('profile_section_program')),
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -315,7 +324,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           icon: Icons.workspace_premium_outlined,
                           iconBg: AppColors.primaryContainer.withValues(alpha: 0.12),
                           iconColor: AppColors.primaryContainer,
-                          title: 'Ambassador Rules',
+                          title: context.tr('profile_rules'),
                           trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant, size: 20),
                           onTap: () => context.push(AppRoutes.rules),
                         ),
@@ -325,7 +334,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 32),
 
                   // ── Support ────────────────────────────────────────────────
-                  _buildSectionHeader('Support'),
+                  _buildSectionHeader(context.tr('profile_section_support')),
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -381,7 +390,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             Icon(Icons.logout_rounded, color: AppColors.error, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              'Log Out',
+                              context.tr('profile_logout'),
                               style: GoogleFonts.cairo(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -471,7 +480,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('My Link', style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
+                      Text(context.tr('profile_my_link'), style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
                       Text(link, style: GoogleFonts.cairo(fontSize: 13, color: AppColors.onSurfaceVariant), overflow: TextOverflow.ellipsis),
                     ],
                   ),
@@ -503,7 +512,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
-                    Text('Copied!', style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+                    Text(context.tr('profile_copied'), style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
                   ],
                 ),
               ),
@@ -556,11 +565,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF25D366).withValues(alpha: 0.1),
+                color: MaamoraColors.successSoft,
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: _WhatsAppIcon(),
+                child: Icon(
+                  MaamoraIcons.whatsapp,
+                  color: MaamoraColors.success,
+                  size: 20,
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -568,51 +581,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Help via WhatsApp', style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.onSurface)),
-                  Text('Fastest response', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.onSurfaceVariant)),
+                  Text(context.tr('profile_whatsapp'), style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w600, color: MaamoraColors.textPrimary)),
+                  Text(context.tr('profile_fast'), style: GoogleFonts.cairo(fontSize: 13, color: MaamoraColors.textSecondary)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_rounded, color: AppColors.onSurfaceVariant, size: 20),
+            const Icon(
+              MaamoraIcons.arrowForward,
+              color: MaamoraColors.textFaint,
+              size: 20,
+            ),
           ],
         ),
       ),
     );
   }
-}
-
-class _WhatsAppIcon extends StatelessWidget {
-  const _WhatsAppIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(20, 20),
-      painter: _WhatsAppPainter(),
-    );
-  }
-}
-
-class _WhatsAppPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF25D366)
-      ..style = PaintingStyle.fill;
-
-    // Simple WA circle icon
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), size.width / 2, paint);
-    final textPainter = TextPainter(
-      text: const TextSpan(
-        text: '\u{F0002}',
-        style: TextStyle(fontSize: 14, color: Colors.white, fontFamily: 'MaterialIcons'),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout();
-    textPainter.paint(canvas, Offset((size.width - textPainter.width) / 2, (size.height - textPainter.height) / 2));
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

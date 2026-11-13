@@ -6,15 +6,17 @@ import 'package:intl/intl.dart';
 import '../widgets/admin_status_badge.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/navigation/app_routes.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
-const Color _errorColor = Color(0xFFB3261E);
+const Color _primary = MaamoraColors.primary;
+const Color _background = Colors.white;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
+const Color _errorColor = MaamoraColors.danger;
 
 // ── Modèle ───────────────────────────────────────────────────────────────
 class AmbassadorData {
@@ -22,7 +24,10 @@ class AmbassadorData {
   final String fullName;
   final String initials;
   final String city;
-  final String status; 
+  final String status;
+  /// Niveau brut tel qu'en base (bronze/silver/gold…) — utilisé pour filtrer
+  /// sans dépendre de la langue d'affichage.
+  final String rawLevel;
   final String level;
   final int totalValidatedMembers;
   final String createdAt;
@@ -33,13 +38,31 @@ class AmbassadorData {
     required this.initials,
     required this.city,
     required this.status,
+    required this.rawLevel,
     required this.level,
     required this.totalValidatedMembers,
     required this.createdAt,
   });
 
-  factory AmbassadorData.fromMap(Map<String, dynamic> map) {
-    final fullName = map['full_name'] ?? 'Inconnu';
+  /// Libellé traduit d'un niveau brut (bronze → dash_tier_bronze…).
+  static String levelLabel(BuildContext context, String rawLevel) {
+    const tierKeys = {
+      'neutral': 'dash_tier_neutral',
+      'bronze': 'dash_tier_bronze',
+      'silver': 'dash_tier_silver',
+      'gold': 'dash_tier_gold',
+    };
+    final key = tierKeys[rawLevel.toLowerCase()];
+    if (key != null) return context.tr(key);
+    if (rawLevel.isNotEmpty) {
+      return '${rawLevel[0].toUpperCase()}${rawLevel.substring(1)}';
+    }
+    return 'Bronze';
+  }
+
+  factory AmbassadorData.fromMap(Map<String, dynamic> map, {BuildContext? context}) {
+    final fullName = map['full_name'] ??
+        (context != null ? context.tr('ad_unknown_name') : 'Inconnu');
     final parts = fullName.split(' ');
     String initials = '';
     if (parts.isNotEmpty && parts[0].isNotEmpty) {
@@ -56,26 +79,30 @@ class AmbassadorData {
         final now = DateTime.now();
         final difference = now.difference(date);
         if (difference.inDays == 0 && now.day == date.day) {
-          formattedDate = 'Aujourd\'hui, ${DateFormat('HH:mm').format(date)}';
+          formattedDate = (context != null)
+              ? context.tr('common_today_time', args: {'time': DateFormat('HH:mm').format(date)})
+              : DateFormat('dd/MM HH:mm').format(date);
         } else if (difference.inDays == 1 || (difference.inDays == 0 && now.day != date.day)) {
-          formattedDate = 'Hier';
+          formattedDate = (context != null) ? context.tr('common_yesterday') : 'Hier';
         } else {
-          formattedDate = DateFormat('MMM yyyy').format(date);
+          formattedDate = '${date.month.toString().padLeft(2, '0')}'            '/${date.year}';
         }
       }
     }
 
-    // Capitalize level if it comes lowercased from DB
-    String rawLevel = map['level'] ?? 'bronze';
-    String capitalizedLevel = rawLevel.isNotEmpty ? '${rawLevel[0].toUpperCase()}${rawLevel.substring(1)}' : 'Bronze';
+    final String rawLevel = (map['level'] ?? 'bronze').toString();
 
     return AmbassadorData(
       id: map['id']?.toString() ?? '',
       fullName: fullName,
       initials: initials,
-      city: map['city'] ?? 'Inconnue',
+      city: map['city'] ??
+          (context != null ? context.tr('ad_unknown_city') : 'Inconnue'),
       status: map['status'] ?? 'pending',
-      level: capitalizedLevel,
+      rawLevel: rawLevel,
+      level: (context != null)
+          ? levelLabel(context, rawLevel)
+          : rawLevel,
       totalValidatedMembers: map['total_validated_members'] ?? 0,
       createdAt: formattedDate,
     );
@@ -92,22 +119,15 @@ class AdminAmbassadorsListScreen extends StatefulWidget {
 
 class _AdminAmbassadorsListScreenState
     extends State<AdminAmbassadorsListScreen> {
-  // Filter state — UI only, logic to be implemented later if needed
-  String _filterStatus = 'Tous';
-  String _filterLevel = 'Tous';
-  String _filterCity = 'Toutes';
+  // Filter state — valeurs BRUTES (langue-indépendantes), libellés traduits.
+  String _filterStatus = 'all';
+  String _filterLevel = 'all';
+  String _filterCity = 'all';
 
-  final _statusOptions = ['Tous', 'Active', 'Pending', 'Rejected', 'Suspended'];
-  final _levelOptions = ['Tous', 'Bronze', 'Silver', 'Gold', 'Platinum'];
-  final _cityOptions = [
-    'Toutes',
-    'Casablanca',
-    'Rabat',
-    'Marrakech',
-    'Salé',
-    'Fès',
-    'Tanger',
-  ];
+  /// Valeurs possibles construites à partir des données réelles.
+  static const _statusValues = ['all', 'active', 'pending', 'rejected', 'suspended'];
+  List<String> _levelValues = ['all'];
+  List<String> _cityValues = ['all'];
 
   List<AmbassadorData> _ambassadors = [];
   bool _isLoading = true;
@@ -133,26 +153,71 @@ class _AdminAmbassadorsListScreenState
 
       final List<dynamic> data = response;
       setState(() {
-        _ambassadors = data.map((e) => AmbassadorData.fromMap(e)).toList();
+        _ambassadors = data.map((e) => AmbassadorData.fromMap(e, context: context)).toList();
+        // Options dynamiques : uniquement les niveaux/villes réellement
+        // présents, pour éviter des filtres qui ne renvoient jamais rien.
+        _levelValues = ['all', ..._ambassadors
+            .map((a) => a.rawLevel.toLowerCase())
+            .where((l) => l.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort()];
+        _cityValues = ['all', ..._ambassadors
+            .map((a) => a.city)
+            .where((c) => c.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort()];
+        // Si la sélection courante a disparu des données, on la réinitialise.
+        if (!_levelValues.contains(_filterLevel)) _filterLevel = 'all';
+        if (!_cityValues.contains(_filterCity)) _filterCity = 'all';
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('Erreur lors de la récupération des ambassadeurs : $e');
       setState(() {
-        _errorMessage = 'Impossible de charger la liste. Veuillez vérifier votre connexion ou vos droits d\'accès.';
+        _errorMessage = context.tr('ad_list_err');
         _isLoading = false;
       });
     }
   }
 
-  // Very basic local filtering for demo purposes based on selected dropdowns
+  // Filtrage local sur les valeurs brutes (statut/niveau/ville).
   List<AmbassadorData> get _displayed {
     return _ambassadors.where((a) {
-      if (_filterStatus != 'Tous' && a.status.toLowerCase() != _filterStatus.toLowerCase()) return false;
-      if (_filterLevel != 'Tous' && a.level.toLowerCase() != _filterLevel.toLowerCase()) return false;
-      if (_filterCity != 'Toutes' && a.city.toLowerCase() != _filterCity.toLowerCase()) return false;
+      if (_filterStatus != 'all' && a.status.toLowerCase() != _filterStatus) return false;
+      if (_filterLevel != 'all' && a.rawLevel.toLowerCase() != _filterLevel) return false;
+      if (_filterCity != 'all' && a.city.toLowerCase() != _filterCity.toLowerCase()) return false;
       return true;
     }).toList();
+  }
+
+  // ── Libellés traduits ────────────────────────────────────────────────────
+  String _statusLabel(BuildContext context, String raw) {
+    switch (raw) {
+      case 'all':
+        return context.tr('ad_filter_all');
+      case 'active':
+        return context.tr('ad_badge_active');
+      case 'pending':
+        return context.tr('ad_pending');
+      case 'rejected':
+        return context.tr('ad_badge_rejected');
+      case 'suspended':
+        return context.tr('ad_badge_suspended');
+      default:
+        return raw;
+    }
+  }
+
+  String _levelDisplayLabel(BuildContext context, String raw) {
+    if (raw == 'all') return context.tr('ad_filter_all');
+    return AmbassadorData.levelLabel(context, raw);
+  }
+
+  String _cityLabel(BuildContext context, String raw) {
+    if (raw == 'all') return context.tr('ad_filter_all_f');
+    return raw;
   }
 
   @override
@@ -199,7 +264,10 @@ class _AdminAmbassadorsListScreenState
               ElevatedButton(
                 onPressed: _fetchAmbassadors,
                 style: ElevatedButton.styleFrom(backgroundColor: _primary, foregroundColor: Colors.white),
-                child: const Text('Réessayer'),
+                child: Text(
+                  context.tr('common_retry'),
+                  style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.w700),
+                )
               )
             ],
           ),
@@ -212,7 +280,7 @@ class _AdminAmbassadorsListScreenState
     if (displayedList.isEmpty) {
       return Center(
         child: Text(
-          'Aucun ambassadeur trouvé.',
+          context.tr('ad_list_empty'),
           style: GoogleFonts.cairo(color: _onSurfaceVariant, fontSize: 14),
         ),
       );
@@ -235,7 +303,7 @@ class _AdminAmbassadorsListScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Tous les ambassadeurs',
+            context.tr('ad_list_all'),
             style: GoogleFonts.cairo(
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -244,7 +312,7 @@ class _AdminAmbassadorsListScreenState
           ),
           if (!_isLoading && _errorMessage == null)
             Text(
-              '${_displayed.length} ambassadeur(s)',
+              context.tr('ad_list_count', args: {'n': '${_displayed.length}'}),
               style: GoogleFonts.cairo(fontSize: 13, color: _onSurfaceVariant),
             ),
         ],
@@ -253,29 +321,37 @@ class _AdminAmbassadorsListScreenState
   }
 
   Widget _buildFilters() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
         children: [
           _FilterDropdown(
-            label: 'Statut',
+            label: context.tr('ad_filter_status'),
             value: _filterStatus,
-            options: _statusOptions,
+            items: [
+              for (final v in _statusValues)
+                (value: v, label: _statusLabel(context, v)),
+            ],
             onChanged: (v) => setState(() => _filterStatus = v),
           ),
-          const SizedBox(width: 8),
           _FilterDropdown(
-            label: 'Niveau',
+            label: context.tr('ad_filter_level'),
             value: _filterLevel,
-            options: _levelOptions,
+            items: [
+              for (final v in _levelValues)
+                (value: v, label: _levelDisplayLabel(context, v)),
+            ],
             onChanged: (v) => setState(() => _filterLevel = v),
           ),
-          const SizedBox(width: 8),
           _FilterDropdown(
-            label: 'Ville',
+            label: context.tr('ad_filter_city'),
             value: _filterCity,
-            options: _cityOptions,
+            items: [
+              for (final v in _cityValues)
+                (value: v, label: _cityLabel(context, v)),
+            ],
             onChanged: (v) => setState(() => _filterCity = v),
           ),
         ],
@@ -289,20 +365,22 @@ class _AdminAmbassadorsListScreenState
 class _FilterDropdown extends StatelessWidget {
   final String label;
   final String value;
-  final List<String> options;
+  /// Paires (valeur brute, libellé traduit).
+  final List<({String value, String label})> items;
   final void Function(String) onChanged;
 
   const _FilterDropdown({
     required this.label,
     required this.value,
-    required this.options,
+    required this.items,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isActive = value != options.first;
+    final isActive = value != items.first.value;
     return Container(
+      height: 38,
       decoration: BoxDecoration(
         color: isActive ? _primary : _surface,
         borderRadius: BorderRadius.circular(20),
@@ -310,31 +388,53 @@ class _FilterDropdown extends StatelessWidget {
           color: isActive ? _primary : _cardBorder,
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            size: 16,
-            color: isActive ? Colors.white : _onSurfaceVariant,
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 6, 0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.cairo(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: isActive ? Colors.white : _onSurfaceVariant,
+            ),
           ),
-          dropdownColor: _surface,
-          style: GoogleFonts.cairo(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: isActive ? Colors.white : _onBackground,
+          const SizedBox(width: 4),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isDense: true,
+              icon: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 16,
+                color: isActive ? Colors.white : _onSurfaceVariant,
+              ),
+              dropdownColor: _surface,
+              style: GoogleFonts.cairo(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isActive ? Colors.white : _onBackground,
+              ),
+              items: items
+                  .map((it) => DropdownMenuItem(
+                        value: it.value,
+                        child: Text(
+                          it.label,
+                          style: GoogleFonts.cairo(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: _onBackground,
+                          ),
+                        ),
+                      ))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) onChanged(v);
+              },
+            ),
           ),
-          items: options
-              .map((o) => DropdownMenuItem(
-                    value: o,
-                    child: Text(o),
-                  ))
-              .toList(),
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-        ),
+        ],
       ),
     );
   }
@@ -347,13 +447,13 @@ class _AmbassadorRow extends StatelessWidget {
   Color _levelColor(String level) {
     switch (level.toLowerCase()) {
       case 'gold':
-        return const Color(0xFFD4AF37);
+        return MaamoraColors.tierGold;
       case 'silver':
-        return const Color(0xFFB0B0B8);
+        return MaamoraColors.tierSilver;
       case 'platinum':
-        return const Color(0xFF7DE3E8);
+        return MaamoraColors.tierPlatinum;
       default:
-        return const Color(0xFFCD7F32); // Bronze
+        return MaamoraColors.tierBronze; // Bronze
     }
   }
 
@@ -383,7 +483,7 @@ class _AmbassadorRow extends StatelessWidget {
             // Avatar
             CircleAvatar(
               radius: 22,
-              backgroundColor: const Color(0xFFE8DDD3),
+              backgroundColor: MaamoraColors.border,
               child: Text(
                 ambassador.initials,
                 style: GoogleFonts.cairo(
@@ -401,12 +501,16 @@ class _AmbassadorRow extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        ambassador.fullName,
-                        style: GoogleFonts.cairo(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: _onBackground,
+                      Flexible(
+                        child: Text(
+                          ambassador.fullName,
+                          style: GoogleFonts.cairo(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: _onBackground,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -435,19 +539,27 @@ class _AmbassadorRow extends StatelessWidget {
                       const Icon(Icons.location_on_outlined,
                           size: 11, color: _onSurfaceVariant),
                       const SizedBox(width: 2),
-                      Text(
-                        ambassador.city,
-                        style: GoogleFonts.cairo(
-                            fontSize: 12, color: _onSurfaceVariant),
+                      Flexible(
+                        child: Text(
+                          ambassador.city,
+                          style: GoogleFonts.cairo(
+                              fontSize: 12, color: _onSurfaceVariant),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       const Icon(Icons.people_alt_outlined,
                           size: 11, color: _onSurfaceVariant),
                       const SizedBox(width: 2),
-                      Text(
-                        '${ambassador.totalValidatedMembers} membres',
-                        style: GoogleFonts.cairo(
-                            fontSize: 12, color: _onSurfaceVariant),
+                      Flexible(
+                        child: Text(
+                          '${ambassador.totalValidatedMembers} ${context.tr('lb_members')}',
+                          style: GoogleFonts.cairo(
+                              fontSize: 12, color: _onSurfaceVariant),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),

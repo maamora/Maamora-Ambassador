@@ -4,16 +4,18 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/admin_status_badge.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
-const Color _orangeLight = Color(0xFFFFF0E6);
-const Color _whatsappGreen = Color(0xFF25D366);
+const Color _primary = MaamoraColors.primary;
+const Color _background = Colors.white;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
+const Color _orangeLight = MaamoraColors.primarySoft;
+const Color _whatsappGreen = MaamoraColors.whatsapp;
 
 // ── Modèle de données ──────────────────────────────────────────────────────
 class _InviteCode {
@@ -32,13 +34,22 @@ class _InviteCode {
   });
 
   factory _InviteCode.fromMap(Map<String, dynamic> map) {
+    final expiresAt = map['expires_at'] != null
+        ? DateTime.tryParse(map['expires_at'] as String)
+        : null;
+    // Statut effectif : un code encore « unused » en base mais dont la date
+    // d'expiration est passée doit s'afficher comme EXPIRÉ (et non Disponible).
+    var status = map['status'] as String? ?? 'unused';
+    if (status == 'unused' &&
+        expiresAt != null &&
+        expiresAt.isBefore(DateTime.now())) {
+      status = 'expired';
+    }
     return _InviteCode(
       code: map['code'] as String,
-      status: map['status'] as String? ?? 'unused',
+      status: status,
       createdAt: DateTime.parse(map['created_at'] as String),
-      expiresAt: map['expires_at'] != null
-          ? DateTime.tryParse(map['expires_at'] as String)
-          : null,
+      expiresAt: expiresAt,
       usedAt: map['used_at'] != null
           ? DateTime.tryParse(map['used_at'] as String)
           : null,
@@ -98,6 +109,18 @@ class _AdminInviteAmbassadorScreenState
           .map((e) => _InviteCode.fromMap(e as Map<String, dynamic>))
           .toList();
 
+      // Les codes encore utilisables d'abord, les expirés/utilisés en bas.
+      int rank(_InviteCode i) => switch (i.status) {
+            'unused' => 0,
+            'used' => 1,
+            _ => 2, // expired, revoked
+          };
+      list.sort((a, b) {
+        final r = rank(a).compareTo(rank(b));
+        if (r != 0) return r;
+        return b.createdAt.compareTo(a.createdAt);
+      });
+
       if (mounted) {
         setState(() {
           _invites = list;
@@ -108,7 +131,7 @@ class _AdminInviteAmbassadorScreenState
       debugPrint('[AdminInvite] fetchInvites error: $e');
       if (mounted) {
         setState(() {
-          _invitesError = 'Erreur lors du chargement des invitations : $e';
+          _invitesError = context.tr('ad_inv_load_err', args: {'e': e.toString()});
           _isLoadingInvites = false;
         });
       }
@@ -145,7 +168,7 @@ class _AdminInviteAmbassadorScreenState
         setState(() => _isGenerating = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la génération : $e'),
+            content: Text(context.tr('ad_inv_gen_err', args: {'e': e.toString()})),
             backgroundColor: Colors.red,
           ),
         );
@@ -168,8 +191,8 @@ class _AdminInviteAmbassadorScreenState
   void _copyCode() {
     Clipboard.setData(ClipboardData(text: _generatedCode ?? ''));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Code copié dans le presse-papiers'),
+      SnackBar(
+        content: Text(context.tr('share_copied_clipboard')),
         duration: Duration(seconds: 2),
       ),
     );
@@ -178,8 +201,8 @@ class _AdminInviteAmbassadorScreenState
   void _copyLink() {
     Clipboard.setData(ClipboardData(text: _generatedLink));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Lien copié dans le presse-papiers'),
+      SnackBar(
+        content: Text(context.tr('share_copied_clipboard')),
         duration: Duration(seconds: 2),
       ),
     );
@@ -189,7 +212,7 @@ class _AdminInviteAmbassadorScreenState
     // Partage du CODE via un message texte
     // TODO: brancher url_launcher avec le lien WhatsApp
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Code à partager : ${_generatedCode ?? ''}')),
+      SnackBar(content: Text(context.tr('ad_code_share', args: {'code': _generatedCode ?? ''}))),
     );
   }
 
@@ -226,7 +249,7 @@ class _AdminInviteAmbassadorScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Inviter un ambassadeur',
+          context.tr('ad_invite'),
           style: GoogleFonts.cairo(
             fontSize: 24,
             fontWeight: FontWeight.w800,
@@ -235,7 +258,7 @@ class _AdminInviteAmbassadorScreenState
         ),
         const SizedBox(height: 4),
         Text(
-          'Générez un code d\'invitation unique.',
+          context.tr('ad_inv_sub'),
           style: GoogleFonts.cairo(
             fontSize: 13,
             color: _onSurfaceVariant,
@@ -258,7 +281,7 @@ class _AdminInviteAmbassadorScreenState
         children: [
           // Ville (optionnel, visuel uniquement — non envoyé en DB)
           Text(
-            'Ville (optionnel, pour votre référence)',
+            context.tr('ad_city_lbl'),
             style: GoogleFonts.cairo(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -269,10 +292,10 @@ class _AdminInviteAmbassadorScreenState
           TextField(
             controller: _cityController,
             decoration: InputDecoration(
-              hintText: 'Ex: Casablanca',
+              hintText: context.tr('ad_city_hint'),
               hintStyle: GoogleFonts.cairo(color: _onSurfaceVariant),
               filled: true,
-              fillColor: const Color(0xFFF5EDE4),
+              fillColor: MaamoraColors.creamIntense,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
@@ -286,14 +309,14 @@ class _AdminInviteAmbassadorScreenState
           ),
           const SizedBox(height: 4),
           Text(
-            'Note : Ce champ est local uniquement — le code généré n\'est pas lié à une ville en base.',
+            context.tr('ad_note_local'),
             style: GoogleFonts.cairo(fontSize: 11, color: _onSurfaceVariant),
           ),
           const SizedBox(height: 16),
 
           // Date d'expiration (optionnel)
           Text(
-            'Date d\'expiration (optionnel)',
+            context.tr('ad_expiry_lbl'),
             style: GoogleFonts.cairo(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -307,7 +330,7 @@ class _AdminInviteAmbassadorScreenState
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5EDE4),
+                color: MaamoraColors.creamIntense,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -316,7 +339,7 @@ class _AdminInviteAmbassadorScreenState
                     child: Text(
                       _selectedExpiry != null
                           ? '${_selectedExpiry!.day}/${_selectedExpiry!.month}/${_selectedExpiry!.year}'
-                          : 'Choisir une date',
+                          : context.tr('ad_pick_date'),
                       style: GoogleFonts.cairo(
                         fontSize: 14,
                         color: _selectedExpiry != null
@@ -351,7 +374,7 @@ class _AdminInviteAmbassadorScreenState
               )
             : const Icon(Icons.link, color: Colors.white, size: 20),
         label: Text(
-          _isGenerating ? 'Génération...' : 'Générer le code d\'invitation',
+          _isGenerating ? context.tr('ad_generating') : context.tr('ad_gen_btn'),
           style: GoogleFonts.cairo(
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -376,7 +399,7 @@ class _AdminInviteAmbassadorScreenState
       decoration: BoxDecoration(
         color: _orangeLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFD4A8)),
+        border: Border.all(color: MaamoraColors.peach),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,7 +409,7 @@ class _AdminInviteAmbassadorScreenState
               const Icon(Icons.check_circle_rounded, color: _primary, size: 18),
               const SizedBox(width: 8),
               Text(
-                'CODE GÉNÉRÉ',
+                context.tr('ad_code_generated'),
                 style: GoogleFonts.cairo(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
@@ -469,7 +492,7 @@ class _AdminInviteAmbassadorScreenState
               Expanded(
                 child: _ActionButton(
                   icon: Icons.copy_all_rounded,
-                  label: 'Copier le code',
+                  label: context.tr('ad_copy_code'),
                   onTap: _copyCode,
                   outlined: true,
                 ),
@@ -478,7 +501,7 @@ class _AdminInviteAmbassadorScreenState
               Expanded(
                 child: _ActionButton(
                   icon: Icons.send_rounded,
-                  label: 'Partager',
+                  label: context.tr('common_share'),
                   onTap: _shareWhatsApp,
                   color: _whatsappGreen,
                 ),
@@ -498,7 +521,7 @@ class _AdminInviteAmbassadorScreenState
           children: [
             Expanded(
               child: Text(
-                'Invitations envoyées',
+                context.tr('ad_inv_sent'),
                 style: GoogleFonts.cairo(
                   fontSize: 17,
                   fontWeight: FontWeight.w800,
@@ -517,7 +540,7 @@ class _AdminInviteAmbassadorScreenState
         const SizedBox(height: 4),
         if (!_isLoadingInvites && _invitesError == null)
           Text(
-            '${_invites.length} invitation${_invites.length > 1 ? 's' : ''}',
+            context.tr('ad_inv_count', args: {'n': '${_invites.length}'}),
             style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant),
           ),
         const SizedBox(height: 12),
@@ -555,7 +578,7 @@ class _AdminInviteAmbassadorScreenState
                       size: 40, color: _onSurfaceVariant),
                   const SizedBox(height: 8),
                   Text(
-                    'Aucune invitation envoyée',
+                    context.tr('ad_inv_empty'),
                     style: GoogleFonts.cairo(
                         fontSize: 13, color: _onSurfaceVariant),
                   ),
@@ -629,11 +652,11 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-String _formatDate(DateTime dt) {
+String _formatDate(BuildContext context, DateTime dt) {
   final now = DateTime.now();
   final diff = now.difference(dt);
-  if (diff.inDays == 0) return 'Aujourd\'hui, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-  if (diff.inDays == 1) return 'Hier, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  if (diff.inDays == 0) return context.tr('common_today_time', args: {'time': '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}'});
+  if (diff.inDays == 1) return context.tr('ad_yesterday', args: {'time': '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}'});
   return '${dt.day}/${dt.month}/${dt.year}';
 }
 
@@ -650,7 +673,7 @@ class _InviteCodeRow extends StatelessWidget {
             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
             const SizedBox(width: 8),
             Text(
-              '${invite.code} copié !',
+              context.tr('ad_code_copied', args: {'code': invite.code}),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
@@ -698,7 +721,7 @@ class _InviteCodeRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Créé: ${_formatDate(invite.createdAt)}',
+                    context.tr('ad_created_date', args: {'date': _formatDate(context, invite.createdAt)}),
                     style: GoogleFonts.cairo(
                       fontSize: 11,
                       color: _onSurfaceVariant,
@@ -706,7 +729,7 @@ class _InviteCodeRow extends StatelessWidget {
                   ),
                   if (invite.expiresAt != null)
                     Text(
-                      'Expire: ${invite.expiresAt!.day}/${invite.expiresAt!.month}/${invite.expiresAt!.year}',
+                      context.tr('ad_expires_date', args: {'date': '${invite.expiresAt!.day}/${invite.expiresAt!.month}/${invite.expiresAt!.year}'}),
                       style: GoogleFonts.cairo(
                         fontSize: 11,
                         color: _onSurfaceVariant,
@@ -714,7 +737,7 @@ class _InviteCodeRow extends StatelessWidget {
                     )
                   else
                     Text(
-                      'Pas d\'expiration',
+                      context.tr('ad_no_expiry'),
                       style: GoogleFonts.cairo(
                         fontSize: 11,
                         color: _onSurfaceVariant,

@@ -1,6 +1,8 @@
 // shared/widgets/google_button.dart
 import 'package:flutter/material.dart';
 
+import '../../design_system/design_system.dart';
+
 class GoogleButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isLoading;
@@ -31,7 +33,7 @@ class GoogleButton extends StatelessWidget {
                 width: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Color(0xFF1A2433),
+                  color: MaamoraColors.textPrimary,
                 ),
               )
             : Row(
@@ -46,7 +48,7 @@ class GoogleButton extends StatelessWidget {
                   const Text(
                     'Continuer avec Google',
                     style: TextStyle(
-                      color: Color(0xFF1A2433),
+                      color: MaamoraColors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),

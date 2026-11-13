@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/models.dart';
 import '../theme/app_colors.dart';
+import '../../design_system/design_system.dart';
+import 'animated_number.dart';
 
 export 'app_loader.dart';
 
@@ -96,7 +98,9 @@ class GradientHeroCard extends StatelessWidget {
   const GradientHeroCard({
     super.key,
     required this.label,
-    required this.value,
+    this.value = '',
+    this.amount,
+    this.unit = '',
     this.caption,
     this.tone = HeroTone.orange,
     this.trailing,
@@ -105,6 +109,10 @@ class GradientHeroCard extends StatelessWidget {
 
   final String label;
   final String value;
+
+  /// When set, the number counts up from 0 and [value] is ignored.
+  final num? amount;
+  final String unit;
   final String? caption;
   final HeroTone tone;
   final Widget? trailing;
@@ -113,8 +121,8 @@ class GradientHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = tone == HeroTone.orange
-        ? const [Color(0xFFFF9A44), AppColors.primary]
-        : const [Color(0xFF283656), AppColors.secondary];
+        ? MaamoraGradients.heroOrange
+        : MaamoraGradients.heroNavy;
 
     return Container(
       width: double.infinity,
@@ -175,19 +183,31 @@ class GradientHeroCard extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.85),
                     ),
                   ),
-                  if (trailing != null) trailing!,
+                  ?trailing,
                 ],
               ),
               const SizedBox(height: 8),
-              Text(
-                value,
-                style: GoogleFonts.cairo(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  height: 1.1,
+              if (amount != null)
+                AnimatedNumber(
+                  value: amount!,
+                  suffix: unit.isEmpty ? '' : ' $unit',
+                  style: GoogleFonts.cairo(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1.1,
+                  ),
+                )
+              else
+                Text(
+                  value,
+                  style: GoogleFonts.cairo(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1.1,
+                  ),
                 ),
-              ),
               if (caption != null) ...[
                 const SizedBox(height: 6),
                 Text(
@@ -236,22 +256,27 @@ class StatBox extends StatelessWidget {
             Icon(icon, size: 18, color: AppColors.primary),
             const SizedBox(height: 6),
           ],
-          Text(
-            value,
-            style: GoogleFonts.cairo(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.secondary,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: GoogleFonts.cairo(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.secondary,
+              ),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.cairo(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: AppColors.onSurfaceVariant,
+              color: AppColors.textMuted,
             ),
           ),
         ],
@@ -313,14 +338,18 @@ class SectionHeader extends StatelessWidget {
           ),
         ),
         if (action != null)
-          GestureDetector(
-            onTap: onActionTap,
+          TextButton(
+            onPressed: onActionTap,
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primaryText,
+              minimumSize: const Size(48, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
             child: Text(
               action!,
               style: GoogleFonts.cairo(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary,
               ),
             ),
           ),
@@ -363,7 +392,7 @@ class EmptyState extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF0E3),
+              color: MaamoraColors.primarySoft,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: AppColors.primary, size: 26),
@@ -407,7 +436,7 @@ class MaamoraListRow extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.iconColor = AppColors.primary,
-    this.iconBg = const Color(0xFFFFF0E3),
+    this.iconBg = MaamoraColors.primarySoft,
   });
   final IconData icon;
   final String title;
@@ -477,19 +506,28 @@ class ThinProgress extends StatelessWidget {
     this.color = AppColors.primary,
     this.height = 8,
   });
+
   final double value;
   final Color color;
   final double height;
 
   @override
   Widget build(BuildContext context) {
+    final target = value.clamp(0.0, 1.0).toDouble();
+    final reduced = MediaQuery.disableAnimationsOf(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(999),
-      child: LinearProgressIndicator(
-        value: value.clamp(0.0, 1.0),
-        minHeight: height,
-        backgroundColor: AppColors.surfaceContainerLow,
-        valueColor: AlwaysStoppedAnimation(color),
+      // Animates from 0 on first build and between values afterwards.
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: reduced ? target : 0, end: target),
+        duration: reduced ? Duration.zero : const Duration(milliseconds: 800),
+        curve: Curves.easeOutCubic,
+        builder: (context, animated, _) => LinearProgressIndicator(
+          value: animated,
+          minHeight: height,
+          backgroundColor: AppColors.surfaceContainerLow,
+          valueColor: AlwaysStoppedAnimation(color),
+        ),
       ),
     );
   }

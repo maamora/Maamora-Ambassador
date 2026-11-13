@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/l10n/locale_provider.dart';
 import '../theme/app_colors.dart';
 
-/// Small AR | EN pill to switch language anywhere in the app.
+/// Small AR | FR pill to switch language anywhere in the app.
 class LanguageToggle extends ConsumerWidget {
   const LanguageToggle({super.key});
 
@@ -44,7 +44,7 @@ class LanguageToggle extends ConsumerWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [seg('عربي', 'ar'), seg('EN', 'en')],
+        children: [seg('عربي', 'ar'), seg('FR', 'fr')],
       ),
     );
   }

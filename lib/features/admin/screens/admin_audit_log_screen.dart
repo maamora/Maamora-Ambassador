@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
+const Color _primary = MaamoraColors.primary;
+const Color _background = Colors.white;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
 
 class AdminAuditLogScreen extends StatefulWidget {
   const AdminAuditLogScreen({super.key});
@@ -86,7 +88,7 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Impossible de charger les logs : $e';
+          _errorMessage = context.tr('ad_log_err', args: {'e': e.toString()});
           _isLoading = false;
         });
       }
@@ -124,14 +126,14 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
             Text(_errorMessage!, style: GoogleFonts.cairo()),
-            TextButton(onPressed: _fetchLogs, child: const Text('Réessayer'))
+            TextButton(onPressed: _fetchLogs, child: Text(context.tr('common_retry')))
           ],
         ),
       );
     }
     
     if (_logs.isEmpty) {
-      return const Center(child: Text('Aucune entrée dans le journal.'));
+      return Center(child: Text(context.tr('ad_log_empty')));
     }
 
     return ListView.separated(
@@ -154,7 +156,7 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Journal d\'audit',
+            context.tr('ad_log_title'),
             style: GoogleFonts.cairo(
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -163,7 +165,7 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
           ),
           if (!_isLoading)
             Text(
-              '${_logs.length} entrées récentes',
+              context.tr('ad_log_count', args: {'n': '${_logs.length}'}),
               style: GoogleFonts.cairo(fontSize: 13, color: _onSurfaceVariant),
             ),
         ],
@@ -203,7 +205,7 @@ class _AuditEntryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Parse data
-    final action = entryData['action'] as String? ?? 'Action Inconnue';
+    final action = entryData['action'] as String? ?? context.tr('ad_act_unknown');
     final targetType = entryData['target_type'] as String? ?? '';
     final metadata = entryData['metadata'] as Map<String, dynamic>? ?? {};
     
@@ -214,32 +216,32 @@ class _AuditEntryRow extends StatelessWidget {
     if (action == 'set_ambassador_status' || action == 'accept_ambassador') {
       if (metadata['status'] == 'active' || action == 'accept_ambassador') {
         icon = Icons.person_add_rounded;
-        actionLabel = 'Ambassadeur accepté';
+        actionLabel = context.tr('ad_act_accepted');
       } else if (metadata['status'] == 'rejected') {
         icon = Icons.person_remove_rounded;
-        actionLabel = 'Ambassadeur refusé';
+        actionLabel = context.tr('ad_act_refused');
       } else if (metadata['status'] == 'paused') {
         icon = Icons.block_rounded;
-        actionLabel = 'Ambassadeur suspendu';
+        actionLabel = context.tr('ad_act_suspended');
       } else {
         icon = Icons.person_outline;
-        actionLabel = 'Statut ambassadeur modifié';
+        actionLabel = context.tr('ad_act_status');
       }
     } else if (action == 'assign_commission') {
       icon = Icons.payments_outlined;
-      actionLabel = 'Commission assignée';
+      actionLabel = context.tr('ad_act_commission');
     } else if (action == 'create_invite_code') {
       icon = Icons.link;
-      actionLabel = 'Invitation créée';
+      actionLabel = context.tr('ad_act_invite');
     } else if (action == 'revoke_invite_code') {
       icon = Icons.link_off_rounded;
-      actionLabel = 'Invitation révoquée';
+      actionLabel = context.tr('ad_act_revoke');
     } else if (action == 'admin_set_group_members') {
       icon = Icons.build_rounded;
-      actionLabel = 'Compteur corrigé';
+      actionLabel = context.tr('ad_act_counter');
     } else if (action == 'create_payout') {
       icon = Icons.payments_rounded;
-      actionLabel = 'Paiement effectué';
+      actionLabel = context.tr('ad_act_payment');
     }
     
     String target = targetType;
@@ -248,7 +250,7 @@ class _AuditEntryRow extends StatelessWidget {
     } else if (targetType == 'deal_group' && targetName != null) {
       target = '📦 $targetName';
     } else if (targetType == 'invite_code') {
-      target = '🔗 Invitation';
+      target = context.tr('ad_target_invite');
     }
     
     String detailText = '';
@@ -256,22 +258,22 @@ class _AuditEntryRow extends StatelessWidget {
     // Formatting details according to mapping
     if (action == 'set_ambassador_status') {
       if (metadata['status'] == 'active') {
-        detailText = 'Statut changé: pending → active';
+        detailText = context.tr('ad_act_status_changed');
       } else if (metadata['status'] == 'rejected' || metadata['status'] == 'paused') {
-        detailText = 'Raison: ${metadata['reason']}';
+        detailText = '${context.tr('ad_reason_col')} ${metadata['reason']}';
       }
     } else if (action == 'assign_commission') {
-      detailText = 'assign_commission exécuté • ${metadata['amount'] ?? metadata['montant']} DH';
+      detailText = context.tr('ad_commission_done', args: {'n': '${metadata['amount'] ?? metadata['montant']}'});
     } else if (action == 'create_invite_code') {
-      detailText = 'Ville: ${metadata['city']} • Expire: ${metadata['expires_at']}';
+      detailText = '${context.tr('ad_city_col')} ${metadata['city']} • ${context.tr('ad_expires_col')} ${metadata['expires_at']}';
     } else if (action == 'revoke_invite_code') {
-      detailText = 'Code: ${metadata['code']}';
+      detailText = '${context.tr('ad_code_col')} ${metadata['code']}';
     } else if (action == 'admin_set_group_members') {
       detailText = '${metadata['old_count']} → ${metadata['new_count']}';
     } else if (action == 'create_payout') {
-      if (metadata.containsKey('method')) detailText += 'Méthode: ${metadata['method']} ';
-      if (metadata.containsKey('reference') && metadata['reference'] != null) detailText += 'Réf: ${metadata['reference']} ';
-      if (metadata.containsKey('amount')) detailText += 'Montant: ${metadata['amount']} DH';
+      if (metadata.containsKey('method')) detailText += '${context.tr('ad_method_col')} ${metadata['method']} ';
+      if (metadata.containsKey('reference') && metadata['reference'] != null) detailText += '${context.tr('ad_ref_col')} ${metadata['reference']} ';
+      if (metadata.containsKey('amount')) detailText += '${context.tr('ad_amount_col')} ${metadata['amount']} DH';
     }
     
     detailText = detailText.trim();
@@ -299,7 +301,7 @@ class _AuditEntryRow extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF0E6),
+              color: MaamoraColors.primarySoft,
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,

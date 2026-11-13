@@ -7,6 +7,7 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../../profile/providers/profile_provider.dart';
+import '../../../core/l10n/app_strings.dart';
 
 class PendingScreen extends ConsumerWidget {
   const PendingScreen({super.key});
@@ -18,7 +19,7 @@ class PendingScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: SharedAppBar(
-        pageTitle: 'Application Submitted',
+        pageTitle: context.tr('status_submitted'),
         profileEnabled: false,
         onBack: () {
           ref.read(authProvider.notifier).signOut();
@@ -149,7 +150,7 @@ class PendingScreen extends ConsumerWidget {
           );
         },
         loading: () => const AppLoader(),
-        error: (err, stack) => const Center(child: Text('Error loading profile')),
+        error: (err, stack) => Center(child: Text(context.tr('status_error'))),
       ),
     );
   }
@@ -197,8 +198,8 @@ class PausedScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _StatusScreen(
       icon: Icons.pause_circle_outline,
-      title: 'Compte en pause',
-      message: 'Votre compte est temporairement en pause.',
+      title: context.tr('status_paused_title'),
+      message: context.tr('status_paused_sub'),
     );
   }
 }
@@ -211,8 +212,8 @@ class RejectedScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     return _StatusScreen(
       icon: Icons.cancel_outlined,
-      title: 'Demande refusée',
-      message: authState.rejectionReason ?? 'Votre demande a été refusée.',
+      title: context.tr('status_refused_title'),
+      message: authState.rejectionReason ?? context.tr('status_refused_sub'),
     );
   }
 }
@@ -224,8 +225,8 @@ class UnregisteredScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return _StatusScreen(
       icon: Icons.no_accounts_outlined,
-      title: 'Profil introuvable',
-      message: 'Compte non trouvé ou invitation inexistante.',
+      title: context.tr('status_not_found_title'),
+      message: context.tr('status_not_found_sub'),
       action: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -235,7 +236,7 @@ class UnregisteredScreen extends ConsumerWidget {
           ref.read(authProvider.notifier).signOut();
           context.go('/login');
         },
-        child: const Text('Retour à la connexion'),
+        child: Text(context.tr('status_back_login')),
       ),
     );
   }
@@ -257,7 +258,7 @@ class _StatusScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
+      backgroundColor: Colors.white,
       appBar: const SharedAppBar(profileEnabled: false),
       body: Center(
         child: Padding(

@@ -3,16 +3,18 @@ import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
-const Color _success = Color(0xFF2E7D32);
-const Color _errorColor = Color(0xFFB3261E);
+const Color _primary = MaamoraColors.primary;
+const Color _background = Colors.white;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
+const Color _success = MaamoraColors.success;
+const Color _errorColor = MaamoraColors.danger;
 
 // ── Modèle ───────────────────────────────────────────────────────────────
 class Candidate {
@@ -53,11 +55,13 @@ class Candidate {
         final now = DateTime.now();
         final difference = now.difference(date);
         if (difference.inDays == 0 && now.day == date.day) {
-          formattedDate = 'Aujourd\'hui, ${DateFormat('HH:mm').format(date)}';
+          formattedDate = '${date.day.toString().padLeft(2, '0')}'
+              '/${date.month.toString().padLeft(2, '0')} — '
+              '${DateFormat('HH:mm').format(date)}';
         } else if (difference.inDays == 1 || (difference.inDays == 0 && now.day != date.day)) {
-          formattedDate = 'Hier';
+          formattedDate = '${date.day.toString().padLeft(2, '0')}'            '/${date.month.toString().padLeft(2, '0')}';
         } else {
-          formattedDate = DateFormat('MMM d').format(date);
+          formattedDate = '${date.day.toString().padLeft(2, '0')}'            '/${date.month.toString().padLeft(2, '0')}';
         }
       }
     }
@@ -116,7 +120,7 @@ class _AdminAmbassadorsPendingScreenState
     } catch (e) {
       debugPrint('Erreur lors de la récupération des candidatures : $e');
       setState(() {
-        _errorMessage = 'Impossible de charger les candidatures. Veuillez vérifier votre connexion ou vos droits d\'accès.';
+        _errorMessage = context.tr('ad_list_err');
         _isLoading = false;
       });
     }
@@ -138,17 +142,17 @@ class _AdminAmbassadorsPendingScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${candidate.fullName} accepté(e)'),
+            content: Text(context.tr('ad_accepted', args: {'name': candidate.fullName})),
             backgroundColor: _success,
           ),
         );
       }
     } catch (e) {
-      debugPrint('Erreur acceptation : $e');
+      debugPrint('[AdminPending] accept error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Erreur lors de l\'acceptation.'),
+            content: Text(context.tr('ad_accept_failed')),
             backgroundColor: _errorColor,
           ),
         );
@@ -168,7 +172,7 @@ class _AdminAmbassadorsPendingScreenState
             await Supabase.instance.client.rpc('admin_set_ambassador_status', params: {
               'p_ambassador_id': candidate.id,
               'p_status': 'rejected',
-              'p_reason': reason.isNotEmpty ? reason : 'Candidature refusée',
+              'p_reason': reason.isNotEmpty ? reason : context.tr('ad_app_refused'),
             });
 
             setState(() {
@@ -179,17 +183,17 @@ class _AdminAmbassadorsPendingScreenState
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${candidate.fullName} refusé(e)'),
+                  content: Text(context.tr('ad_rejected', args: {'name': candidate.fullName})),
                   backgroundColor: _errorColor,
                 ),
               );
             }
           } catch (e) {
-             debugPrint('Erreur rejet : $e');
+             debugPrint('[AdminPending] reject error: $e');
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text('Erreur lors du refus.'),
+                  content: Text(context.tr('ad_reject_failed')),
                   backgroundColor: _errorColor,
                 ),
               );
@@ -252,7 +256,7 @@ class _AdminAmbassadorsPendingScreenState
     if (_candidates.isEmpty) {
       return Center(
         child: Text(
-          'Aucune candidature en attente.',
+          context.tr('ad_apps_empty'),
           style: GoogleFonts.cairo(color: _onSurfaceVariant, fontSize: 14),
         ),
       );
@@ -298,7 +302,7 @@ class _AdminAmbassadorsPendingScreenState
                   ),
                 ),
                 Text(
-                  'Examiner les demandes d\'ambassadeurs',
+                  context.tr('ad_apps_screen_title'),
                   style: GoogleFonts.cairo(
                     fontSize: 13,
                     color: _onSurfaceVariant,
@@ -319,7 +323,7 @@ class _AdminAmbassadorsPendingScreenState
               child: Row(
                 children: [
                   Text(
-                    '${_candidates.length}\npending',
+                    '${_candidates.length}\n${context.tr('ad_pending_count')}',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.cairo(
                       fontSize: 13,
@@ -384,7 +388,7 @@ class _CandidateCard extends StatelessWidget {
                   // Avatar
                   CircleAvatar(
                     radius: 22,
-                    backgroundColor: const Color(0xFFE8DDD3),
+                    backgroundColor: MaamoraColors.border,
                     child: Text(
                       candidate.initials,
                       style: GoogleFonts.cairo(
@@ -450,7 +454,7 @@ class _CandidateCard extends StatelessWidget {
 
           // ── Expanded detail ──────────────────────────────────────────
           if (isExpanded) ...[
-            const Divider(height: 1, color: Color(0xFFEDE8E4)),
+            const Divider(height: 1, color: MaamoraColors.surfaceLow),
             Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
@@ -536,7 +540,7 @@ class _DetailRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFFFF),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -594,7 +598,7 @@ class _RejectDialogState extends State<_RejectDialog> {
       backgroundColor: _surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        'Refuser ${widget.candidate.fullName}',
+        context.tr('ad_refuse_btn', args: {'name': widget.candidate.fullName}),
         style: GoogleFonts.cairo(
           fontSize: 17,
           fontWeight: FontWeight.w800,
@@ -606,7 +610,7 @@ class _RejectDialogState extends State<_RejectDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Raison du refus (obligatoire)',
+            context.tr('ad_refuse_reason'),
             style: GoogleFonts.cairo(
               fontSize: 13,
               color: _onSurfaceVariant,
@@ -617,11 +621,11 @@ class _RejectDialogState extends State<_RejectDialog> {
             controller: _reasonController,
             maxLines: 3,
             decoration: InputDecoration(
-              hintText: 'Ex: Profil incomplet, zone non couverte...',
+              hintText: context.tr('ad_refuse_hint'),
               hintStyle:
                   GoogleFonts.cairo(color: _onSurfaceVariant, fontSize: 13),
               filled: true,
-              fillColor: const Color(0xFFF5EDE4),
+              fillColor: MaamoraColors.creamIntense,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
@@ -648,8 +652,8 @@ class _RejectDialogState extends State<_RejectDialog> {
             final reason = _reasonController.text.trim();
             if (reason.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Veuillez saisir un motif de refus.'),
+                SnackBar(
+                  content: Text(context.tr('ad_refuse_required')),
                   backgroundColor: _errorColor,
                 )
               );
@@ -666,7 +670,7 @@ class _RejectDialogState extends State<_RejectDialog> {
             ),
           ),
           child: Text(
-            'Confirmer le refus',
+            context.tr('ad_refuse_confirm'),
             style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
           ),
         ),

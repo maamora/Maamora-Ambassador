@@ -76,18 +76,15 @@ class AdminGroupItem {
       if (date != null) {
         final now = DateTime.now();
         final diff = now.difference(date);
+        // language-neutral numeric date (works FR + AR)
+        final d = '${date.day.toString().padLeft(2, '0')}/'
+            '${date.month.toString().padLeft(2, '0')}';
         if (diff.inDays == 0 && now.day == date.day) {
           final h = date.hour.toString().padLeft(2, '0');
           final m = date.minute.toString().padLeft(2, '0');
-          formattedDate = "Aujourd'hui, $h:$m";
-        } else if (diff.inDays <= 1) {
-          formattedDate = 'Hier';
+          formattedDate = '$d — $h:$m';
         } else {
-          const months = [
-            '_', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
-            'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'
-          ];
-          formattedDate = '${months[date.month]} ${date.day}';
+          formattedDate = d;
         }
       }
     }

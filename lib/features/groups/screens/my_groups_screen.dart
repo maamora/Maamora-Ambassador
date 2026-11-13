@@ -3,17 +3,17 @@ import '../../../shared/widgets/shared_app_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../../../shared/navigation/app_routes.dart';
 import '../providers/my_groups_provider.dart';
 import '../../../shared/widgets/design_kit.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
-// Colors matched with dashboard
-const Color _primaryContainer = Color(0xFFFB7701);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _surfaceContainerLowest = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF251912);
-const Color _onSurfaceVariant = Color(0xFF584236);
-const Color _outlineVariant = Color(0xFFE0C0B0);
+// Colors: charte centralisée (tokens DS)
+const Color _surface = MaamoraColors.surface;
+const Color _surfaceContainerLowest = MaamoraColors.surface;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _outlineVariant = MaamoraColors.border;
 
 class MyGroupsScreen extends ConsumerWidget {
   const MyGroupsScreen({super.key});
@@ -40,7 +40,7 @@ class MyGroupsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'My Groups',
+                    context.tr('groups_title'),
                     style: GoogleFonts.cairo(
                       color: _onBackground,
                       fontSize: 28,
@@ -59,10 +59,10 @@ class MyGroupsScreen extends ConsumerWidget {
                 child: groupsAsync.when(
                   data: (groups) {
                     if (groups.isEmpty) {
-                      return const EmptyState(
-                        icon: Icons.group_outlined,
-                        title: 'No groups yet',
-                        subtitle: 'Share a product to create your first group!',
+                      return MaamoraEmptyState(
+                        icon: MaamoraIcons.users,
+                        title: context.tr('groups_empty'),
+                        subtitle: context.tr('groups_empty_sub'),
                       );
                     }
                     return ListView.separated(
@@ -84,13 +84,13 @@ class MyGroupsScreen extends ConsumerWidget {
                           onTap: () {
                             // TODO: Add new flow for order details if needed
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Order details not available in this version.')),
+                              SnackBar(content: Text(context.tr('groups_order_soon'))),
                             );
                           },
                           onInvite: () {
                             // TODO: Implement direct share logic
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Share functionality coming soon.')),
+                              SnackBar(content: Text(context.tr('groups_share_soon'))),
                             );
                           },
                         );
@@ -103,14 +103,14 @@ class MyGroupsScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Failed to load groups',
-                          style: GoogleFonts.cairo(color: Colors.red),
+                          context.tr('groups_failed'),
+                          style: GoogleFonts.cairo(color: MaamoraColors.danger),
                         ),
                         const SizedBox(height: 12),
                         ElevatedButton(
                           onPressed: () =>
                               ref.read(myGroupsProvider.notifier).refresh(),
-                          child: const Text('Retry'),
+                          child: Text(context.tr('common_retry')),
                         ),
                       ],
                     ),
@@ -180,7 +180,7 @@ class _GroupOrderCard extends StatelessWidget {
               child: Container(
                 width: 64,
                 height: 64,
-                color: const Color(0xFFF5EDE4),
+                color: MaamoraColors.creamIntense,
                 child: imageUrl.isNotEmpty
                     ? Image.network(imageUrl, fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => const Icon(
@@ -234,15 +234,15 @@ class _GroupOrderCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: isConfirmed ? const Color(0xFF198754).withValues(alpha: 0.1) : _outlineVariant.withValues(alpha: 0.2),
+                color: isConfirmed ? MaamoraColors.successSoft : _outlineVariant.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                isConfirmed ? 'Confirmed' : 'Pending',
+                isConfirmed ? context.tr('groups_confirmed') : context.tr('groups_pending'),
                 style: GoogleFonts.cairo(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: isConfirmed ? const Color(0xFF198754) : _onSurfaceVariant,
+                  color: isConfirmed ? MaamoraColors.success : _onSurfaceVariant,
                 ),
               ),
             ),

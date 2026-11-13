@@ -8,16 +8,18 @@ import 'package:intl/intl.dart';
 
 import '../widgets/admin_status_badge.dart';
 import '../../../models/models.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
-const Color _errorColor = Color(0xFFB3261E);
-const Color _successColor = Color(0xFF2E7D32);
+const Color _primary = MaamoraColors.primary;
+const Color _background = Colors.white;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
+const Color _errorColor = MaamoraColors.danger;
+const Color _successColor = MaamoraColors.success;
 
 class AdminAmbassadorDetailsScreen extends StatefulWidget {
   final String ambassadorId;
@@ -105,7 +107,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     } catch (e) {
       debugPrint('Error fetching ambassador details: $e');
       setState(() {
-        _errorMessage = 'Impossible de charger les détails.';
+        _errorMessage = context.tr('ad_det_load_err');
         _isLoading = false;
       });
     }
@@ -131,7 +133,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       }
     } catch (e) {
       if (mounted) Navigator.pop(context);
-      _showError('Erreur de changement de statut: $e');
+      if (mounted) _showError(context.tr('ad_status_err', args: {'e': e.toString()}));
     }
   }
 
@@ -140,14 +142,14 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
   }
 
   Future<void> _handleReject() async {
-    final reason = await _promptReason('Raison du refus');
+    final reason = await _promptReason(context.tr('ad_reason_reject'));
     if (reason != null && reason.isNotEmpty) {
       await _changeStatus('rejected', reason: reason);
     }
   }
 
   Future<void> _handleSuspend() async {
-    final reason = await _promptReason('Raison de la suspension');
+    final reason = await _promptReason(context.tr('ad_reason_suspend'));
     if (reason != null && reason.isNotEmpty) {
       await _changeStatus('paused', reason: reason);
     }
@@ -167,7 +169,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
         content: TextField(
           controller: tc,
           decoration: InputDecoration(
-            hintText: 'Saisissez la raison...',
+            hintText: context.tr('ad_reason_hint'),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           ),
           maxLines: 3,
@@ -198,32 +200,32 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
           builder: (context, setStateModal) {
             return AlertDialog(
               backgroundColor: _surface,
-              title: Text('Régler le wallet', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18)),
+              title: Text(context.tr('ad_wallet_pay'), style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Montant à régler : ${_walletBalance.toStringAsFixed(2)} DH', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+                  Text(context.tr('ad_wallet_amount', args: {'n': _walletBalance.toStringAsFixed(2)}), style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 16),
-                  Text('Méthode', style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
+                  Text(context.tr('ad_method_lbl'), style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
                   DropdownButton<String>(
                     value: method,
                     isExpanded: true,
-                    items: const [
-                      DropdownMenuItem(value: 'bank', child: Text('Virement bancaire')),
-                      DropdownMenuItem(value: 'cash_pickup', child: Text('Espèces (Cash)')),
+                    items: [
+                      DropdownMenuItem(value: 'bank', child: Text(context.tr('profile_payout_bank'))),
+                      DropdownMenuItem(value: 'cash_pickup', child: Text(context.tr('wallet_tx_cash'))),
                     ],
                     onChanged: (v) {
                       if (v != null) setStateModal(() => method = v);
                     },
                   ),
                   const SizedBox(height: 16),
-                  Text('Référence (N° virement, capture WhatsApp, etc.)', style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
+                  Text(context.tr('ad_ref_lbl'), style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
                   const SizedBox(height: 8),
                   TextField(
                     controller: tcRef,
                     decoration: InputDecoration(
-                      hintText: 'Ex: VIR-12345',
+                      hintText: context.tr('ad_ref_hint'),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
@@ -237,7 +239,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                 ElevatedButton(
                   onPressed: () => Navigator.pop(ctx, true),
                   style: ElevatedButton.styleFrom(backgroundColor: _successColor, foregroundColor: Colors.white),
-                  child: const Text('Valider le paiement'),
+                  child: Text(context.tr('ad_pay_validate')),
                 )
               ],
             );
@@ -264,13 +266,13 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
         if (mounted) {
           Navigator.pop(context); // close loading
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Paiement enregistré avec succès')),
+            SnackBar(content: Text(context.tr('ad_pay_saved'))),
           );
           _fetchDetails(); // refresh balance
         }
       } catch (e) {
         if (mounted) Navigator.pop(context);
-        _showError('Erreur lors du paiement: $e');
+        if (mounted) _showError(context.tr('ad_pay_err', args: {'e': e.toString()}));
       }
     }
   }
@@ -284,7 +286,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     return Scaffold(
       backgroundColor: _background,
       appBar: SharedAppBar(
-        pageTitle: 'Fiche Ambassadeur',
+        pageTitle: context.tr('ad_det_title'),
         onAvatarTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const AdminProfileScreen()),
         ),
@@ -309,7 +311,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       );
     }
 
-    if (_ambassador == null) return const Center(child: Text('Ambassadeur introuvable.'));
+    if (_ambassador == null) return Center(child: Text(context.tr('ad_det_not_found')));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -336,7 +338,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     if (parts.isNotEmpty && parts[0].isNotEmpty) initials += parts[0][0].toUpperCase();
     if (parts.length > 1 && parts[1].isNotEmpty) initials += parts[1][0].toUpperCase();
 
-    String joinedDate = 'N/A';
+    String joinedDate = context.tr('common_na');
     if (a.activatedAt != null) {
       joinedDate = DateFormat('dd/MM/yyyy').format(a.activatedAt!);
     }
@@ -397,12 +399,12 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
           const SizedBox(height: 12),
           _buildInfoRow(Icons.location_on_outlined, 'Ville', a.city),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.calendar_today_rounded, 'Date d\'activation', joinedDate),
+          _buildInfoRow(Icons.calendar_today_rounded, context.tr('ad_date_joined'), joinedDate),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.people_alt_rounded, 'Membres validés', '${a.totalValidatedMembers}'),
+          _buildInfoRow(Icons.people_alt_rounded, context.tr('ad_members_validated'), '${a.totalValidatedMembers}'),
           if (_parentAmbassadorName != null) ...[
             const SizedBox(height: 12),
-            _buildInfoRow(Icons.person_add_rounded, 'Invité par', _parentAmbassadorName!),
+            _buildInfoRow(Icons.person_add_rounded, context.tr('ad_invited_by'), _parentAmbassadorName!),
           ]
         ],
       ),
@@ -433,7 +435,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Actions Administratives', style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(context.tr('ad_actions'), style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Wrap(
             spacing: 10,
@@ -458,14 +460,14 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Solde disponible', style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
+                    Text(context.tr('ad_balance'), style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
                     Text('${_walletBalance.toStringAsFixed(2)} DH', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: _successColor)),
                   ],
                 ),
                 ElevatedButton.icon(
                   onPressed: _handlePayout,
                   icon: const Icon(Icons.account_balance_wallet, size: 18),
-                  label: const Text('Régler le wallet'),
+                  label: Text(context.tr('ad_wallet_pay')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _successColor,
                     foregroundColor: Colors.white,
@@ -482,7 +484,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Solde disponible', style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
+                      Text(context.tr('ad_balance'), style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
                       Text('0.00 DH', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: _onBackground)),
                     ],
                   ),
@@ -498,10 +500,10 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Historique des commissions', style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(context.tr('ad_comm_history'), style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         if (_commissions.isEmpty)
-          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text('Aucune commission.', style: GoogleFonts.cairo(color: _onSurfaceVariant)))),
+          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(context.tr('ad_comm_empty'), style: GoogleFonts.cairo(color: _onSurfaceVariant)))),
         ..._commissions.map((c) {
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -523,7 +525,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(c.dealGroupName ?? (c.source == CommissionSource.recruitBonus ? 'Bonus Parrainage' : 'Commission'), style: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 13)),
+                      Text(c.dealGroupName ?? (c.source == CommissionSource.recruitBonus ? context.tr('ad_bonus_referral') : 'Commission'), style: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 13)),
                       Text(c.createdAt != null ? DateFormat('dd/MM/yy HH:mm').format(c.createdAt!) : '', style: GoogleFonts.cairo(fontSize: 11, color: _onSurfaceVariant)),
                     ],
                   ),
@@ -550,7 +552,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     switch (status) {
       case CommissionStatus.pending:
         color = Colors.orange;
-        label = 'En attente';
+        label = context.tr('ad_pending');
         break;
       case CommissionStatus.payable:
         color = _primary;
@@ -579,12 +581,12 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Groupes créés', style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(context.tr('ad_groups_created'), style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         if (_dealGroups.isEmpty)
-          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text('Aucun groupe créé.', style: GoogleFonts.cairo(color: _onSurfaceVariant)))),
+          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(context.tr('ad_groups_created_empty'), style: GoogleFonts.cairo(color: _onSurfaceVariant)))),
         ..._dealGroups.map((g) {
-          final title = g['product_name'] ?? 'Groupe inconnu';
+          final title = g['product_name'] ?? context.tr('ad_group_unknown');
           final members = g['members_count'] ?? 0;
           final maxMembers = g['seats_total'] ?? 0;
           final status = g['status'] ?? 'pending';
@@ -600,7 +602,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(title, style: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 13)),
-                      Text('$members / $maxMembers membres', style: GoogleFonts.cairo(fontSize: 11, color: _onSurfaceVariant)),
+                      Text(context.tr('ad_members_fract', args: {'a': '$members', 'b': '$maxMembers'}), style: GoogleFonts.cairo(fontSize: 11, color: _onSurfaceVariant)),
                     ],
                   ),
                 ),
@@ -616,13 +618,13 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
   Color _levelColor(AmbassadorLevel level) {
     switch (level) {
       case AmbassadorLevel.gold:
-        return const Color(0xFFD4AF37);
+        return MaamoraColors.tierGold;
       case AmbassadorLevel.silver:
-        return const Color(0xFFB0B0B8);
+        return MaamoraColors.tierSilver;
       case AmbassadorLevel.neutral:
         return _onSurfaceVariant;
       case AmbassadorLevel.bronze:
-        return const Color(0xFFCD7F32);
+        return MaamoraColors.tierBronze;
     }
   }
 }

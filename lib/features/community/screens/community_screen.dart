@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../shared/widgets/shared_app_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/theme/app_colors.dart';
+import '../../../design_system/design_system.dart';
 import '../../../shared/widgets/design_kit.dart';
+import '../../../core/l10n/app_strings.dart';
 
 /// Prototype screen (not yet wired to Supabase) — restyled to match the
 /// Maamora Ambassador design system: same colors, same rounded cards,
@@ -14,7 +16,7 @@ class CommunityScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const SharedAppBar(pageTitle: 'Community'),
+      appBar: SharedAppBar(pageTitle: context.tr('community_title')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -24,11 +26,11 @@ class CommunityScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: StatBox(value: '47', label: 'Neighbors', icon: Icons.groups_outlined)),
+                  Expanded(child: StatBox(value: '47', label: context.tr('community_stat_neighbors'), icon: Icons.groups_outlined)),
                   const SizedBox(width: 10),
-                  Expanded(child: StatBox(value: '12', label: 'Active this week', icon: Icons.bolt_outlined)),
+                  Expanded(child: StatBox(value: '12', label: context.tr('community_stat_active'), icon: Icons.bolt_outlined)),
                   const SizedBox(width: 10),
-                  Expanded(child: StatBox(value: '89%', label: 'Retention', icon: Icons.favorite_outline)),
+                  Expanded(child: StatBox(value: '89%', label: context.tr('community_retention'), icon: Icons.favorite_outline)),
                 ],
               ),
               const SizedBox(height: 20),
@@ -37,22 +39,59 @@ class CommunityScreen extends StatelessWidget {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    _chip('All', true),
-                    _chip('Active', false),
-                    _chip('New', false),
-                    _chip('At risk', false),
+                    _chip(context.tr('community_all'), true),
+                    _chip(context.tr('community_active'), false),
+                    _chip(context.tr('community_new'), false),
+                    _chip(context.tr('community_risk'), false),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               Expanded(
                 child: ListView(
-                  children: const [
-                    _MemberRow(name: 'Hiba B.', isActive: true, details: 'joined 2w ago · 4 buys', action: 'message'),
-                    _MemberRow(name: 'Soufiane M.', isActive: false, details: 'joined 5d ago · 2 buys', action: 'message'),
-                    _MemberRow(name: 'Amal K.', isActive: true, details: 'joined 1mo ago · 7 buys', action: 'message'),
-                    _MemberRow(name: 'Karim T.', isActive: false, details: 'joined 3d ago · 1 buy', action: 'message'),
-                    _MemberRow(name: 'Salma R.', isActive: false, details: 'joined 6w ago · quiet · 0 buys', action: 'nudge', isPale: true),
+                  children: [
+                    _MemberRow(
+                      name: 'Hiba B.',
+                      isActive: true,
+                      details: context.tr('community_details', args: {
+                        'when': context.tr('time_2w'),
+                        'n': '4',
+                      }),
+                      action: 'message',
+                    ),
+                    _MemberRow(
+                      name: 'Soufiane M.',
+                      isActive: false,
+                      details: context.tr('community_details', args: {
+                        'when': context.tr('time_5d'),
+                        'n': '2',
+                      }),
+                      action: 'message',
+                    ),
+                    _MemberRow(
+                      name: 'Amal K.',
+                      isActive: true,
+                      details: context.tr('community_details', args: {
+                        'when': context.tr('time_1mo'),
+                        'n': '7',
+                      }),
+                      action: 'message',
+                    ),
+                    _MemberRow(
+                      name: 'Karim T.',
+                      isActive: false,
+                      details: context.tr('community_details_one',
+                          args: {'when': context.tr('time_3d')}),
+                      action: 'message',
+                    ),
+                    _MemberRow(
+                      name: 'Salma R.',
+                      isActive: false,
+                      details:
+                          '${context.tr('time_6w')} · ${context.tr('community_quiet')}',
+                      action: 'nudge',
+                      isPale: true,
+                    ),
                   ],
                 ),
               ),
@@ -111,7 +150,7 @@ class _MemberRow extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: isPale ? const Color(0xFFFFF0E3) : const Color(0xFFFFE7DA),
+                color: isPale ? MaamoraColors.primarySoft : MaamoraColors.primarySoft,
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.person_outline, color: AppColors.primary, size: 20),
@@ -135,12 +174,12 @@ class _MemberRow extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: nudge ? const Color(0xFFFFF0E3) : Colors.white,
+                color: nudge ? MaamoraColors.primarySoft : Colors.white,
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(color: nudge ? AppColors.primary.withValues(alpha: 0.35) : AppColors.cardBorder),
               ),
               child: Text(
-                nudge ? 'Nudge' : 'Message',
+                nudge ? context.tr('community_nudge') : context.tr('community_message'),
                 style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w700, color: nudge ? AppColors.primary : AppColors.secondary),
               ),
             ),

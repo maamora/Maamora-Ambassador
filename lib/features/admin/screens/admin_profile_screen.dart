@@ -7,15 +7,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/navigation/app_routes.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
-const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
-const Color _errorColor = Color(0xFFB3261E);
-const Color _success = Color(0xFF2E7D32);
+const Color _primary = MaamoraColors.primary;
+const Color _background = Colors.white;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
+const Color _errorColor = MaamoraColors.danger;
+const Color _success = MaamoraColors.success;
 
 class AdminProfileScreen extends StatelessWidget {
   const AdminProfileScreen({super.key});
@@ -24,7 +26,7 @@ class AdminProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
-      appBar: const SharedAppBar(pageTitle: 'Profil Admin', profileEnabled: false),
+      appBar: SharedAppBar(pageTitle: context.tr('ad_profile_title'), profileEnabled: false),
       body: const SafeArea(child: AdminProfileContent()),
     );
   }
@@ -63,7 +65,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) {
-        throw Exception('Utilisateur non connecté.');
+        throw Exception(context.tr('ad_not_connected'));
       }
 
       _email = user.email;
@@ -83,7 +85,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
     } catch (e) {
       debugPrint('Erreur fetch admin profile: $e');
       setState(() {
-        _errorMessage = 'Impossible de charger le profil.';
+        _errorMessage = context.tr('ad_profile_err');
         _isLoading = false;
       });
     }
@@ -96,7 +98,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
         backgroundColor: _surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Se déconnecter',
+          context.tr('profile_logout'),
           style: GoogleFonts.cairo(
             fontSize: 17,
             fontWeight: FontWeight.w800,
@@ -104,7 +106,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
           ),
         ),
         content: Text(
-          'Voulez-vous vraiment vous déconnecter ?',
+          context.tr('ad_logout_confirm'),
           style: GoogleFonts.cairo(
             fontSize: 14,
             color: _onSurfaceVariant,
@@ -157,11 +159,11 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
         context.go(AppRoutes.login);
       }
     } catch (e) {
-      debugPrint('Erreur lors de la déconnexion : $e');
+      debugPrint('[AdminProfile] logout error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors de la déconnexion.'),
+          SnackBar(
+            content: Text(context.tr('ad_logout_failed')),
             backgroundColor: _errorColor,
           ),
         );
@@ -216,14 +218,14 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
             width: 80,
             height: 80,
             decoration: const BoxDecoration(
-              color: Color(0xFFE8DDD3),
+              color: MaamoraColors.border,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
             child: const Icon(
               Icons.person_outline,
               size: 48,
-              color: Color(0xFF8A8078),
+              color: MaamoraColors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
@@ -285,16 +287,16 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
                     color: _onBackground,
                   ),
                 ),
-                const Divider(color: Color(0xFFEDE8E4), height: 24),
+                const Divider(color: MaamoraColors.surfaceLow, height: 24),
                 _InfoRow(
                   icon: Icons.email_outlined,
                   label: 'Email',
-                  value: _email ?? 'Non renseigné',
+                  value: _email ?? context.tr('ad_not_set'),
                 ),
                 const SizedBox(height: 12),
                 _InfoRow(
                   icon: Icons.calendar_today_outlined,
-                  label: 'Créé le',
+                  label: context.tr('ad_created_on'),
                   value: _createdAt != null
                       ? _createdAt!.substring(0, 10)
                       : 'Inconnu',
@@ -312,7 +314,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
               onPressed: _confirmLogout,
               icon: const Icon(Icons.logout_rounded, size: 20),
               label: Text(
-                'Se déconnecter',
+                context.tr('profile_logout'),
                 style: GoogleFonts.cairo(
                   fontWeight: FontWeight.w700,
                   fontSize: 15,

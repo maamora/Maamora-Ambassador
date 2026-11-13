@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../shared/widgets/shared_app_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../../shared/theme/app_colors.dart';
+import '../../../shared/widgets/shared_app_bar.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 class RulesScreen extends StatelessWidget {
   const RulesScreen({super.key});
@@ -11,84 +10,78 @@ class RulesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: const SharedAppBar(pageTitle: 'Rules'),
+      backgroundColor: MaamoraColors.scaffold,
+      appBar: SharedAppBar(pageTitle: context.tr('rules_title')),
       body: CustomScrollView(
         slivers: [
-          // ── Header ─────────────────────────────────────────────────────────
-          
-          // ── Body ───────────────────────────────────────────────────────────
           SliverPadding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 32, 20, 40),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 40),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // ── Intro ────────────────────────────────────────────────────
+                // ── Intro ────────────────────────────────────────────────
                 Text(
-                  'Ambassador Tiers',
+                  'Niveaux d\'Ambassadeur',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.cairo(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurface,
-                  ),
+                  style: MaamoraTheme.screenTitle().copyWith(fontSize: 24),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Climb the ranks to unlock higher commissions and exclusive perks.',
+                  context.tr('rules_sub'),
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.cairo(
-                    fontSize: 15,
-                    color: AppColors.onSurfaceVariant,
-                    height: 1.5,
-                  ),
+                  style: MaamoraTheme.support(),
                 ),
                 const SizedBox(height: 28),
 
-                // ── Starter tier ─────────────────────────────────────────────
+                // ── Neutral (Starter) ─────────────────────────────────────
                 _buildTierCard(
-                  icon: Icons.check_circle_outline_rounded,
-                  iconColor: AppColors.onSurfaceVariant,
-                  iconBg: const Color(0xFFf6ded2),
-                  name: 'Starter',
-                  range: '0 - 5 orders/mo',
-                  commission: '4%',
-                  isActive: false,
-                  isLocked: false,
+                  context: context,
+                  levelIndex: 0,
+                  name: context.tr('dash_tier_neutral'),
+                  range: context.tr('rules_tag_neutral'),
+                  requirement: context.tr('rules_req_neutral'),
+                  commission: '3%',
+                  icon: MaamoraIcons.level,
                 ),
                 const SizedBox(height: 12),
 
-                // ── Bronze tier (CURRENT) ─────────────────────────────────────
-                _buildCurrentTierCard(),
-                const SizedBox(height: 12),
-
-                // ── Silver tier (locked) ──────────────────────────────────────
+                // ── Bronze ────────────────────────────────────────────────
                 _buildTierCard(
-                  icon: Icons.diamond_rounded,
-                  iconColor: const Color(0xFF596374),
-                  iconBg: const Color(0xFFd6e0f5),
-                  name: 'Silver',
-                  range: '21 - 50 orders/mo',
-                  commission: '8%',
-                  isActive: false,
-                  isLocked: true,
+                  context: context,
+                  levelIndex: 1,
+                  name: context.tr('dash_tier_bronze'),
+                  range: context.tr('rules_tag_bronze'),
+                  requirement: context.tr('rules_req_bronze'),
+                  commission: '6%',
+                  icon: MaamoraIcons.trophy,
                 ),
                 const SizedBox(height: 12),
 
-                // ── Gold tier (locked) ────────────────────────────────────────
+                // ── Silver ────────────────────────────────────────────────
                 _buildTierCard(
-                  icon: Icons.stars_rounded,
-                  iconColor: const Color(0xFFB8860B),
-                  iconBg: const Color(0xFFFFD700).withValues(alpha: 0.2),
-                  name: 'Gold',
-                  range: '50+ orders/mo',
+                  context: context,
+                  levelIndex: 2,
+                  name: context.tr('dash_tier_silver'),
+                  range: context.tr('rules_tag_silver'),
+                  requirement: context.tr('rules_req_silver'),
+                  commission: '9%',
+                  icon: MaamoraIcons.medal,
+                ),
+                const SizedBox(height: 12),
+
+                // ── Gold ──────────────────────────────────────────────────
+                _buildTierCard(
+                  context: context,
+                  levelIndex: 3,
+                  name: context.tr('dash_tier_gold'),
+                  range: context.tr('rules_tag_gold'),
+                  requirement: context.tr('rules_req_gold'),
                   commission: '10%',
-                  isActive: false,
-                  isLocked: true,
+                  icon: MaamoraIcons.crown,
                 ),
                 const SizedBox(height: 28),
 
-                // ── Good to know ──────────────────────────────────────────────
-                _buildGoodToKnow(),
+                // ── Good to know ──────────────────────────────────────────
+                _buildGoodToKnow(context),
               ]),
             ),
           ),
@@ -98,252 +91,112 @@ class RulesScreen extends StatelessWidget {
   }
 
   Widget _buildTierCard({
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBg,
+    required BuildContext context,
+    required int levelIndex,
     required String name,
     required String range,
+    required String requirement,
     required String commission,
-    required bool isActive,
-    required bool isLocked,
+    required IconData icon,
   }) {
-    return Opacity(
-      opacity: isLocked ? 0.75 : 1.0,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFf0ede4)),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF555F70).withValues(alpha: 0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: iconBg),
-              child: Icon(icon, color: iconColor, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: GoogleFonts.cairo(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                  Text(
-                    range,
-                    style: GoogleFonts.cairo(
-                      fontSize: 14,
-                      color: AppColors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  commission,
-                  style: GoogleFonts.cairo(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.onSurface,
-                  ),
-                ),
-                Text(
-                  'COMMISSION',
-                  style: GoogleFonts.cairo(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    final tierStyle = MaamoraTierStyle.ofLevel(levelIndex);
 
-  Widget _buildCurrentTierCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primaryContainer, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryContainer.withValues(alpha: 0.08),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
+    return MaamoraCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
         children: [
-          // Decorative circle in top-right
-          PositionedDirectional(
-            end: -24,
-            top: -24,
-            child: Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                color: AppColors.primaryContainer.withValues(alpha: 0.05),
-                shape: BoxShape.circle,
+          // Metallic disc matching the tier gradient.
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: levelIndex == 0
+                    ? const [
+                        MaamoraColors.navySoft,
+                        MaamoraColors.textPrimary,
+                      ]
+                    : tierStyle.gradient,
               ),
-            ),
-          ),
-          // "Current Level" ribbon
-          PositionedDirectional(
-            top: 0,
-            end: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: const BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadiusDirectional.only(bottomStart: Radius.circular(12)),
-              ),
-              child: Text(
-                'Current Level',
-                style: GoogleFonts.cairo(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: tierStyle.glow.withValues(alpha: 0.30),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
-              ),
+              ],
             ),
+            child: Icon(icon, color: tierStyle.onColor, size: 24),
           ),
-          Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 36, 16, 16),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primaryContainer,
-                      ),
-                      child: const Icon(Icons.workspace_premium_outlined, color: Colors.white, size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Bronze',
-                            style: GoogleFonts.cairo(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primaryContainer,
-                            ),
-                          ),
-                          Text(
-                            '6 - 20 orders/mo',
-                            style: GoogleFonts.cairo(fontSize: 14, color: AppColors.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '6%',
-                          style: GoogleFonts.cairo(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryContainer,
-                          ),
-                        ),
-                        Text(
-                          'COMMISSION',
-                          style: GoogleFonts.cairo(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                TierBadge(
+                  levelIndex: levelIndex,
+                  label: name,
+                  showRate: false,
+                  compact: true,
+                  showIcon: false,
                 ),
-                const SizedBox(height: 16),
-                // Progress to next tier
-                Divider(height: 1, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Next tier: Silver',
-                      style: GoogleFonts.cairo(fontSize: 13, color: AppColors.onSurfaceVariant),
-                    ),
-                    Text(
-                      '14 orders to go',
-                      style: GoogleFonts.cairo(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryContainer,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: 0.30,
-                    minHeight: 8,
-                    backgroundColor: const Color(0xFFf6ded2),
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryContainer),
+                const SizedBox(height: 4),
+                Text(
+                  requirement,
+                  style: GoogleFonts.cairo(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: MaamoraColors.textSecondary,
                   ),
                 ),
               ],
             ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                commission,
+                style: GoogleFonts.cairo(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: MaamoraColors.primary,
+                ),
+              ),
+              Text(
+                context.tr('rules_commission'),
+                style: GoogleFonts.cairo(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: MaamoraColors.textFaint,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildGoodToKnow() {
+  Widget _buildGoodToKnow(BuildContext context) {
     final rules = [
-      'Commissions are calculated and paid out on the 1st of every month.',
-      'Levels are based on successful, delivered orders only.',
-      'If you miss the order threshold for your current tier, you\'ll be given a one-month grace period before dropping down.',
-      'Returns and cancellations are deducted from your monthly total.',
+      context.tr('rules_note1'),
+      context.tr('rules_note2'),
+      'Si tu manques le seuil de commandes de ton palier, une période de grâce d\'un mois s\'applique avant redescente.',
+      context.tr('rules_note4'),
+      context.tr('rules_note5'),
     ];
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFEADF),
-        borderRadius: BorderRadius.circular(16),
+        color: MaamoraColors.primarySoft,
+        borderRadius: BorderRadius.circular(MaamoraRadius.card),
         border: Border.all(
-          color: AppColors.outlineVariant,
-          style: BorderStyle.solid,
+          color: MaamoraColors.primaryHairline,
           width: 1.5,
         ),
       ),
@@ -352,48 +205,49 @@ class RulesScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.info_rounded, color: AppColors.primaryContainer, size: 22),
+              const Icon(
+                MaamoraIcons.info,
+                color: MaamoraColors.primary,
+                size: 22,
+              ),
               const SizedBox(width: 8),
               Text(
-                'Good to know',
-                style: GoogleFonts.cairo(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.onSurface,
-                ),
+                context.tr('rules_good_to_know'),
+                style: MaamoraTheme.sectionHeader(),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          ...rules.map((rule) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(top: 6, end: 10),
-                      child: Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: AppColors.onSurfaceVariant,
-                          shape: BoxShape.circle,
-                        ),
+          ...rules.map(
+            (rule) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(top: 7, end: 10),
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: MaamoraColors.primary,
+                        shape: BoxShape.circle,
                       ),
                     ),
-                    Expanded(
-                      child: Text(
-                        rule,
-                        style: GoogleFonts.cairo(
-                          fontSize: 14,
-                          color: AppColors.onSurfaceVariant,
-                          height: 1.5,
-                        ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      rule,
+                      style: MaamoraTheme.support().copyWith(
+                        fontSize: 13.5,
+                        color: MaamoraColors.textPrimary,
                       ),
                     ),
-                  ],
-                ),
-              )),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

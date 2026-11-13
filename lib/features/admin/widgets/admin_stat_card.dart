@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../design_system/design_system.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
+const Color _primary = MaamoraColors.primary;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
 
 /// Summary stat card for the admin dashboard.
 ///
@@ -33,7 +34,7 @@ class AdminStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolvedIconColor = iconColor ?? _primary;
-    final resolvedIconBg = iconBackground ?? const Color(0xFFFFF0E6);
+    final resolvedIconBg = iconBackground ?? MaamoraColors.primarySoft;
 
     return GestureDetector(
       onTap: onTap,

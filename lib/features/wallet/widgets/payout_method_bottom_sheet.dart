@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../models/models.dart';
 import '../../profile/providers/profile_provider.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 class MoroccanBank {
   final String name;
@@ -18,7 +20,7 @@ class MoroccanBank {
   });
 }
 
-const List<MoroccanBank> kMoroccanBanks = [
+List<MoroccanBank> kMoroccanBanks = [
   MoroccanBank(name: 'CIH Bank', code: '230', shortName: 'CIH'),
   MoroccanBank(name: 'Attijariwafa bank', code: '007', shortName: 'Attijari'),
   MoroccanBank(name: 'Banque Populaire (BCP)', code: '181', shortName: 'BCP'),
@@ -213,7 +215,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                 children: [
                   const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
                   const SizedBox(width: 8),
-                  Text('Le RIB marocain doit contenir exactement 24 chiffres (${ribDigits.length}/24)'),
+                  Text(context.tr('payout_rib_len', args: {'n': ribDigits.length})),
                 ],
               ),
               backgroundColor: AppColors.error,
@@ -243,11 +245,11 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         if (cin.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Row(
+              content: Row(
                 children: [
                   Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
                   SizedBox(width: 8),
-                  Text('Veuillez renseigner votre numéro de CIN pour le retrait cash'),
+                  Text(context.tr('payout_cin_required')),
                 ],
               ),
               backgroundColor: AppColors.error,
@@ -272,14 +274,14 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
                 Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
                 SizedBox(width: 8),
-                Text('Méthode de paiement mise à jour avec succès ! ✨'),
+                Text(context.tr('payout_saved')),
               ],
             ),
-            backgroundColor: const Color(0xFF2E7D32),
+            backgroundColor: MaamoraColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             duration: const Duration(seconds: 3),
@@ -290,7 +292,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text(context.tr('common_error', args: {'e': e.toString()})),
             backgroundColor: AppColors.error,
           ),
         );
@@ -308,17 +310,17 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Supprimer la méthode ?',
+          context.tr('payout_delete_title'),
           style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'Vos prochains paiements de commission seront en attente jusqu\'à configuration d\'une nouvelle méthode.',
+          context.tr('payout_delete_msg'),
           style: GoogleFonts.cairo(fontSize: 14, color: AppColors.onSurfaceVariant),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.tr('payout_cancel')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -326,7 +328,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Supprimer'),
+            child: Text(context.tr('payout_delete_btn')),
           ),
         ],
       ),
@@ -343,8 +345,8 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         if (mounted) {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Méthode de paiement supprimée'),
+            SnackBar(
+              content: Text(context.tr('payout_deleted')),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -352,7 +354,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e'), backgroundColor: AppColors.error),
+            SnackBar(content: Text(context.tr('common_error', args: {'e': e.toString()})), backgroundColor: AppColors.error),
           );
         }
       } finally {
@@ -370,7 +372,9 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
+        // Adapts to the keyboard: the sheet (header included) always fits in
+        // the space above the keyboard instead of being clipped at the top.
+        maxHeight: MediaQuery.of(context).size.height - bottomInset - 32,
       ),
       margin: EdgeInsets.only(bottom: bottomInset),
       decoration: const BoxDecoration(
@@ -403,7 +407,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mode de versement',
+                      context.tr('payout_mode_title'),
                       style: GoogleFonts.cairo(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -412,7 +416,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Recevez vos gains chaque vendredi',
+                      context.tr('payout_friday'),
                       style: GoogleFonts.cairo(
                         fontSize: 13,
                         color: AppColors.onSurfaceVariant,
@@ -469,24 +473,38 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
-                tabs: const [
+                tabs: [
                   Tab(
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.account_balance_rounded, size: 16),
-                        SizedBox(width: 6),
-                        Text('Virement (RIB)'),
+                        const Icon(Icons.account_balance_rounded, size: 16),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            context.tr('payout_bank_tab'),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   Tab(
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.local_atm_rounded, size: 16),
-                        SizedBox(width: 6),
-                        Text('Mise à dispo (Cash)'),
+                        const Icon(Icons.local_atm_rounded, size: 16),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            context.tr('payout_cash_tab'),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -518,9 +536,9 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF6F8FA),
+                      color: MaamoraColors.surfaceLow,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE1E4E8)),
+                      border: Border.all(color: MaamoraColors.borderStrong),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,12 +546,12 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                         const Icon(
                           Icons.verified_user_outlined,
                           size: 18,
-                          color: Color(0xFF2E7D32),
+                          color: MaamoraColors.success,
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Paiement sécurisé : Vos coordonnées sont protégées et utilisées exclusivement pour verser vos commissions chaque vendredi.',
+                            context.tr('payout_security_note'),
                             style: GoogleFonts.cairo(
                               fontSize: 12,
                               color: AppColors.onSurfaceVariant,
@@ -570,7 +588,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                               ),
                             )
                           : Text(
-                              'Enregistrer la méthode',
+                              context.tr('payout_save'),
                               style: GoogleFonts.cairo(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -586,7 +604,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                         onPressed: _isSaving ? null : _removePayoutMethod,
                         icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
                         label: Text(
-                          'Supprimer cette méthode',
+                          context.tr('payout_delete'),
                           style: GoogleFonts.cairo(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -612,7 +630,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
       children: [
         // Bank Selector
         Text(
-          'BANQUE',
+          context.tr('payout_lbl_bank'),
           style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -655,7 +673,9 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          bank.name,
+                          bank.code == '999'
+                              ? context.tr('payout_bank_other')
+                              : bank.name,
                           style: GoogleFonts.cairo(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -680,7 +700,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
 
         // Account Holder Name
         Text(
-          'TITULAIRE DU COMPTE',
+          context.tr('payout_lbl_holder'),
           style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -702,10 +722,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
               fontWeight: FontWeight.w600,
               color: AppColors.onBackground,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: 'Ex: Mohammed Alami',
-              hintStyle: TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
+              hintText: context.tr('payout_holder_hint'),
+              hintStyle: TextStyle(color: MaamoraColors.textFaint, fontSize: 13),
               icon: Icon(Icons.person_outline, size: 20, color: AppColors.onSurfaceVariant),
             ),
           ),
@@ -717,7 +737,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'RIB MAROCAIN (24 CHIFFRES)',
+              context.tr('payout_lbl_rib'),
               style: GoogleFonts.cairo(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -769,7 +789,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                     border: InputBorder.none,
                     hintText: '230 780 1234567890123456 78',
                     hintStyle: TextStyle(
-                      color: Color(0xFFBBBBBB),
+                      color: MaamoraColors.disabledBorder,
                       fontSize: 13,
                     ),
                     isDense: true,
@@ -782,7 +802,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
               GestureDetector(
                 onTap: _pasteRib,
                 child: Tooltip(
-                  message: 'Coller le RIB',
+                  message: context.tr('payout_paste_rib'),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -795,7 +815,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                         const Icon(Icons.content_paste_rounded, size: 14, color: AppColors.primary),
                         const SizedBox(width: 4),
                         Text(
-                          'Coller',
+                          context.tr('payout_paste'),
                           style: GoogleFonts.cairo(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -812,7 +832,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         ),
         const SizedBox(height: 6),
         Text(
-          'Trouvez votre RIB sur votre relevé bancaire ou application bancaire mobile.',
+          context.tr('payout_rib_hint'),
           style: GoogleFonts.cairo(
             fontSize: 11,
             color: AppColors.onSurfaceVariant,
@@ -828,7 +848,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
       children: [
         // Provider Dropdown
         Text(
-          'ORGANISME DE TRANSFERT',
+          context.tr('payout_lbl_org'),
           style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -873,7 +893,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
 
         // Recipient Full Name
         Text(
-          'NOM ET PRÉNOM DU BÉNÉFICIAIRE',
+          context.tr('payout_lbl_name'),
           style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -895,10 +915,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
               fontWeight: FontWeight.w600,
               color: AppColors.onBackground,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: 'Nom complet conforme à la CIN',
-              hintStyle: TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
+              hintText: context.tr('payout_name_hint'),
+              hintStyle: TextStyle(color: MaamoraColors.textFaint, fontSize: 13),
               icon: Icon(Icons.badge_outlined, size: 20, color: AppColors.onSurfaceVariant),
             ),
           ),
@@ -907,7 +927,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
 
         // CIN
         Text(
-          'NUMÉRO DE CIN (CARTE D\'IDENTITÉ NATIONALE)',
+          context.tr('payout_lbl_cin'),
           style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -925,15 +945,20 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
           child: TextField(
             controller: _cinController,
             textCapitalization: TextCapitalization.characters,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+              TextInputFormatter.withFunction((oldValue, newValue) =>
+                  newValue.copyWith(text: newValue.text.toUpperCase())),
+            ],
             style: GoogleFonts.jetBrainsMono(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.onBackground,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: 'Ex: AB123456',
-              hintStyle: TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
+              hintText: context.tr('payout_cin_hint'),
+              hintStyle: TextStyle(color: MaamoraColors.textFaint, fontSize: 13),
               icon: Icon(Icons.credit_card_rounded, size: 20, color: AppColors.onSurfaceVariant),
             ),
           ),
@@ -942,7 +967,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
 
         // Agency Note / City
         Text(
-          'VILLE OU AGENCE SOUHAITÉE (OPTIONNEL)',
+          context.tr('payout_lbl_city'),
           style: GoogleFonts.cairo(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -964,10 +989,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
               fontWeight: FontWeight.w500,
               color: AppColors.onBackground,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: 'Ex: Agence Maârif, Casablanca',
-              hintStyle: TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
+              hintText: context.tr('payout_city_hint'),
+              hintStyle: TextStyle(color: MaamoraColors.textFaint, fontSize: 13),
               icon: Icon(Icons.location_on_outlined, size: 20, color: AppColors.onSurfaceVariant),
             ),
           ),

@@ -9,6 +9,7 @@ import '../../../shared/navigation/app_routes.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/language_toggle.dart';
+import '../../../design_system/design_system.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({
@@ -198,7 +199,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF0E3),
+        color: MaamoraColors.primarySoft,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
       ),

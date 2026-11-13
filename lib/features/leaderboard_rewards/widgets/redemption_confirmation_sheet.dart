@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../design_system/design_system.dart';
 
 // Dev 4 — Confirm Redemption sheet, opened via showModalBottomSheet from
 // rewards_screen.dart. Pure presentation: detail rows + onConfirm are
@@ -192,9 +193,9 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-const Color _surface = Color(0xFFFFFFFF);
-const Color _surfaceContainerLow = Color(0xFFFFF1EA);
-const Color _onSurface = Color(0xFF251912);
-const Color _onSurfaceVariant = Color(0xFF584236);
-const Color _outlineVariant = Color(0xFFE0C0B0);
-const Color _primaryContainer = Color(0xFFFB7701);
+const Color _surface = Colors.white;
+const Color _surfaceContainerLow = MaamoraColors.primarySoft;
+const Color _onSurface = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _outlineVariant = MaamoraColors.border;
+const Color _primaryContainer = MaamoraColors.primary;

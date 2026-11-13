@@ -8,6 +8,7 @@ import '../../core/l10n/locale_provider.dart';
 import '../../core/services/ambassador_state_provider.dart';
 import '../navigation/app_routes.dart';
 import '../theme/app_colors.dart';
+import '../../design_system/design_system.dart';
 
 /// Maamora navbar, shared by every signed-in page.
 ///
@@ -81,7 +82,7 @@ class SharedAppBar extends ConsumerWidget implements PreferredSizeWidget {
       color: Colors.white,
       child: DecoratedBox(
         decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Color(0xFFEDEDED))),
+          border: Border(bottom: BorderSide(color: MaamoraColors.disabledBg)),
         ),
         child: SafeArea(
           bottom: false,
@@ -94,13 +95,18 @@ class SharedAppBar extends ConsumerWidget implements PreferredSizeWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: [
-                      Text(
-                        'Maamora',
-                        style: GoogleFonts.cairo(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                          height: 1.1,
+                      // Tapping the brand goes back to Home (Accueil).
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => context.go(AppRoutes.dashboard),
+                        child: Text(
+                          'Maamora',
+                          style: GoogleFonts.cairo(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary,
+                            height: 1.1,
+                          ),
                         ),
                       ),
                       const Spacer(),
@@ -209,7 +215,7 @@ class _LanguageMenu extends ConsumerWidget {
       onSelected: (code) =>
           ref.read(localeProvider.notifier).set(Locale(code)),
       itemBuilder: (_) => [
-        _item('en', 'English', 'EN', current),
+        _item('fr', 'Français', 'FR', current),
         _item('ar', 'العربية', 'AR', current),
       ],
       child: Container(
@@ -217,7 +223,7 @@ class _LanguageMenu extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE3E3E3)),
+          border: Border.all(color: MaamoraColors.borderStrong),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

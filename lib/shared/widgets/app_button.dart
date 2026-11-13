@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
+import 'pressable_scale.dart';
 
 /// Maamora buttons: orange (filled), white with border (outlined), navy (dark).
 /// Rounded 16, soft colored shadow, built-in loading state.
@@ -62,7 +63,9 @@ class AppButton extends StatelessWidget {
             ],
           );
 
-    return Opacity(
+    return PressableScale(
+      enabled: !disabled,
+      child: Opacity(
       opacity: (onPressed == null && !isLoading) ? 0.5 : 1,
       child: Container(
         width: double.infinity,
@@ -89,6 +92,7 @@ class AppButton extends StatelessWidget {
             child: Center(child: content),
           ),
         ),
+      ),
       ),
     );
   }

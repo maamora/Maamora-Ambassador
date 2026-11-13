@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'app_routes.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/shared_app_bar.dart';
+import '../widgets/tier_celebration_watcher.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -50,18 +51,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: SharedAppBar(
-        title: _getTitle(_currentIndex),
-        onAvatarTap: () => context.push(AppRoutes.profile),
-      ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: SharedBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
+    // TierCelebrationWatcher watches the ambassador level and shows the
+    // cinematic tier-up overlay on promotion (presentation only).
+    return TierCelebrationWatcher(
+      child: Scaffold(
+        appBar: SharedAppBar(
+          title: _getTitle(_currentIndex),
+          onAvatarTap: () => context.push(AppRoutes.profile),
+        ),
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _pages,
+        ),
+        bottomNavigationBar: SharedBottomNavBar(
+          currentIndex: _currentIndex,
+          onTap: _onTabTapped,
+        ),
       ),
     );
   }

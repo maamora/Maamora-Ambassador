@@ -1,11 +1,14 @@
 // features/onboarding/screens/register_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../providers/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({
@@ -110,58 +113,89 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     try {
-      final result = await Supabase.instance.client
-          .rpc('verify_invite_code_status', params: {'p_code': code})
-          .maybeSingle();
+      final dynamic result = await Supabase.instance.client
+          .rpc('verify_invite_code_status', params: {'p_code': code});
 
       if (!mounted) return;
 
-      if (result == null) {
-        // Code introuvable en base
-        setState(() {
-          _isCheckingCode = false;
-          _codeError = 'Code invalide. Vérifiez que vous l\'avez copié correctement.';
-        });
-        return;
+      // Le RPC peut renvoyer : null (introuvable), une ligne (Map), une liste
+      // de lignes, un statut scalaire (String) ou un booléen — tout gérer.
+      Map<String, dynamic>? row;
+      String? status;
+      DateTime? expiresAt;
+
+      dynamic unwrap(dynamic r) {
+        if (r is List) return r.isEmpty ? null : r.first;
+        return r;
       }
 
-      final status = result['status'] as String?;
-      if (status != 'unused') {
-        // Code utilisé, expiré ou révoqué
+      final data = unwrap(result);
+      if (data == null) {
         setState(() {
           _isCheckingCode = false;
-          _codeError = 'Ce code a déjà été utilisé ou n\'est plus valide.';
+          _codeError = context.tr('reg_code_invalid');
         });
         return;
+      } else if (data is Map) {
+        row = Map<String, dynamic>.from(data);
+        status = (row['status'] ?? row['code_status'])?.toString();
+        final exp = row['expires_at']?.toString();
+        if (exp != null && exp != 'null') expiresAt = DateTime.tryParse(exp);
+      } else if (data is String) {
+        status = data;
+      } else if (data is bool) {
+        status = data ? 'unused' : 'invalid';
+      } else {
+        status = data.toString();
       }
 
-      final expiresAtStr = result['expires_at'] as String?;
-      if (expiresAtStr != null) {
-        final expiresAt = DateTime.tryParse(expiresAtStr);
-        if (expiresAt != null && DateTime.now().isAfter(expiresAt)) {
-          // Code expiré (basé sur la date)
+      // Statut effectif : un code « unused » dont la date est passée est expiré.
+      var effective = (status ?? '').toLowerCase();
+      if ((effective == 'unused' || effective == 'available' || effective.isEmpty) &&
+          expiresAt != null &&
+          DateTime.now().isAfter(expiresAt)) {
+        effective = 'expired';
+      }
+
+      switch (effective) {
+        case 'unused':
+        case 'available':
+        case 'valid':
+        case 'active':
           setState(() {
             _isCheckingCode = false;
-            _codeError = 'Ce code a expiré. Demandez un nouveau code à votre administrateur.';
+            _isCodeValidated = true;
           });
           return;
-        }
+        case 'expired':
+          setState(() {
+            _isCheckingCode = false;
+            _codeError = context.tr('reg_code_expired');
+          });
+          return;
+        case 'invalid':
+        case '':
+          setState(() {
+            _isCheckingCode = false;
+            _codeError = context.tr('reg_code_invalid');
+          });
+          return;
+        default:
+          // used, revoked, etc.
+          setState(() {
+            _isCheckingCode = false;
+            _codeError = context.tr('reg_code_used');
+          });
+          return;
       }
-
-      // ✅ Code valide
-      setState(() {
-        _isCheckingCode = false;
-        _isCodeValidated = true;
-      });
     } catch (e) {
       if (!mounted) return;
       debugPrint('[RegisterScreen] _verifyCode error: $e');
-      // Si l'erreur est liée au RLS (pas de lecture publique autorisée),
-      // on remonte l'erreur clairement plutôt que de laisser passer.
+      // Afficher la VRAIE erreur (RLS, RPC absente, réseau…) au lieu d'un
+      // message générique qui masquait la cause réelle.
       setState(() {
         _isCheckingCode = false;
-        _codeError = 'Impossible de vérifier le code : $e\n'
-            'Contactez votre administrateur si l\'erreur persiste.';
+        _codeError = context.tr('common_error', args: {'e': e.toString()});
       });
     }
   }
@@ -186,8 +220,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (!_ndaAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez accepter les conditions NDA.'),
+        SnackBar(
+          content: Text(context.tr('reg_accept_nda')),
           backgroundColor: AppColors.primary,
         ),
       );
@@ -195,11 +229,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     setState(() => _isActivating = true);
-    
+
+    // Normalisation : chiffres seuls, sans espaces ; un « 0 » de tête
+    // (0612345678) est retiré car +212 le remplace → +212612345678.
+    var phoneDigits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (phoneDigits.length == 10 && phoneDigits.startsWith('0')) {
+      phoneDigits = phoneDigits.substring(1);
+    }
+
     try {
       await ref.read(authProvider.notifier).registerAmbassador(
         fullName: name,
-        phone: '+212$phone',
+        phone: '+212$phoneDigits',
         city: city,
         inviteCode: code,
       );
@@ -219,8 +260,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   bool _isFormComplete() {
+    final digits = _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
     return _nameController.text.trim().isNotEmpty &&
-        _phoneController.text.trim().isNotEmpty &&
+        digits.length == 10 &&
         _cityController.text.trim().isNotEmpty &&
         _selectedPayout != null;
   }
@@ -238,7 +280,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final canActivate = _isCodeValidated && _isFormComplete() && _ndaAccepted && isAuthenticated;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -280,7 +322,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Activate your account',
+          context.tr('reg_title'),
           style: AppTheme.headlineXl.copyWith(
             color: AppColors.secondary,
             fontSize: 28,
@@ -296,11 +338,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               color: AppColors.onSurfaceVariant,
             ),
             const SizedBox(width: 6),
-            Text(
-              'Enter your details and invite code below',
-              style: AppTheme.bodyMd.copyWith(
-                color: AppColors.onSurfaceVariant,
-                fontSize: 13,
+            Expanded(
+              child: Text(
+                context.tr('reg_sub'),
+                style: AppTheme.bodyMd.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  fontSize: 13,
+                ),
               ),
             ),
           ],
@@ -314,7 +358,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFDF0E4), // Orange clair
+          color: MaamoraColors.primarySoft, // Orange clair
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
         ),
@@ -324,7 +368,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Validated Invite: ${_codeController.text.trim()}',
+                context.tr('reg_code_valid', args: {'code': _codeController.text.trim()}),
                 style: AppTheme.bodyMd.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
@@ -339,7 +383,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldLabel('Invite Code'),
+        _buildFieldLabel(context.tr('reg_code_lbl')),
         const SizedBox(height: 8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -347,7 +391,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             Expanded(
               child: _buildTextField(
                 controller: _codeController,
-                hint: 'e.g. SALE-7F3K',
+                hint: context.tr('reg_code_hint'),
                 icon: Icons.card_giftcard_outlined,
               ),
             ),
@@ -370,7 +414,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Vérifier'),
+                    : Text(context.tr('reg_verify')),
               ),
             ),
           ],
@@ -395,29 +439,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildFieldLabel('Full Name (as on ID)'),
+            _buildFieldLabel(context.tr('reg_name_lbl')),
             const SizedBox(height: 8),
             _buildTextField(
               controller: _nameController,
-              hint: 'Fatima Zahra',
+              hint: context.tr('reg_name_hint'),
               icon: Icons.person_outline,
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 20),
-            _buildFieldLabel('Phone Number'),
+            _buildFieldLabel(context.tr('reg_phone_lbl')),
             const SizedBox(height: 8),
             _buildPhoneInput(),
             const SizedBox(height: 20),
-            _buildFieldLabel('City or Neighborhood (Douar)'),
+            _buildFieldLabel(context.tr('reg_city_lbl')),
             const SizedBox(height: 8),
             _buildTextField(
               controller: _cityController,
-              hint: 'e.g., Salé, Tabriquet',
+              hint: context.tr('reg_city_hint'),
               icon: Icons.location_on_outlined,
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 20),
-            _buildFieldLabel('Preferred Payout Method'),
+            _buildFieldLabel(context.tr('reg_payout_lbl')),
             const SizedBox(height: 8),
             _buildPayoutDropdown(),
           ],
@@ -427,52 +471,75 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Widget _buildPhoneInput() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5DFDA)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF0E9E2),
-              borderRadius: BorderRadiusDirectional.only(
-                topStart: Radius.circular(11),
-                bottomStart: Radius.circular(11),
-              ),
-            ),
-            child: Text(
-              '+212',
-              style: AppTheme.bodyMd.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.secondary,
-              ),
+    final digits = _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final isPhoneValid = digits.length == 10;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: digits.isNotEmpty && !isPhoneValid
+                  ? Colors.red
+                  : MaamoraColors.border,
             ),
           ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              onChanged: (_) => setState(() {}),
-              style: AppTheme.bodyMd.copyWith(color: AppColors.onSurface),
-              decoration: InputDecoration(
-                hintText: '6 XX XX XX XX',
-                hintStyle: AppTheme.bodyMd.copyWith(
-                  color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                decoration: const BoxDecoration(
+                  color: MaamoraColors.surfaceLow,
+                  borderRadius: BorderRadiusDirectional.only(
+                    topStart: Radius.circular(11),
+                    bottomStart: Radius.circular(11),
+                  ),
                 ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                child: Text(
+                  '+212',
+                  style: AppTheme.bodyMd.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.secondary,
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  // Chiffres uniquement, 10 max (ex : 0612345678).
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  onChanged: (_) => setState(() {}),
+                  style: AppTheme.bodyMd.copyWith(color: AppColors.onSurface),
+                  decoration: InputDecoration(
+                    hintText: context.tr('reg_phone_hint'),
+                    hintStyle: AppTheme.bodyMd.copyWith(
+                      color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (digits.isNotEmpty && !isPhoneValid) ...[
+          const SizedBox(height: 6),
+          Text(
+            context.tr('reg_phone_err'),
+            style: const TextStyle(color: Colors.red, fontSize: 12),
           ),
         ],
-      ),
+      ],
     );
   }
 
@@ -498,7 +565,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5DFDA)),
+        border: Border.all(color: MaamoraColors.border),
       ),
       child: TextField(
         controller: controller,
@@ -532,7 +599,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5DFDA)),
+        border: Border.all(color: MaamoraColors.border),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonHideUnderline(
@@ -548,7 +615,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                'Select method...',
+                context.tr('reg_payout_hint'),
                 style: AppTheme.bodyMd.copyWith(
                   color: AppColors.onSurfaceVariant.withValues(alpha: 0.55),
                 ),
@@ -586,13 +653,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.green),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.check_circle, color: Colors.green),
             SizedBox(width: 8),
             Text(
-              'Connecté avec Google',
+              context.tr('reg_google_connected'),
               style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
             ),
           ],
@@ -606,7 +673,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white,
-          side: BorderSide(color: canSignIn ? const Color(0xFFDDD5CC) : Colors.grey.shade300),
+          side: BorderSide(color: canSignIn ? MaamoraColors.borderStrong : Colors.grey.shade300),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -628,7 +695,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Se connecter avec Google',
+                    context.tr('reg_google_btn'),
                     style: AppTheme.bodyMd.copyWith(
                       fontWeight: FontWeight.w600,
                       color: canSignIn ? AppColors.secondary : Colors.grey,
@@ -644,7 +711,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 24),
       decoration: const BoxDecoration(
-        color: Color(0xFFFFFFFF),
+        color: Colors.white,
       ),
       child: Column(
         children: [
@@ -662,7 +729,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   side: const BorderSide(
-                    color: Color(0xFFCFC7BE),
+                    color: MaamoraColors.textFaint,
                     width: 1.5,
                   ),
                   onChanged: (val) {
@@ -679,17 +746,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       fontSize: 13,
                       height: 1.4,
                     ),
-                    children: const [
-                      TextSpan(text: 'I agree to the '),
+                    children: [
+                      TextSpan(text: context.tr('reg_nda_iagree')),
                       TextSpan(
-                        text: 'Ambassador NDA Terms',
+                        text: context.tr('reg_nda_link'),
                         style: TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       TextSpan(
-                        text: ' and commit to keeping community deals confidential.',
+                        text: context.tr('reg_nda_commit'),
                       ),
                     ],
                   ),
@@ -723,11 +790,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         color: Colors.white,
                       ),
                     )
-                  : const Row(
+                  : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Activate my account',
+                          context.tr('reg_submit'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -747,7 +814,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           const SizedBox(height: 12),
           TextButton(
             onPressed: widget.onGoToLogin,
-            child: const Text('J\'ai déjà un compte'),
+            child: Text(context.tr('reg_have_account')),
           ),
         ],
       ),

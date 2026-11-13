@@ -26,6 +26,12 @@ class AppColors {
   // ── CTA ────────────────────────────────────────────────────────────────────
   static const Color primaryContainer = Color(0xFFfb7701); // orange CTA
 
+  // Accessible companions (WCAG AA on white). The brand orange is only 2.7:1
+  // on white, so SMALL orange text uses [primaryText] (4.6:1) and secondary
+  // grey text uses [textMuted] (4.5:1+). Brand colors themselves are unchanged.
+  static const Color primaryText = Color(0xFFBD5901);
+  static const Color textMuted = Color(0xFF7E746D);
+
   // ── Border ─────────────────────────────────────────────────────────────────
   static const Color cardBorder = Color(0xFFE8DDD3);
   static const Color outlineVariant = Color(0xFFE0D5C8);

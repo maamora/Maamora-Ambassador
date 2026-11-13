@@ -1,8 +1,10 @@
 // features/onboarding/screens/welcome_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../shared/theme/app_colors.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({
@@ -46,6 +48,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       CurvedAnimation(parent: _animController, curve: Curves.easeOut),
     );
     _animController.forward();
+    HapticFeedback.mediumImpact();
   }
 
   @override
@@ -55,7 +58,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   void _copyLink() {
+    HapticFeedback.lightImpact();
     Clipboard.setData(ClipboardData(text: _personalLink));
+    MaamoraToast.success(context, context.tr('share_link_copied'));
     setState(() => _linkCopied = true);
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) setState(() => _linkCopied = false);
@@ -65,69 +70,93 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
+      backgroundColor: MaamoraColors.scaffold,
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeIn,
-          child: SlideTransition(
-            position: _slideUp,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 32,
-                  ),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              _buildSuccessIcon(),
-                              const SizedBox(height: 24),
-                              _buildTitle(),
-                              const SizedBox(height: 32),
-                              _buildLinkCard(),
-                              const SizedBox(height: 24),
-                              _buildInfoCard(),
-                            ],
-                          ),
-                        ),
+        child: Stack(
+          children: [
+            // One-shot confetti burst on arrival — the activation reward moment.
+            const Positioned.fill(
+              child: IgnorePointer(child: MaamoraConfetti()),
+            ),
+            FadeTransition(
+              opacity: _fadeIn,
+              child: SlideTransition(
+                position: _slideUp,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 32,
                       ),
-                      _buildActions(),
-                    ],
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: MaamoraStagger(
+                                children: [
+                                  _buildSuccessIcon(),
+                                  const SizedBox(height: 24),
+                                  _buildTitle(),
+                                  const SizedBox(height: 32),
+                                  _buildLinkCard(),
+                                  const SizedBox(height: 24),
+                                  _buildInfoCard(),
+                                ],
+                              ),
+                            ),
+                          ),
+                          _buildActions(),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildSuccessIcon() {
-    return Container(
-      width: 90,
-      height: 90,
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.12),
-        shape: BoxShape.circle,
-      ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.6, end: 1.0),
+      duration: MaamoraDurations.slow,
+      curve: Curves.easeOutBack,
+      builder: (context, t, child) {
+        return Transform.scale(scale: t, child: child);
+      },
       child: Center(
         child: Container(
-          width: 64,
-          height: 64,
-          decoration: const BoxDecoration(
-            color: AppColors.primary,
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            color: MaamoraColors.surface,
             shape: BoxShape.circle,
+            border: Border.all(color: MaamoraColors.primaryHairline, width: 2),
+            boxShadow: MaamoraShadows.glow(MaamoraColors.primary, 0.28),
           ),
-          child: const Icon(
-            Icons.check,
-            color: Colors.white,
-            size: 32,
+          child: Center(
+            child: Container(
+              width: 68,
+              height: 68,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: MaamoraGradients.heroOrange,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                MaamoraIcons.checkFilled,
+                color: Colors.white,
+                size: 34,
+              ),
+            ),
           ),
         ),
       ),
@@ -138,35 +167,22 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return Column(
       children: [
         Text(
-          'You\'re activated! 🎉',
+          context.tr('welcome_title'),
           textAlign: TextAlign.center,
-          style: AppTheme.headlineXl.copyWith(
-            color: AppColors.secondary,
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-          ),
+          style: MaamoraTheme.screenTitle().copyWith(fontSize: 28),
         ),
         const SizedBox(height: 10),
         Text(
-          'Welcome to the Maamora Ambassador\nprogram. Your account is live.',
+          context.tr('welcome_sub'),
           textAlign: TextAlign.center,
-          style: AppTheme.bodyLg.copyWith(
-            color: AppColors.onSurfaceVariant,
-            fontSize: 15,
-          ),
+          style: MaamoraTheme.support().copyWith(fontSize: 14.5),
         ),
       ],
     );
   }
 
   Widget _buildLinkCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE8DDD3)),
-      ),
+    return MaamoraCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -175,23 +191,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  color: MaamoraColors.primarySoft,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
-                  Icons.link,
-                  color: AppColors.primary,
+                  MaamoraIcons.link,
+                  color: MaamoraColors.primary,
                   size: 18,
                 ),
               ),
               const SizedBox(width: 10),
               Text(
-                'Your personal link',
-                style: AppTheme.headlineSm.copyWith(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.secondary,
-                ),
+                context.tr('welcome_link_title'),
+                style: MaamoraTheme.sectionHeader().copyWith(fontSize: 15),
               ),
             ],
           ),
@@ -199,19 +211,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFFFF),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE8DFDA)),
+              color: MaamoraColors.surfaceLow,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: MaamoraColors.border),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     _personalLink,
-                    style: AppTheme.bodyMd.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondary,
+                    style: GoogleFonts.cairo(
                       fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: MaamoraColors.textPrimary,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -221,19 +233,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   onTap: _copyLink,
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
-                    child: _linkCopied
-                        ? const Icon(
-                            Icons.check,
-                            key: ValueKey('check'),
-                            color: AppColors.primary,
-                            size: 20,
-                          )
-                        : const Icon(
-                            Icons.copy_outlined,
-                            key: ValueKey('copy'),
-                            color: AppColors.onSurfaceVariant,
-                            size: 20,
-                          ),
+                    child: Icon(
+                      _linkCopied ? MaamoraIcons.check : MaamoraIcons.copy,
+                      key: ValueKey(_linkCopied),
+                      color: _linkCopied
+                          ? MaamoraColors.primary
+                          : MaamoraColors.textSecondary,
+                      size: 20,
+                    ),
                   ),
                 ),
               ],
@@ -241,11 +248,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Share this link to earn commissions on every order.',
-            style: AppTheme.bodySm.copyWith(
-              color: AppColors.onSurfaceVariant,
-              fontSize: 12,
-            ),
+            context.tr('welcome_link_sub'),
+            style: MaamoraTheme.support().copyWith(fontSize: 12),
           ),
         ],
       ),
@@ -256,27 +260,26 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.2),
-        ),
+        color: MaamoraColors.primarySoft,
+        borderRadius: BorderRadius.circular(MaamoraRadius.cardSm),
+        border: Border.all(color: MaamoraColors.primaryHairline),
       ),
       child: Row(
         children: [
           const Icon(
-            Icons.star_outline_rounded,
-            color: AppColors.primary,
+            MaamoraIcons.sparkles,
+            color: MaamoraColors.primary,
             size: 22,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'You start at Starter level — 4% commission. Complete 6 orders to reach Bronze and unlock 6%.',
-              style: AppTheme.bodyMd.copyWith(
-                color: AppColors.secondary,
+              'Tu démarres au niveau Starter — 4% de commission. Réalise 6 commandes pour atteindre Bronze et débloquer 6%.',
+              style: GoogleFonts.cairo(
                 fontSize: 13,
-                height: 1.4,
+                fontWeight: FontWeight.w500,
+                color: MaamoraColors.textPrimary,
+                height: 1.45,
               ),
             ),
           ),
@@ -289,69 +292,30 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return Column(
       children: [
         // Share on WhatsApp
-        SizedBox(
-          width: double.infinity,
-          height: 54,
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF25D366),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            onPressed: () {
-              // Static – no backend. In production: launch WhatsApp share URL.
-            },
-            icon: const Icon(Icons.chat_bubble_outline, size: 20),
-            label: const Text(
-              'Share on WhatsApp',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
+        MaamoraButton(
+          label: context.tr('welcome_share'),
+          leadingIcon: MaamoraIcons.whatsapp,
+          variant: MaamoraButtonVariant.whatsapp,
+          onPressed: () {
+            HapticFeedback.mediumImpact();
+            // Static – no backend. In production: launch WhatsApp share URL.
+          },
         ),
         const SizedBox(height: 12),
         // See how levels work
-        SizedBox(
-          width: double.infinity,
-          height: 54,
-          child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFFDDD5CC)),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              backgroundColor: Colors.white,
-            ),
-            onPressed: widget.onSeeHowLevelsWork,
-            icon: const Icon(
-              Icons.bar_chart_rounded,
-              color: AppColors.secondary,
-              size: 20,
-            ),
-            label: Text(
-              'See how levels work',
-              style: AppTheme.bodyMd.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.secondary,
-              ),
-            ),
-          ),
+        MaamoraButton(
+          label: context.tr('welcome_levels'),
+          leadingIcon: MaamoraIcons.board,
+          variant: MaamoraButtonVariant.outlined,
+          height: 52,
+          onPressed: widget.onSeeHowLevelsWork,
         ),
-        const SizedBox(height: 16),
-        TextButton(
+        const SizedBox(height: 14),
+        MaamoraButton(
+          label: context.tr('welcome_dash'),
+          variant: MaamoraButtonVariant.ghost,
+          height: 44,
           onPressed: widget.onGoToDashboard,
-          child: Text(
-            'Go to my dashboard →',
-            style: AppTheme.bodyMd.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
         ),
       ],
     );

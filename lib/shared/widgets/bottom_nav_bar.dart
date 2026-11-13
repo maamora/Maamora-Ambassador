@@ -1,145 +1,153 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../core/l10n/app_strings.dart';
-import '../theme/app_colors.dart';
+import 'package:flutter/services.dart';
 
-/// Bottom bar in the Maamora design: rounded top, outline icons, orange active
-/// state and a raised orange circle in the middle (Share).
-/// 4 tabs, matching the wireframe exactly: Home · Board · Share · Wallet.
+import '../../design_system/design_system.dart';
+
+/// Bottom bar, Maamora style — icon-only, like the approved reference:
+/// • 4 equal tabs (Accueil · Leaders · Partage · Portefeuille), no labels —
+///   the page title lives in the SharedAppBar above.
+/// • Active tab: a soft orange squircle (`primarySoft`) with the custom
+///   filled glyph in full `primary`, with a 1.0 → 1.15 spring + haptics.
+/// • Inactive tabs: quiet slate outline icons, no background.
 /// Profile is reached from the avatar in the top bar, not from here.
-/// Indexes: 0 Home, 1 Board, 2 Share (center), 3 Wallet.
-class SharedBottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final Function(int) onTap;
-
+class SharedBottomNavBar extends StatefulWidget {
   const SharedBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
   });
 
+  final int currentIndex;
+  final Function(int) onTap;
+
+  @override
+  State<SharedBottomNavBar> createState() => _SharedBottomNavBarState();
+}
+
+class _SharedBottomNavBarState extends State<SharedBottomNavBar> {
+  @override
+  void didUpdateWidget(covariant SharedBottomNavBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentIndex != oldWidget.currentIndex) {
+      HapticFeedback.selectionClick();
+    }
+  }
+
+  void _onTap(int index) {
+    if (index == widget.currentIndex) return;
+    HapticFeedback.lightImpact();
+    widget.onTap(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).padding.bottom;
 
     return SizedBox(
-      height: 86 + bottom,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 68 + bottom,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.07),
-                    blurRadius: 20,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
+      height: 84 + bottom,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: MaamoraColors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: MaamoraColors.shadowInk.withValues(alpha: 0.10),
+              blurRadius: 24,
+              offset: const Offset(0, -6),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottom),
+          child: Row(
+            children: [
+              _tab(0, MaamoraIcons.home, MaamoraFilledGlyph.house),
+              _tab(1, MaamoraIcons.board, MaamoraFilledGlyph.trophy),
+              _tab(2, MaamoraIcons.share, MaamoraFilledGlyph.share),
+              _tab(3, MaamoraIcons.wallet, MaamoraFilledGlyph.wallet),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Icon-only tab. Active: soft orange squircle + filled orange glyph.
+  /// Inactive: quiet slate outline icon on transparent background.
+  Widget _tab(int index, IconData icon, MaamoraFilledGlyph glyph) {
+    final active = widget.currentIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _onTap(index),
+        child: Center(
+          child: Container(
+            width: 58,
+            height: 58,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active ? MaamoraColors.primarySoft : Colors.transparent,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: _AnimatedNavIcon(
+              outline: icon,
+              glyph: glyph,
+              active: active,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Crossfades Lucide 200 outline → filled custom glyph and springs up
+/// on active, so the selected tab morphs instead of abruptly switching.
+class _AnimatedNavIcon extends StatelessWidget {
+  const _AnimatedNavIcon({
+    required this.outline,
+    required this.glyph,
+    required this.active,
+  });
+
+  final IconData outline;
+  final MaamoraFilledGlyph glyph;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: active ? 1 : 0),
+      duration: MaamoraDurations.normal * 2,
+      curve: Curves.easeOutBack,
+      builder: (context, t, child) {
+        final tc = t.clamp(0.0, 1.0);
+        return Transform.scale(
+          scale: 1.0 + 0.15 * tc,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                outline,
+                size: 26,
+                color: Color.lerp(
+                  MaamoraColors.textSecondary,
+                  MaamoraColors.primary,
+                  tc,
+                ),
               ),
-            ),
+              Opacity(
+                opacity: tc,
+                child: child,
+              ),
+            ],
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: bottom,
-            height: 86,
-            child: Row(
-              children: [
-                _tab(context, 0, Icons.home_outlined, 'nav_home'),
-                _tab(context, 1, Icons.emoji_events_outlined, 'nav_board'),
-                _centerTab(context, 2, Icons.share_outlined, 'nav_share'),
-                _tab(context, 3, Icons.account_balance_wallet_outlined,
-                    'nav_wallet'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _label(BuildContext context, String key, bool active) => Text(
-        context.tr(key),
-        style: GoogleFonts.cairo(
-          fontSize: 11,
-          fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-          color: active ? AppColors.primary : AppColors.onSurfaceVariant,
-        ),
-      );
-
-  Widget _tab(BuildContext context, int index, IconData icon, String key) {
-    final active = currentIndex == index;
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onTap(index),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 24,
-                  color: active ? AppColors.primary : AppColors.onSurfaceVariant,
-                ),
-                const SizedBox(height: 4),
-                _label(context, key, active),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _centerTab(
-      BuildContext context, int index, IconData icon, String key) {
-    final active = currentIndex == index;
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onTap(index),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.4),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 26),
-                ),
-                const SizedBox(height: 4),
-                _label(context, key, active),
-              ],
-            ),
-          ),
-        ),
+        );
+      },
+      child: MaamoraFilledIcon(
+        glyph: glyph,
+        color: MaamoraColors.primary,
+        size: 26,
       ),
     );
   }

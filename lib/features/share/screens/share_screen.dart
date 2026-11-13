@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,16 +10,19 @@ import '../../profile/providers/profile_provider.dart';
 import '../services/native_share_service.dart';
 import '../widgets/edit_message_bottom_sheet.dart';
 import '../../../shared/widgets/design_kit.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
-// ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
-const Color _whatsappGreen = Color(0xFF25D366);
-const Color _whatsappBubble = Color(0xFFDCF8C6);
+// ── Design tokens: mapped to the central charte (zero hardcoded hex) ────────
+const Color _primary = MaamoraColors.primary;
+const Color _background = MaamoraColors.scaffold;
+const Color _surface = MaamoraColors.surface;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
+// Derived from the charte: WhatsApp green + bubble are semantic third-party
+// brand colors, kept as derivatives of the success container family.
+const Color _whatsappBubble = MaamoraColors.successSoft;
 
 class ShareScreen extends ConsumerStatefulWidget {
   const ShareScreen({super.key});
@@ -48,7 +53,8 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
   }
 
   String _getDefaultMessage(String city, String fullLink) {
-    return 'Assalamu alaikum neighbors! 👋\n\nJoin my Maamora group for the best deals on bulk groceries in $city. We buy together, we save together! 🛒✨\n\nClick here to join my group:\n$fullLink';
+    return context.tr('share_default_msg',
+        args: {'city': city, 'link': fullLink});
   }
 
   Future<void> _loadSavedData({
@@ -160,13 +166,13 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
-                children: const [
+                children: [
                   Icon(Icons.content_paste_rounded, color: Colors.white, size: 20),
                   SizedBox(width: 8),
-                  Text('Lien collé et message synchronisé ! ✨'),
+                  Text(context.tr('share_pasted_synced')),
                 ],
               ),
-              backgroundColor: const Color(0xFF2E7D32),
+              backgroundColor: MaamoraColors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               duration: const Duration(seconds: 2),
@@ -176,8 +182,8 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Presse-papiers vide'),
+            SnackBar(
+              content: Text(context.tr('share_clipboard_empty')),
               duration: Duration(seconds: 2),
             ),
           );
@@ -195,8 +201,8 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     });
     _persistData(_currentAmbassadorId, _defaultLink, defaultMsg);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Lien et message réinitialisés au défaut'),
+      SnackBar(
+        content: Text(context.tr('share_reset_done')),
         duration: Duration(seconds: 2),
       ),
     );
@@ -220,13 +226,13 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
-            children: const [
+            children: [
               Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
               SizedBox(width: 8),
-              Text('Message WhatsApp mis à jour !'),
+              Text(context.tr('share_msg_updated')),
             ],
           ),
-          backgroundColor: const Color(0xFF2E7D32),
+          backgroundColor: MaamoraColors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           duration: const Duration(seconds: 2),
@@ -300,7 +306,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                   const SizedBox(width: 24),
                   Expanded(
                     child: Text(
-                      'Votre QR Code Maamora',
+                      context.tr('share_qr_title'),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.cairo(
                         fontSize: 18,
@@ -314,7 +320,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
+                        color: MaamoraColors.surfaceLow,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Icon(Icons.close_rounded, size: 18, color: _onSurfaceVariant),
@@ -324,7 +330,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Faites scanner ce code pour rejoindre directement votre groupe.',
+                context.tr('share_qr_sub'),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.cairo(
                   fontSize: 13,
@@ -366,7 +372,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                       errorStateBuilder: (cxt, err) {
                         return Center(
                           child: Text(
-                            'Impossible de générer le QR code',
+                            context.tr('share_qr_error'),
                             textAlign: TextAlign.center,
                             style: GoogleFonts.cairo(fontSize: 12, color: Colors.red),
                           ),
@@ -402,14 +408,14 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                     Clipboard.setData(ClipboardData(text: linkToCopy));
                     Navigator.of(ctx).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Lien copié dans le presse-papiers'),
+                      SnackBar(
+                        content: Text(context.tr('share_copied_clipboard')),
                         duration: Duration(seconds: 2),
                       ),
                     );
                   },
                   icon: const Icon(Icons.content_copy_outlined, size: 18),
-                  label: const Text('Copier le lien'),
+                  label: Text(context.tr('share_copy_link')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primary,
                     foregroundColor: Colors.white,
@@ -434,9 +440,9 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
       backgroundColor: _background,
       body: profileAsync.when(
         loading: () => const AppLoader(),
-        error: (err, _) => Center(child: Text('Error: $err')),
+        error: (err, _) => Center(child: Text(context.tr('common_error', args: {'e': err.toString()}))),
         data: (ambassador) {
-          if (ambassador == null) return const Center(child: Text('Not logged in'));
+          if (ambassador == null) return Center(child: Text(context.tr('common_not_logged_in')));
 
           final defaultFullLink = 'maamora.ma/join/${ambassador.referralSlug}';
 
@@ -453,6 +459,8 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
 
           return SafeArea(
             child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                  parent: ClampingScrollPhysics()),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -460,26 +468,26 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                   const SizedBox(height: 8),
                   // Title
                   Text(
-                    'Share your link',
-                    style: GoogleFonts.cairo(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: _onBackground,
-                    ),
+                    context.tr('share_title'),
+                    style: MaamoraTheme.screenTitle(),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
-                    'Invite your neighbors and start earning\ntogether.',
-                    style: GoogleFonts.cairo(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: _onSurfaceVariant,
-                      height: 1.5,
-                    ),
+                    context.tr('share_subtitle'),
+                    style: MaamoraTheme.support(),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+
+                  // ⭐ Premium share card — flip 3D au tap pour révéler le code.
+                  _FlipShareCard(
+                    displayName:
+                        (ambassador.fullName.split(' ').first),
+                    referralSlug: ambassador.referralSlug,
+                    link: effectiveLink,
+                  ),
+                  const SizedBox(height: 20),
 
                   // Editable & Pasteable Referral Link Box
                   _ReferralLinkBox(
@@ -491,11 +499,10 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                     onReset: _resetLinkToDefault,
                     onCopy: () {
                       Clipboard.setData(ClipboardData(text: effectiveLink));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Lien copié dans le presse-papiers'),
-                          duration: Duration(seconds: 2),
-                        ),
+                      MaamoraToast.success(
+                        context,
+                        context.tr('share_link_copied'),
+                        subtitle: context.tr('share_ready_whatsapp'),
                       );
                     },
                     onQrTap: () => _showQrDialog(context, effectiveLink, ambassador.referralSlug),
@@ -524,6 +531,288 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+// ── Flip Share Card ⭐ — face ou code+QR, flip 3D au tap ─────────────────────
+
+class _FlipShareCard extends StatefulWidget {
+  const _FlipShareCard({
+    required this.displayName,
+    required this.referralSlug,
+    required this.link,
+  });
+
+  final String displayName;
+  final String referralSlug;
+  final String link;
+
+  @override
+  State<_FlipShareCard> createState() => _FlipShareCardState();
+}
+
+class _FlipShareCardState extends State<_FlipShareCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 600),
+  );
+  bool _showBack = false;
+
+  void _flip() {
+    HapticFeedback.lightImpact();
+    if (_showBack) {
+      _c.reverse();
+    } else {
+      _c.forward();
+    }
+    _showBack = !_showBack;
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _flip,
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (context, child) {
+          final angle = _c.value * pi;
+          final front = _FrontShareCard(
+            displayName: widget.displayName,
+            referralSlug: widget.referralSlug,
+          );
+          final back = _BackShareCard(
+            referralSlug: widget.referralSlug.toUpperCase(),
+            link: widget.link,
+            onCopy: () {
+              Clipboard.setData(ClipboardData(text: widget.link));
+              MaamoraToast.success(context, context.tr('share_code_copied'));
+              _flip();
+            },
+          );
+          // 3D flip with perspective; front shows while angle < 90°.
+          return Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.0012)
+              ..rotateY(angle),
+            child: angle < pi / 2
+                ? _RoundWrap(child: front)
+                : Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.identity()..rotateY(pi),
+                    child: _RoundWrap(child: back),
+                  ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _RoundWrap extends StatelessWidget {
+  const _RoundWrap({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(MaamoraRadius.card),
+        boxShadow: MaamoraShadows.raised,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(MaamoraRadius.card),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _FrontShareCard extends StatelessWidget {
+  const _FrontShareCard({
+    required this.displayName,
+    required this.referralSlug,
+  });
+
+  final String displayName;
+  final String referralSlug;
+
+  @override
+  Widget build(BuildContext context) {
+    final code =
+        referralSlug.length > 6 ? referralSlug.toUpperCase() : referralSlug;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [MaamoraGradients.heroNavyFrom, MaamoraColors.textPrimary],
+        ),
+      ),
+      child: Stack(
+        children: [
+          const Positioned.fill(child: MaamoraParticles(count: 10)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: MaamoraColors.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: MaamoraShadows.glow(MaamoraColors.primary),
+                    ),
+                    child: const Icon(
+                      MaamoraIcons.crown,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$displayName · Maamora Ambassador',
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.cairo(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          context.tr('share_card_tag'),
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+              Text(
+                'MAAMORA.MA/J',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.4,
+                  color: Colors.white.withValues(alpha: 0.65),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      code,
+                      style: GoogleFonts.cairo(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.6,
+                        color: MaamoraColors.tierGold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Icon(
+                  MaamoraIcons.qrCode,
+                  color: Colors.white.withValues(alpha: 0.5),
+                  size: 22,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BackShareCard extends StatelessWidget {
+  const _BackShareCard({
+    required this.referralSlug,
+    required this.link,
+    required this.onCopy,
+  });
+
+  final String referralSlug;
+  final String link;
+  final VoidCallback onCopy;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [MaamoraGradients.heroOrangeTo, MaamoraColors.primary],
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            context.tr('share_my_code'),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.4,
+              color: Colors.white.withValues(alpha: 0.8),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: MaamoraShadows.soft,
+            ),
+            child: Text(
+              referralSlug,
+              style: GoogleFonts.cairo(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2,
+                color: MaamoraColors.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          MaamoraButton(
+            label: context.tr('share_copy_link'),
+            leadingIcon: MaamoraIcons.copy,
+            onPressed: onCopy,
+            height: 44,
+          ),
+        ],
       ),
     );
   }
@@ -579,10 +868,10 @@ class _ReferralLinkBox extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 color: _onBackground,
               ),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 border: InputBorder.none,
                 isDense: true,
-                hintText: 'Collez ou saisissez votre lien ici...',
+                hintText: context.tr('share_paste_hint'),
                 hintStyle: TextStyle(
                   color: _onSurfaceVariant,
                   fontSize: 13,
@@ -598,11 +887,11 @@ class _ReferralLinkBox extends StatelessWidget {
             GestureDetector(
               onTap: onReset,
               child: Tooltip(
-                message: 'Réinitialiser au lien par défaut',
+                message: context.tr('share_reset'),
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
+                    color: MaamoraColors.surfaceLow,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.restart_alt_rounded, color: _onSurfaceVariant, size: 18),
@@ -616,11 +905,11 @@ class _ReferralLinkBox extends StatelessWidget {
           GestureDetector(
             onTap: onPaste,
             child: Tooltip(
-              message: 'Coller depuis le presse-papiers',
+              message: context.tr('share_paste_clipboard'),
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0E6),
+                  color: MaamoraColors.primarySoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.content_paste_rounded, color: _primary, size: 19),
@@ -633,11 +922,11 @@ class _ReferralLinkBox extends StatelessWidget {
           GestureDetector(
             onTap: onCopy,
             child: Tooltip(
-              message: 'Copier le lien',
+              message: context.tr('share_copy_link'),
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0E6),
+                  color: MaamoraColors.primarySoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.content_copy_outlined, color: _primary, size: 19),
@@ -650,11 +939,11 @@ class _ReferralLinkBox extends StatelessWidget {
           GestureDetector(
             onTap: onQrTap,
             child: Tooltip(
-              message: 'Afficher le QR code',
+              message: context.tr('share_show_qr'),
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0E6),
+                  color: MaamoraColors.primarySoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.qr_code_rounded, color: _primary, size: 19),
@@ -751,7 +1040,7 @@ class _MessagePreviewSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'MESSAGE PREVIEW',
+              context.tr('share_msg_preview'),
               style: GoogleFonts.cairo(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -769,7 +1058,7 @@ class _MessagePreviewSection extends StatelessWidget {
                     const Icon(Icons.edit_outlined, size: 14, color: _primary),
                     const SizedBox(width: 4),
                     Text(
-                      'Modifier',
+                      context.tr('share_edit'),
                       style: GoogleFonts.cairo(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -830,7 +1119,7 @@ class _MessagePreviewSection extends StatelessWidget {
                           ),
                           const SizedBox(width: 2),
                           Text(
-                            'Tap to edit',
+                            context.tr('share_edit'),
                             style: GoogleFonts.cairo(
                               fontSize: 10,
                               color: _onSurfaceVariant.withValues(alpha: 0.8),
@@ -867,29 +1156,18 @@ class _WhatsAppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 54,
-      child: ElevatedButton.icon(
-        onPressed: () => NativeShareService.shareCustomMessage(message: message),
-        icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-        label: Text(
-          'Send to WhatsApp group',
-          style: GoogleFonts.cairo(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _whatsappGreen,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      ),
+    return MaamoraButton(
+      label: context.tr('share_send_group'),
+      leadingIcon: MaamoraIcons.send,
+      variant: MaamoraButtonVariant.whatsapp,
+      gradient: const [
+        MaamoraColors.whatsappLight, // WhatsApp green lightened (brand brand)
+        MaamoraColors.whatsapp,
+      ],
+      onPressed: () {
+        HapticFeedback.mediumImpact();
+        NativeShareService.shareCustomMessage(message: message);
+      },
     );
   }
 }

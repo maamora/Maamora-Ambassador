@@ -3,14 +3,16 @@ import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/admin_status_badge.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
+const Color _primary = MaamoraColors.primary;
+const Color _background = Colors.white;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
 
 class AdminCommissionsScreen extends StatefulWidget {
   const AdminCommissionsScreen({super.key});
@@ -73,7 +75,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Impossible de charger les données: $e';
+        _errorMessage = context.tr('ad_comm_load_err');
         _isLoading = false;
       });
     }
@@ -116,7 +118,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
     }
 
     if (_payouts.isEmpty) {
-      return const Center(child: Text('Aucun paiement trouvé.'));
+      return Center(child: Text(context.tr('ad_pay_empty')));
     }
 
     return ListView.separated(
@@ -137,7 +139,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Commissions & Paiements',
+            context.tr('ad_comm_title'),
             style: GoogleFonts.cairo(
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -151,17 +153,17 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
                 child: _SummaryChip(
                   label: 'Payées',
                   value: '${totalPaid.toStringAsFixed(0)} DH',
-                  color: const Color(0xFF2E7D32),
-                  bgColor: const Color(0xFFDCEEE3),
+                  color: MaamoraColors.success,
+                  bgColor: MaamoraColors.successSoft,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _SummaryChip(
-                  label: 'En attente',
+                  label: context.tr('ad_pending'),
                   value: '${totalPending.toStringAsFixed(0)} DH',
-                  color: const Color(0xFF7A4800),
-                  bgColor: const Color(0xFFFCEBC9),
+                  color: MaamoraColors.warningDeep,
+                  bgColor: MaamoraColors.warningSoft,
                 ),
               ),
             ],
@@ -227,7 +229,7 @@ class _PayoutRow extends StatelessWidget {
     if (parts.isNotEmpty && parts[0].isNotEmpty) initials += parts[0][0].toUpperCase();
     if (parts.length > 1 && parts[1].isNotEmpty) initials += parts[1][0].toUpperCase();
 
-    final method = payoutData['method'] == 'bank' ? 'Virement Bancaire' : 'Espèces (Cash)';
+    final method = payoutData['method'] == 'bank' ? context.tr('wallet_tx_bank') : context.tr('wallet_tx_cash');
     final ref = payoutData['reference'] != null ? ' - ${payoutData['reference']}' : '';
     final details = '$method$ref';
     
@@ -261,7 +263,7 @@ class _PayoutRow extends StatelessWidget {
           // Avatar
           CircleAvatar(
             radius: 20,
-            backgroundColor: const Color(0xFFE8DDD3),
+            backgroundColor: MaamoraColors.border,
             child: Text(
               initials,
               style: GoogleFonts.cairo(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens (match project palette) ─────────────────────────────────
-const Color _onBackground = Color(0xFF1A2433);
+const Color _onBackground = MaamoraColors.textPrimary;
 
 /// Reusable colored badge for admin status labels.
 ///
@@ -27,7 +29,7 @@ class AdminStatusBadge extends StatelessWidget {
         border: Border.all(color: config.border, width: 1),
       ),
       child: Text(
-        config.label,
+        _badgeLabel(context, status),
         style: GoogleFonts.cairo(
           fontSize: 11,
           fontWeight: FontWeight.w700,
@@ -42,14 +44,48 @@ class _BadgeConfig {
   final Color background;
   final Color border;
   final Color foreground;
-  final String label;
 
   const _BadgeConfig({
     required this.background,
     required this.border,
     required this.foreground,
-    required this.label,
   });
+}
+
+/// Translated label per status code.
+String _badgeLabel(BuildContext context, String status) {
+  switch (status.toLowerCase()) {
+    case 'unused':
+      return context.tr('ad_badge_unused');
+    case 'used':
+      return context.tr('ad_badge_used');
+    case 'expired':
+      return context.tr('ad_badge_expired');
+    case 'revoked':
+      return context.tr('ad_badge_revoked');
+    case 'pending':
+      return context.tr('ad_pending');
+    case 'active':
+      return context.tr('ad_badge_active');
+    case 'rejected':
+      return context.tr('ad_badge_rejected');
+    case 'suspended':
+      return context.tr('ad_badge_suspended');
+    case 'paid':
+      return context.tr('ad_badge_paid');
+    case 'failed':
+      return context.tr('ad_badge_failed');
+    case 'full':
+      return context.tr('ad_badge_full');
+    case 'open':
+      return context.tr('ad_badge_open');
+    case 'closed':
+      return context.tr('ad_badge_closed');
+    case 'commission_paid':
+      return context.tr('ad_comm_paid');
+    default:
+      return status;
+  }
 }
 
 _BadgeConfig _badgeConfig(String status) {
@@ -57,115 +93,100 @@ _BadgeConfig _badgeConfig(String status) {
     // ── Invite code statuses ──────────────────────────────────────────────
     case 'unused':
       return const _BadgeConfig(
-        background: Color(0xFFDCEEE3),
-        border: Color(0xFF88C4A0),
-        foreground: Color(0xFF1B4332),
-        label: 'Unused',
+        background: MaamoraColors.successSoft,
+        border: MaamoraColors.successEdge,
+        foreground: MaamoraColors.successOn,
       );
     case 'used':
       return const _BadgeConfig(
-        background: Color(0xFFE8DDD3),
-        border: Color(0xFFB8A898),
+        background: MaamoraColors.border,
+        border: MaamoraColors.borderStrong,
         foreground: _onBackground,
-        label: 'Used',
       );
     case 'expired':
       return const _BadgeConfig(
-        background: Color(0xFFF9DEDC),
-        border: Color(0xFFE8A8A4),
-        foreground: Color(0xFF8B1E1A),
-        label: 'Expired',
+        background: MaamoraColors.dangerSoft,
+        border: MaamoraColors.dangerEdge,
+        foreground: MaamoraColors.dangerDeep,
       );
     case 'revoked':
       return const _BadgeConfig(
-        background: Color(0xFFEEEEEE),
-        border: Color(0xFFBBBBBB),
-        foreground: Color(0xFF555555),
-        label: 'Revoked',
+        background: MaamoraColors.disabledBg,
+        border: MaamoraColors.disabledBorder,
+        foreground: MaamoraColors.disabledFg,
       );
 
     // ── Ambassador statuses ───────────────────────────────────────────────
     case 'pending':
       return const _BadgeConfig(
-        background: Color(0xFFFCEBC9),
-        border: Color(0xFFE8C070),
-        foreground: Color(0xFF7A4800),
-        label: 'Pending',
+        background: MaamoraColors.warningSoft,
+        border: MaamoraColors.warningEdge,
+        foreground: MaamoraColors.warningDeep,
       );
     case 'active':
       return const _BadgeConfig(
-        background: Color(0xFFDCEEE3),
-        border: Color(0xFF88C4A0),
-        foreground: Color(0xFF1B4332),
-        label: 'Active',
+        background: MaamoraColors.successSoft,
+        border: MaamoraColors.successEdge,
+        foreground: MaamoraColors.successOn,
       );
     case 'rejected':
       return const _BadgeConfig(
-        background: Color(0xFFF9DEDC),
-        border: Color(0xFFE8A8A4),
-        foreground: Color(0xFF8B1E1A),
-        label: 'Rejected',
+        background: MaamoraColors.dangerSoft,
+        border: MaamoraColors.dangerEdge,
+        foreground: MaamoraColors.dangerDeep,
       );
     case 'suspended':
       return const _BadgeConfig(
-        background: Color(0xFFEEEEEE),
-        border: Color(0xFFBBBBBB),
-        foreground: Color(0xFF555555),
-        label: 'Suspended',
+        background: MaamoraColors.disabledBg,
+        border: MaamoraColors.disabledBorder,
+        foreground: MaamoraColors.disabledFg,
       );
 
     // ── Commission statuses ───────────────────────────────────────────────
     case 'paid':
       return const _BadgeConfig(
-        background: Color(0xFFDCEEE3),
-        border: Color(0xFF88C4A0),
-        foreground: Color(0xFF1B4332),
-        label: 'Paid',
+        background: MaamoraColors.successSoft,
+        border: MaamoraColors.successEdge,
+        foreground: MaamoraColors.successOn,
       );
     case 'failed':
       return const _BadgeConfig(
-        background: Color(0xFFF9DEDC),
-        border: Color(0xFFE8A8A4),
-        foreground: Color(0xFF8B1E1A),
-        label: 'Failed',
+        background: MaamoraColors.dangerSoft,
+        border: MaamoraColors.dangerEdge,
+        foreground: MaamoraColors.dangerDeep,
       );
 
     // ── Group statuses ────────────────────────────────────────────────────
     case 'full':
       return const _BadgeConfig(
-        background: Color(0xFFFCEBC9),
-        border: Color(0xFFE8C070),
-        foreground: Color(0xFF7A4800),
-        label: '15/15 Full',
+        background: MaamoraColors.warningSoft,
+        border: MaamoraColors.warningEdge,
+        foreground: MaamoraColors.warningDeep,
       );
     case 'open':
       return const _BadgeConfig(
-        background: Color(0xFFDCEEE3),
-        border: Color(0xFF88C4A0),
-        foreground: Color(0xFF1B4332),
-        label: 'Open',
+        background: MaamoraColors.successSoft,
+        border: MaamoraColors.successEdge,
+        foreground: MaamoraColors.successOn,
       );
     case 'closed':
       return const _BadgeConfig(
-        background: Color(0xFFEEEEEE),
-        border: Color(0xFFBBBBBB),
-        foreground: Color(0xFF555555),
-        label: 'Closed',
+        background: MaamoraColors.disabledBg,
+        border: MaamoraColors.disabledBorder,
+        foreground: MaamoraColors.disabledFg,
       );
     case 'commission_paid':
       return const _BadgeConfig(
-        background: Color(0xFFDCEEE3),
-        border: Color(0xFF88C4A0),
-        foreground: Color(0xFF1B4332),
-        label: 'Commission Paid',
+        background: MaamoraColors.successSoft,
+        border: MaamoraColors.successEdge,
+        foreground: MaamoraColors.successOn,
       );
 
     default:
       return _BadgeConfig(
-        background: const Color(0xFFEEEEEE),
-        border: const Color(0xFFBBBBBB),
+        background: MaamoraColors.disabledBg,
+        border: MaamoraColors.disabledBorder,
         foreground: _onBackground,
-        label: status,
       );
   }
 }

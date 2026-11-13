@@ -12,11 +12,13 @@ import 'admin_ambassadors_list_screen.dart';
 import 'admin_groups_pending_screen.dart';
 import 'admin_commissions_screen.dart';
 import 'admin_audit_log_screen.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onSurfaceVariant = Color(0xFF584236);
+const Color _primary = MaamoraColors.primary;
+const Color _surface = Colors.white;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
 
 /// Admin navigation shell with 4 bottom-nav tabs that match the screenshots:
 ///   [Apps]  [Ambassadors]  [Groups]  [Settings]
@@ -72,15 +74,15 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
   String _getTitle() {
     switch (_currentIndex) {
       case 0:
-        return 'Admin Applications';
+        return context.tr('ad_apps_title');
       case 1:
         return _ambassadorsSubTab == 0
-            ? 'Candidatures'
-            : 'Ambassadeurs';
+            ? context.tr('ad_tab_candidatures')
+            : context.tr('ad_nav_amb');
       case 2:
-        return 'Groupes complets';
+        return context.tr('ad_full_groups');
       case 3:
-        return _settingsSubTab == 0 ? 'Commissions' : 'Journal d\'audit';
+        return _settingsSubTab == 0 ? context.tr('ad_comm_title') : context.tr('ad_log_title');
       default:
         return 'Admin';
     }
@@ -126,7 +128,7 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
             expand: false,
             builder: (ctx, scrollController) => Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFFFFFFF),
+                color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Column(
@@ -136,7 +138,7 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD8CEC7),
+                      color: MaamoraColors.borderStrong,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -187,21 +189,21 @@ class _AmbassadorsTabWrapper extends ConsumerWidget {
           child: Row(
             children: [
               _SubTabChip(
-                label: 'En attente',
+                label: context.tr('ad_pending'),
                 isActive: currentSubTab == 0,
                 badge: pendingAmbassadorsCount,
                 onTap: () => onSubTabChanged(0),
               ),
               const SizedBox(width: 8),
               _SubTabChip(
-                label: 'Tous',
+                label: context.tr('ad_filter_all'),
                 isActive: currentSubTab == 1,
                 onTap: () => onSubTabChanged(1),
               ),
             ],
           ),
         ),
-        const Divider(height: 1, color: Color(0xFFEDE8E4)),
+        const Divider(height: 1, color: MaamoraColors.surfaceLow),
         Expanded(
           child: currentSubTab == 0
               ? const AdminAmbassadorsPendingScreen()
@@ -233,20 +235,20 @@ class _SettingsTabWrapper extends StatelessWidget {
           child: Row(
             children: [
               _SubTabChip(
-                label: 'Commissions',
+                label: context.tr('ad_tab_commissions'),
                 isActive: currentSubTab == 0,
                 onTap: () => onSubTabChanged(0),
               ),
               const SizedBox(width: 8),
               _SubTabChip(
-                label: 'Journal d\'audit',
+                label: context.tr('ad_log_title'),
                 isActive: currentSubTab == 1,
                 onTap: () => onSubTabChanged(1),
               ),
             ],
           ),
         ),
-        const Divider(height: 1, color: Color(0xFFEDE8E4)),
+        const Divider(height: 1, color: MaamoraColors.surfaceLow),
         Expanded(
           child: currentSubTab == 0
               ? const AdminCommissionsScreen()
@@ -279,7 +281,7 @@ class _SubTabChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isActive ? _primary : const Color(0xFFEDE8E4),
+          color: isActive ? _primary : MaamoraColors.surfaceLow,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -356,32 +358,32 @@ class _AdminBottomNavBar extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _AdminNavItem(
-                icon: Icons.grid_view_rounded,
-                label: 'Apps',
-                isActive: currentIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              _AdminNavItem(
-                icon: Icons.people_rounded,
-                label: 'Ambassadors',
-                isActive: currentIndex == 1,
-                badge: pendingAmbassadors,
-                onTap: () => onTap(1),
-              ),
-              _AdminNavItem(
-                icon: Icons.inventory_2_outlined,
-                label: 'Groups',
-                isActive: currentIndex == 2,
-                badge: pendingGroups,
-                onTap: () => onTap(2),
-              ),
-              _AdminNavItem(
-                icon: Icons.account_balance_wallet_outlined,
-                label: 'Finances',
-                isActive: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
+            _AdminNavItem(
+              icon: Icons.grid_view_rounded,
+              label: context.tr('ad_nav_apps'),
+              isActive: currentIndex == 0,
+              onTap: () => onTap(0),
+            ),
+            _AdminNavItem(
+              icon: Icons.people_rounded,
+              label: context.tr('ad_nav_amb'),
+              isActive: currentIndex == 1,
+              badge: pendingAmbassadors,
+              onTap: () => onTap(1),
+            ),
+            _AdminNavItem(
+              icon: Icons.inventory_2_outlined,
+              label: context.tr('ad_nav_groups'),
+              isActive: currentIndex == 2,
+              badge: pendingGroups,
+              onTap: () => onTap(2),
+            ),
+            _AdminNavItem(
+              icon: Icons.account_balance_wallet_outlined,
+              label: context.tr('ad_nav_fin'),
+              isActive: currentIndex == 3,
+              onTap: () => onTap(3),
+            ),
             ],
           ),
         ),
@@ -450,9 +452,11 @@ class _AdminNavItem extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.cairo(
                 color: isActive ? _primary : _onSurfaceVariant,
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
               ),
             ),

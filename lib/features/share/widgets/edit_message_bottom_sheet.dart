@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
-const Color _primary = Color(0xFFFB7701);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
+const Color _primary = MaamoraColors.primary;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
 
 
 class EditMessageBottomSheet extends StatefulWidget {
@@ -56,22 +58,22 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
 
   List<Map<String, String>> get _templates => [
         {
-          'title': '🌟 Standard',
+          'title': context.tr('tem_standard'),
           'text':
-              'Assalamu alaikum neighbors! 👋\n\nJoin my Maamora group for the best deals on bulk groceries in ${widget.city}. We buy together, we save together! 🛒✨\n\nClick here to join my group:\n${widget.referralLink}',
+              'Salam ! 👋\n\nOn achète ensemble à ${widget.city} pour profiter des prix de gros sur Maamora. On économise plus ensemble ! 🛒✨\n\nRejoins le groupe ici :\n${widget.referralLink}',
         },
         {
-          'title': '🇲🇦 Darija',
+          'title': context.tr('tem_darija'),
           'text':
-              'Salam les voisins ! 👋\n\nRejoignez mon groupe Maamora pour profiter des meilleurs prix de gros à ${widget.city}. Chriw majmou3in w rbe7 m3ana ! 🛒✨\n\nLien pour rejoindre :\n${widget.referralLink}',
+              'سلام لجيران! 👋\n\nانضمو للمجموعة ديالنا ديال مامورة في ${widget.city} باش نستافدو من أثمنة الجملة. نشريو سوا ونربحو معاً! 🛒✨\n\nالرابط باش ينضمو:\n${widget.referralLink}',
         },
         {
-          'title': '🇫🇷 Français',
+          'title': context.tr('tem_french'),
           'text':
               'Bonjour à tous ! 👋\n\nRejoignez mon groupe d\'achats groupés Maamora à ${widget.city} pour économiser ensemble sur vos courses. 🛒✨\n\nCliquez sur ce lien pour rejoindre :\n${widget.referralLink}',
         },
         {
-          'title': '⚡ Express',
+          'title': context.tr('tem_express'),
           'text':
               'Super promos d\'achats groupés à ${widget.city} sur Maamora ! 🛒 Rejoignez le groupe ici :\n${widget.referralLink}',
         },
@@ -119,7 +121,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
     final text = _controller.text.trim();
     if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Le message ne peut pas être vide.')),
+        SnackBar(content: Text(context.tr('edit_empty_error'))),
       );
       return;
     }
@@ -167,7 +169,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Customize Message',
+                      context.tr('edit_title'),
                       style: GoogleFonts.cairo(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -176,7 +178,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Personalize your WhatsApp invitation',
+                      context.tr('edit_sub'),
                       style: GoogleFonts.cairo(
                         fontSize: 13,
                         color: _onSurfaceVariant,
@@ -187,7 +189,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                 IconButton(
                   icon: const Icon(Icons.close_rounded, color: _onSurfaceVariant),
                   onPressed: () => Navigator.of(context).pop(),
-                  tooltip: 'Close',
+                  tooltip: context.tr('edit_close'),
                 ),
               ],
             ),
@@ -195,7 +197,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
 
             // Templates label
             Text(
-              'QUICK TEMPLATES',
+              context.tr('edit_templates'),
               style: GoogleFonts.cairo(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -224,7 +226,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                       ),
                       selected: isSelected,
                       selectedColor: _primary,
-                      backgroundColor: const Color(0xFFFFF0E6),
+                      backgroundColor: MaamoraColors.primarySoft,
                       side: BorderSide(
                         color: isSelected ? _primary : _cardBorder,
                       ),
@@ -241,7 +243,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'MESSAGE CONTENT',
+                  context.tr('edit_content'),
                   style: GoogleFonts.cairo(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -252,7 +254,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                   onPressed: _resetToDefault,
                   icon: const Icon(Icons.restart_alt_rounded, size: 14, color: _primary),
                   label: Text(
-                    'Reset',
+                    context.tr('edit_reset'),
                     style: GoogleFonts.cairo(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -272,7 +274,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
             // Text Input Box
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFFFF),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: _cardBorder),
               ),
@@ -288,9 +290,9 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                       color: _onBackground,
                       height: 1.45,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Write your custom WhatsApp invitation message...',
+                      hintText: context.tr('edit_hint'),
                       contentPadding: EdgeInsets.zero,
                     ),
                     onChanged: (_) {
@@ -304,14 +306,14 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                     Row(
                       children: [
                         const Icon(Icons.info_outline_rounded,
-                            size: 14, color: Color(0xFFE65100)),
+                            size: 14, color: MaamoraColors.primary),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'Referral link is missing.',
+                            context.tr('edit_missing_link'),
                             style: GoogleFonts.cairo(
                               fontSize: 11,
-                              color: const Color(0xFFE65100),
+                              color: MaamoraColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -323,7 +325,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             child: Text(
-                              '+ Add link',
+                              context.tr('edit_add_link'),
                               style: GoogleFonts.cairo(
                                 fontSize: 12,
                                 color: _primary,
@@ -354,7 +356,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                       ),
                     ),
                     child: Text(
-                      'Cancel',
+                      context.tr('edit_cancel'),
                       style: GoogleFonts.cairo(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -377,7 +379,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                       ),
                     ),
                     child: Text(
-                      'Save Changes',
+                      context.tr('edit_save'),
                       style: GoogleFonts.cairo(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,

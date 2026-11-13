@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../providers/my_groups_provider.dart';
 import '../../../shared/widgets/app_button.dart';
+import '../../../core/l10n/app_strings.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
   const CreateGroupScreen({super.key});
@@ -48,13 +49,13 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       if (mounted) {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Group created successfully! Wait for admin approval.')),
+          SnackBar(content: Text(context.tr('cg_created'))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text(context.tr('common_error', args: {'e': e.toString()}))),
         );
       }
     } finally {
@@ -66,7 +67,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const SharedAppBar(pageTitle: 'Create Group'),
+      appBar: SharedAppBar(pageTitle: context.tr('cg_title')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -75,25 +76,25 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Group Details',
+                context.tr('cg_details'),
                 style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.onSurface),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Product Name'
+                  labelText: context.tr('cg_product_name')
                 ),
-                validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
+                validator: (val) => (val == null || val.isEmpty) ? context.tr('cg_required') : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descController,
                 decoration: InputDecoration(
-                  labelText: 'Product Description'
+                  labelText: context.tr('cg_product_desc')
                 ),
                 maxLines: 3,
-                validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
+                validator: (val) => (val == null || val.isEmpty) ? context.tr('cg_required') : null,
               ),
               const SizedBox(height: 16),
               Row(
@@ -102,10 +103,10 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                     child: TextFormField(
                       controller: _priceController,
                       decoration: InputDecoration(
-                        labelText: 'Price per person (DH)'
+                        labelText: context.tr('cg_price')
                       ),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
+                      validator: (val) => (val == null || val.isEmpty) ? context.tr('cg_required') : null,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -113,17 +114,17 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                     child: TextFormField(
                       controller: _seatsController,
                       decoration: InputDecoration(
-                        labelText: 'Total Seats'
+                        labelText: context.tr('cg_seats')
                       ),
                       keyboardType: TextInputType.number,
-                      validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
+                      validator: (val) => (val == null || val.isEmpty) ? context.tr('cg_required') : null,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 32),
               AppButton(
-                label: 'Create Group',
+                label: context.tr('cg_title'),
                 isLoading: _isLoading,
                 onPressed: _isLoading ? null : _submit,
               ),

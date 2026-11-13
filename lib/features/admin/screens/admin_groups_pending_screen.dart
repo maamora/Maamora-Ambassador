@@ -3,29 +3,31 @@ import '../../../shared/widgets/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/admin_groups_provider.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
-const Color _orangeLight = Color(0xFFFCEBC9);
+const Color _primary = MaamoraColors.primary;
+const Color _background = Colors.white;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
+const Color _orangeLight = MaamoraColors.warningSoft;
 
 // ── Filter enum ───────────────────────────────────────────────────────────
 // 3 états EXCLUSIFS — chaque groupe n'apparaît que dans un seul filtre
 enum _GroupFilter { enCours, enAttente, traites }
 
 extension _GroupFilterLabel on _GroupFilter {
-  String get label {
+  String label(BuildContext context) {
     switch (this) {
       case _GroupFilter.enCours:
-        return 'En cours';
+        return context.tr('ad_in_progress_n', args: {'n': ''});
       case _GroupFilter.enAttente:
-        return 'En attente';
+        return context.tr('ad_pending');
       case _GroupFilter.traites:
-        return 'Traités';
+        return context.tr('ad_done');
     }
   }
 
@@ -78,7 +80,7 @@ class _AdminGroupsPendingScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error!),
-            backgroundColor: const Color(0xFFB3261E),
+            backgroundColor: MaamoraColors.danger,
           ),
         );
       }
@@ -111,7 +113,7 @@ class _AdminGroupsPendingScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Groupes',
+                          context.tr('ad_groups_title'),
                           style: GoogleFonts.cairo(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
@@ -120,9 +122,9 @@ class _AdminGroupsPendingScreenState
                         ),
                         if (!state.isLoading)
                           Text(
-                            '$countEnCours en cours · '
-                            '$countEnAttente en attente · '
-                            '$countTraites traité${countTraites > 1 ? 's' : ''}',
+                            '${context.tr('ad_in_progress_n', args: {'n': '$countEnCours'})} · '
+                            '${context.tr('ad_pending_n', args: {'n': '$countEnAttente'})} · '
+                            '${context.tr('ad_done_n', args: {'n': '$countTraites'})}',
                             style: GoogleFonts.cairo(
                                 fontSize: 13, color: _onSurfaceVariant),
                           ),
@@ -132,42 +134,44 @@ class _AdminGroupsPendingScreenState
                   IconButton(
                     onPressed: notifier.fetchGroups,
                     icon: const Icon(Icons.refresh_rounded, color: _primary),
-                    tooltip: 'Actualiser',
+                    tooltip: context.tr('common_refresh'),
                   ),
                 ],
               ),
             ),
 
             // ── Filter chips (3 états exclusifs) ─────────────────────────
+            // Wrap : les chips passent à la ligne au lieu de déborder (fix
+            // de la barre jaune « overflowed by 24 px » en haut de page).
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
-              child: Row(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   _FilterChip(
-                    label: _GroupFilter.enCours.label,
+                    label: _GroupFilter.enCours.label(context),
                     icon: _GroupFilter.enCours.icon,
                     count: countEnCours,
                     isActive: _activeFilter == _GroupFilter.enCours,
                     onTap: () =>
                         setState(() => _activeFilter = _GroupFilter.enCours),
                   ),
-                  const SizedBox(width: 8),
                   _FilterChip(
-                    label: _GroupFilter.enAttente.label,
+                    label: _GroupFilter.enAttente.label(context),
                     icon: _GroupFilter.enAttente.icon,
                     count: countEnAttente,
                     isActive: _activeFilter == _GroupFilter.enAttente,
-                    color: const Color(0xFFFB7701),
+                    color: MaamoraColors.primary,
                     onTap: () =>
                         setState(() => _activeFilter = _GroupFilter.enAttente),
                   ),
-                  const SizedBox(width: 8),
                   _FilterChip(
-                    label: _GroupFilter.traites.label,
+                    label: _GroupFilter.traites.label(context),
                     icon: _GroupFilter.traites.icon,
                     count: countTraites,
                     isActive: _activeFilter == _GroupFilter.traites,
-                    color: const Color(0xFF2E7D32),
+                    color: MaamoraColors.success,
                     onTap: () =>
                         setState(() => _activeFilter = _GroupFilter.traites),
                   ),
@@ -223,7 +227,7 @@ class _AdminGroupsPendingScreenState
                 size: 48, color: _onSurfaceVariant),
             const SizedBox(height: 12),
             Text(
-              'Impossible de charger les groupes.',
+              context.tr('ad_groups_load_err'),
               textAlign: TextAlign.center,
               style:
                   GoogleFonts.cairo(fontSize: 14, color: _onSurfaceVariant),
@@ -232,7 +236,7 @@ class _AdminGroupsPendingScreenState
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Réessayer'),
+              label: Text(context.tr('common_retry')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primary,
                 foregroundColor: Colors.white,
@@ -255,7 +259,7 @@ class _AdminGroupsPendingScreenState
                 size: 48, color: _onSurfaceVariant),
             const SizedBox(height: 12),
             Text(
-              'Aucun groupe dans cette catégorie.',
+              context.tr('ad_groups_cat_empty'),
               textAlign: TextAlign.center,
               style:
                   GoogleFonts.cairo(fontSize: 14, color: _onSurfaceVariant),
@@ -275,25 +279,25 @@ class _AdminGroupsPendingScreenState
       context: ctx,
       builder: (_) => AlertDialog(
         title: Text(
-          'Assigner la commission',
+          context.tr('ad_assign_commission'),
           style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'Confirmer l\'assignation de la commission pour\n"${group.productName}" ?',
+          context.tr('ad_assign_confirm', args: {'name': group.productName}),
           style: GoogleFonts.cairo(fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(context.tr('common_cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7A3A00),
+              backgroundColor: MaamoraColors.warningDeep,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Confirmer'),
+            child: Text(context.tr('common_confirm')),
           ),
         ],
       ),
@@ -304,8 +308,8 @@ class _AdminGroupsPendingScreenState
       if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
-            content: Text('Commission assignée pour "${group.productName}"'),
-            backgroundColor: const Color(0xFF2E7D32),
+            content: Text(ctx.tr('ad_assigned_for', args: {'name': group.productName})),
+            backgroundColor: MaamoraColors.success,
           ),
         );
       }
@@ -341,7 +345,7 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: isActive ? activeColor : const Color(0xFFEDE8E4),
+          color: isActive ? activeColor : MaamoraColors.surfaceLow,
           borderRadius: BorderRadius.circular(20),
           boxShadow: isActive
               ? [
@@ -417,7 +421,7 @@ class _GroupCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isFull
-              ? const Color(0xFFE8C070).withValues(alpha: 0.6)
+              ? MaamoraColors.warningEdge.withValues(alpha: 0.6)
               : _cardBorder,
         ),
         boxShadow: [
@@ -454,24 +458,24 @@ class _GroupCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isFull
                       ? _orangeLight
-                      : const Color(0xFFF0EBE6),
+                      : MaamoraColors.surfaceLow,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isFull
-                        ? const Color(0xFFE8C070)
+                        ? MaamoraColors.warningEdge
                         : _cardBorder,
                     width: 1,
                   ),
                 ),
                 child: Text(
                   isFull
-                      ? '${group.membersCount}/${group.seatsTotal} Full'
+                      ? context.tr('ad_full_short', args: {'a': '${group.membersCount}', 'b': '${group.seatsTotal}'})
                       : '${group.membersCount}/${group.seatsTotal}',
                   style: GoogleFonts.cairo(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: isFull
-                        ? const Color(0xFF7A4800)
+                        ? MaamoraColors.warningDeep
                         : _onSurfaceVariant,
                   ),
                 ),
@@ -487,41 +491,45 @@ class _GroupCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progressRatio.clamp(0.0, 1.0),
                 minHeight: 5,
-                backgroundColor: const Color(0xFFEDE8E4),
+                backgroundColor: MaamoraColors.surfaceLow,
                 valueColor: const AlwaysStoppedAnimation<Color>(_primary),
               ),
             ),
             const SizedBox(height: 8),
           ],
 
-          // ── Ambassador + date ──────────────────────────────────────
-          Row(
-            children: [
-              const Icon(Icons.person_outline,
-                  size: 14, color: _onSurfaceVariant),
-              const SizedBox(width: 4),
-              Text(
-                'Ambassador: ${group.ambassadorName}',
-                style: GoogleFonts.cairo(
-                    fontSize: 13, color: _onSurfaceVariant),
+              // ── Ambassador + date ──────────────────────────────────────
+              Row(
+                children: [
+                  const Icon(Icons.person_outline,
+                      size: 14, color: _onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      context.tr('ad_ambassador_label', args: {'name': group.ambassadorName}),
+                      style: GoogleFonts.cairo(
+                          fontSize: 13, color: _onSurfaceVariant),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Icon(Icons.access_time_rounded,
+                      size: 14, color: _onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      group.completedAt,
+                      style: GoogleFonts.cairo(
+                          fontSize: 13, color: _onSurfaceVariant),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              const Icon(Icons.access_time_rounded,
-                  size: 14, color: _onSurfaceVariant),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  group.completedAt,
-                  style: GoogleFonts.cairo(
-                      fontSize: 13, color: _onSurfaceVariant),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
+              const SizedBox(height: 4),
           Text(
-            '${group.pricePerPerson.toStringAsFixed(0)} DH/personne',
+            context.tr('ad_price_per', args: {'n': group.pricePerPerson.toStringAsFixed(0)}),
             style: GoogleFonts.cairo(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -539,21 +547,21 @@ class _GroupCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0F0F0),
+                      color: MaamoraColors.surfaceLow,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.check_circle_rounded,
-                            size: 16, color: Color(0xFF888888)),
+                            size: 16, color: MaamoraColors.disabledBorder),
                         const SizedBox(width: 6),
                         Text(
-                          'Commission Paid',
+                          context.tr('ad_comm_paid'),
                           style: GoogleFonts.cairo(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF888888),
+                            color: MaamoraColors.disabledBorder,
                           ),
                         ),
                       ],
@@ -564,7 +572,7 @@ class _GroupCard extends StatelessWidget {
                     ? ElevatedButton(
                         onPressed: onAssign,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7A3A00),
+                          backgroundColor: MaamoraColors.warningDeep,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(
@@ -574,7 +582,7 @@ class _GroupCard extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'Assign Commission',
+                          context.tr('ad_assign_commission'),
                           style: GoogleFonts.cairo(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -586,21 +594,21 @@ class _GroupCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEDE8E4),
+                          color: MaamoraColors.surfaceLow,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(Icons.lock_outline_rounded,
-                                size: 14, color: Color(0xFFB0A89E)),
+                                size: 14, color: MaamoraColors.textFaint),
                             const SizedBox(width: 6),
                             Text(
-                              'Groupe incomplet',
+                              context.tr('ad_group_incomplete'),
                               style: GoogleFonts.cairo(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFFB0A89E),
+                                color: MaamoraColors.textFaint,
                               ),
                             ),
                           ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_colors.dart';
+import '../../design_system/design_system.dart';
 
 /// Full-area loading state: orange spinner in a white rounded card.
 class AppLoader extends StatelessWidget {
@@ -104,7 +105,7 @@ class _StripePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(
       Offset.zero & size,
-      Paint()..color = const Color(0xFFECE8E3),
+      Paint()..color = MaamoraColors.surfaceLow,
     );
     final p = Paint()
       ..color = Colors.white.withValues(alpha: 0.5)

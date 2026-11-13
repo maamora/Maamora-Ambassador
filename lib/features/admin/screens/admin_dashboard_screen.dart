@@ -1,45 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens (match project palette) ─────────────────────────────────
-const Color _primary = Color(0xFFFB7701);
-const Color _secondary = Color(0xFF1A2433);
-const Color _background = Color(0xFFFFFFFF);
-const Color _surface = Color(0xFFFFFFFF);
-const Color _onBackground = Color(0xFF1A2433);
-const Color _onSurfaceVariant = Color(0xFF8A8078);
-const Color _cardBorder = Color(0xFFE8DDD3);
-const Color _orangeLight = Color(0xFFFFF0E6);
+const Color _primary = MaamoraColors.primary;
+const Color _secondary = MaamoraColors.textPrimary;
+const Color _background = Colors.white;
+const Color _surface = Colors.white;
+const Color _onBackground = MaamoraColors.textPrimary;
+const Color _onSurfaceVariant = MaamoraColors.textSecondary;
+const Color _cardBorder = MaamoraColors.border;
+const Color _orangeLight = MaamoraColors.primarySoft;
 
 // ── données factices, à remplacer ─────────────────────────────────────────
-final _mockStats = [
+List<_DashStat> _mockStats(BuildContext context) => [
   _DashStat(
     icon: Icons.hourglass_top_rounded,
     value: '3',
-    label: 'Ambassadeurs\nen attente',
-    iconColor: const Color(0xFFE67E00),
-    iconBg: const Color(0xFFFCEBC9),
+    label: context.tr('ad_dash_pending_amb'),
+    iconColor: MaamoraColors.primary,
+    iconBg: MaamoraColors.warningSoft,
   ),
   _DashStat(
     icon: Icons.groups_rounded,
     value: '7',
-    label: 'Groupes\ncomplets',
+    label: context.tr('ad_full_groups'),
     iconColor: _primary,
     iconBg: _orangeLight,
   ),
   _DashStat(
     icon: Icons.link,
     value: '12',
-    label: 'Invitations\nenvoyées',
-    iconColor: const Color(0xFF3F7A5A),
-    iconBg: const Color(0xFFDCEEE3),
+    label: context.tr('ad_inv_sent'),
+    iconColor: MaamoraColors.success,
+    iconBg: MaamoraColors.successSoft,
   ),
   _DashStat(
     icon: Icons.payments_outlined,
     value: '4',
-    label: 'Commissions\nen attente',
-    iconColor: const Color(0xFF1A5FAD),
-    iconBg: const Color(0xFFD6E8FF),
+    label: context.tr('ad_dash_pending_comm'),
+    iconColor: MaamoraColors.infoBlue,
+    iconBg: MaamoraColors.infoBlueSoft,
   ),
 ];
 
@@ -60,7 +62,7 @@ class AdminDashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(context),
               const SizedBox(height: 20),
               _buildStatsGrid(context),
               const SizedBox(height: 24),
@@ -73,7 +75,7 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -82,7 +84,7 @@ class AdminDashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tableau de bord',
+                context.tr('ad_dash_title'),
                 style: GoogleFonts.cairo(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
@@ -92,7 +94,7 @@ class AdminDashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Vue d\'ensemble de la plateforme',
+                context.tr('ad_dash_overview'),
                 style: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
@@ -150,7 +152,7 @@ class AdminDashboardScreen extends StatelessWidget {
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
           childAspectRatio: 1.3,
-          children: _mockStats.map((stat) {
+          children: _mockStats(context).map((stat) {
             return _DashStatCard(stat: stat, onTap: () {});
           }).toList(),
         ),
@@ -163,7 +165,7 @@ class AdminDashboardScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Actions rapides',
+          context.tr('ad_quick_actions'),
           style: GoogleFonts.cairo(
             fontSize: 17,
             fontWeight: FontWeight.w800,
@@ -173,38 +175,38 @@ class AdminDashboardScreen extends StatelessWidget {
         const SizedBox(height: 12),
         _QuickActionRow(
           icon: Icons.link,
-          label: 'Inviter un ambassadeur',
-          subtitle: 'Générer un lien d\'invitation',
+          label: context.tr('ad_invite'),
+          subtitle: context.tr('ad_generate_link'),
           onTap: () => onNavigateTo?.call('invites'),
         ),
         const SizedBox(height: 10),
         _QuickActionRow(
           icon: Icons.person_search_rounded,
-          label: 'Candidatures en attente',
-          subtitle: '3 demandes à valider',
+          label: context.tr('ad_pending_apps'),
+          subtitle: context.tr('ad_apps_sub'),
           badgeCount: 3,
           onTap: () => onNavigateTo?.call('pending_ambassadors'),
         ),
         const SizedBox(height: 10),
         _QuickActionRow(
           icon: Icons.inventory_2_outlined,
-          label: 'Groupes complets',
-          subtitle: '7 groupes prêts pour commission',
+          label: context.tr('ad_full_groups'),
+          subtitle: context.tr('ad_groups_sub'),
           badgeCount: 7,
           onTap: () => onNavigateTo?.call('groups'),
         ),
         const SizedBox(height: 10),
         _QuickActionRow(
           icon: Icons.payments_outlined,
-          label: 'Commissions & Paiements',
-          subtitle: 'Voir l\'historique',
+          label: context.tr('ad_comm_title'),
+          subtitle: context.tr('ad_see_history'),
           onTap: () => onNavigateTo?.call('commissions'),
         ),
         const SizedBox(height: 10),
         _QuickActionRow(
           icon: Icons.history_rounded,
-          label: 'Journal d\'audit',
-          subtitle: 'Toutes les actions admin',
+          label: context.tr('ad_log_title'),
+          subtitle: context.tr('ad_log_sub'),
           onTap: () => onNavigateTo?.call('audit'),
         ),
       ],

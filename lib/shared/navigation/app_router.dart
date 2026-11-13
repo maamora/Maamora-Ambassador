@@ -8,6 +8,8 @@ import '../../core/navigation/navigation_service.dart';
 import 'app_routes.dart';
 import 'main_navigation_screen.dart';
 
+import '../../shared/widgets/maamora_splash_screen.dart';
+
 import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/register_screen.dart';
 import '../../features/onboarding/screens/welcome_screen.dart';
@@ -67,6 +69,12 @@ final GoRouter appRouter = GoRouter(
     return null;
   },
   routes: [
+    // ── Splash (visual only) ─────────────────────────────────────────────────
+    GoRoute(
+      path: '/splash',
+      builder: (context, state) => const MaamoraSplashScreen(),
+    ),
+
     // ── Auth / Onboarding ────────────────────────────────────────────────────
     GoRoute(
       path: AppRoutes.login,
