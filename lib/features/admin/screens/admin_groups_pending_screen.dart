@@ -458,7 +458,22 @@ class _GroupCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              // Full badge or progress badge
+              // Full: badge. Open: the brand arc with the count inside.
+              if (!isFull)
+                MaamoraArcGauge(
+                  value: progressRatio.clamp(0.0, 1.0).toDouble(),
+                  width: 60,
+                  center: Text(
+                    '${group.membersCount}/${group.seatsTotal}',
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: MaamoraColors.textPrimary,
+                      height: 1,
+                    ),
+                  ),
+                )
+              else
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -494,20 +509,6 @@ class _GroupCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-
-          // ── Progress bar (only for non-full groups) ────────────────
-          if (!isFull) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: progressRatio.clamp(0.0, 1.0),
-                minHeight: 5,
-                backgroundColor: MaamoraColors.surfaceLow,
-                valueColor: const AlwaysStoppedAnimation<Color>(_primary),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
 
           // ── Ambassador + date ──────────────────────────────────────
           Row(

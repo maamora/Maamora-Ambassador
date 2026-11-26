@@ -103,9 +103,9 @@ class MaamoraTheme {
   );
 
   static TextStyle eyebrow() => GoogleFonts.cairo(
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: FontWeight.w700,
-    letterSpacing: 1.2,
+    letterSpacing: 0,
     color: MaamoraColors.textSecondary,
   );
 

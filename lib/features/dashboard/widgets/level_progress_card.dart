@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../design_system/components/maamora_arc_gauge.dart';
+
 import '../../../core/l10n/app_strings.dart';
 import '../../../models/models.dart';
 import '../../../shared/design/app_tokens.dart';
@@ -31,9 +33,11 @@ class LevelProgressCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      context.tr(progress.isMax
-                          ? 'dash_current_level'
-                          : 'dash_next_level'),
+                      context.tr(
+                        progress.isMax
+                            ? 'dash_current_level'
+                            : 'dash_next_level',
+                      ),
                       style: t.labelMedium?.copyWith(
                         color: AppColors.textMuted,
                         fontWeight: FontWeight.w700,
@@ -42,7 +46,9 @@ class LevelProgressCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       context.tr(progress.nextTierKey),
-                      style: t.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                      style: t.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ],
                 ),
@@ -53,33 +59,43 @@ class LevelProgressCard extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  progress.isMax
-                      ? context.tr('dash_max_rank')
-                      : context.tr('dash_orders_needed',
-                          args: {'n': progress.remaining}),
-                  style: t.bodySmall?.copyWith(color: AppColors.textMuted),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
+          const SizedBox(height: AppSpacing.xl),
+          // The brand arc fills toward the next level; the count sits in
+          // its bowl — the one hero moment of the home screen.
+          Center(
+            child: MaamoraArcGauge(
+              value: progress.ratio,
+              width: 220,
+              semanticLabel: context.tr('dash_level_progress'),
+              center: Text(
                 progress.isMax
                     ? '${progress.completed}'
                     : '${progress.completed}/${progress.target}',
-                style: t.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+                style: t.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Semantics(
-            label: context.tr('dash_level_progress'),
-            value: '${(progress.ratio * 100).round()}%',
-            child: ThinProgress(value: progress.ratio, height: 10),
+          const SizedBox(height: AppSpacing.md),
+          // Full width so the centred line sits right under the arc.
+          SizedBox(
+            width: double.infinity,
+            child: Text(
+              progress.isMax
+                  ? context.tr('dash_max_rank')
+                  : context.tr(
+                      'dash_orders_needed',
+                      args: {'n': progress.remaining},
+                    ),
+              textAlign: TextAlign.center,
+              style: t.bodyMedium?.copyWith(
+                color: AppColors.textMuted,
+                height: 1.4,
+              ),
+            ),
           ),
         ],
       ),
@@ -103,8 +119,11 @@ class _DaysChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.timer_outlined,
-              size: AppIconSize.sm, color: AppColors.primaryText),
+          const Icon(
+            Icons.timer_outlined,
+            size: AppIconSize.sm,
+            color: AppColors.primaryText,
+          ),
           const SizedBox(width: AppSpacing.xs),
           Text(
             context.tr('dash_days_left', args: {'n': days}),

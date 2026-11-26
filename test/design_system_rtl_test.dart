@@ -197,4 +197,27 @@ void main() {
     // Le texte saisi dans l'onglet 1 est toujours là (IndexedStack conservé).
     expect(find.text('saisie'), findsOneWidget);
   });
+  for (final locale in const [Locale('fr'), Locale('ar')]) {
+    testWidgets('Jauge en arc : valeur lue + rendu ${locale.languageCode}', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _harness(
+          locale,
+          const MaamoraArcGauge(
+            value: 0.7,
+            width: 120,
+            semanticLabel: 'Places prises',
+            center: Text('7/10'),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(tester.takeException(), isNull);
+      expect(find.text('7/10'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp('^Places prises')), findsOneWidget);
+      handle.dispose();
+    });
+  }
 }
