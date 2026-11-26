@@ -1,6 +1,7 @@
 // shared/widgets/google_button.dart
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/app_strings.dart';
 import '../../design_system/design_system.dart';
 
 class GoogleButton extends StatelessWidget {
@@ -21,11 +22,11 @@ class GoogleButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey.shade300),
+          side: const BorderSide(color: MaamoraColors.borderStrong),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: MaamoraColors.surface,
         ),
         child: isLoading
             ? const SizedBox(
@@ -39,15 +40,19 @@ class GoogleButton extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset('assets/images/google_logo.png', height: 22),
+                  Image.asset(
+                    'assets/images/google_logo.png',
+                    height: 22,
+                    excludeFromSemantics: true,
+                  ),
                   // Image.network(
                   //   'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_Search_2015_Version.svg/1200px-Google_Search_2015_Version.svg.png',
                   //   height: 22,
                   // ),
                   const SizedBox(width: 12),
-                  const Text(
-                    'Continuer avec Google',
-                    style: TextStyle(
+                  Text(
+                    context.tr('login_google'),
+                    style: const TextStyle(
                       color: MaamoraColors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

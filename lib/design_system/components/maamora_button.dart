@@ -85,9 +85,9 @@ class _MaamoraButtonState extends State<MaamoraButton> {
         );
       case MaamoraButtonVariant.whatsapp:
         return BoxDecoration(
-          color: const Color(0xFF25D366),
+          color: MaamoraColors.whatsapp,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: MaamoraShadows.glow(const Color(0xFF25D366), 0.30),
+          boxShadow: MaamoraShadows.glow(MaamoraColors.whatsapp, 0.30),
         );
       case MaamoraButtonVariant.danger:
         return BoxDecoration(
@@ -103,9 +103,10 @@ class _MaamoraButtonState extends State<MaamoraButton> {
       case MaamoraButtonVariant.outlined:
         return MaamoraColors.textPrimary;
       case MaamoraButtonVariant.ghost:
-        return MaamoraColors.primary;
+        // Small orange text must use the AA companion (4.6:1), not #FB7701.
+        return MaamoraColors.primaryText;
       default:
-        return Colors.white;
+        return MaamoraColors.onPrimary;
     }
   }
 
@@ -120,9 +121,9 @@ class _MaamoraButtonState extends State<MaamoraButton> {
         height: 22,
         child: CircularProgressIndicator(
           strokeWidth: 2.4,
-          valueColor: AlwaysStoppedAnimation(_fg == MaamoraColors.textPrimary
-              ? MaamoraColors.primary
-              : _fg),
+          valueColor: AlwaysStoppedAnimation(
+            _fg == MaamoraColors.textPrimary ? MaamoraColors.primary : _fg,
+          ),
         ),
       );
     }
@@ -157,41 +158,51 @@ class _MaamoraButtonState extends State<MaamoraButton> {
   @override
   Widget build(BuildContext context) {
     final disabled = widget.isLoading || widget.onPressed == null;
+    final reduced = MaamoraMotion.reduced(context);
 
-    return AnimatedScale(
-      duration: MaamoraDurations.fast,
+    final button = AnimatedScale(
+      duration: reduced ? Duration.zero : MaamoraDurations.fast,
       curve: Curves.easeOutBack,
-      scale: _pressed && !disabled ? 0.96 : 1.0,
+      scale: _pressed && !disabled && !reduced ? 0.96 : 1.0,
       child: Opacity(
         opacity: widget.onPressed == null && !widget.isLoading ? 0.55 : 1,
         child: IgnorePointer(
           ignoring: disabled,
           child: GestureDetector(
-              onTapDown: (_) => _setPressed(true),
-              onTapCancel: () => _setPressed(false),
-              onTapUp: (_) => _setPressed(false),
-              onTap: widget.onPressed == null
+            onTapDown: (_) => _setPressed(true),
+            onTapCancel: () => _setPressed(false),
+            onTapUp: (_) => _setPressed(false),
+            onTap: widget.onPressed == null
+                ? null
+                : () {
+                    HapticFeedback.lightImpact();
+                    widget.onPressed!();
+                  },
+            child: Container(
+              width: widget.expanded ? double.infinity : null,
+              height: widget.height,
+              padding: widget.expanded
                   ? null
-                  : () {
-                      HapticFeedback.lightImpact();
-                      widget.onPressed!();
-                    },
-              child: Container(
-                width: widget.expanded ? double.infinity : null,
-                height: widget.height,
-                padding: widget.expanded
-                    ? null
-                    : const EdgeInsets.symmetric(horizontal: 20),
-                constraints: widget.expanded
-                    ? null
-                    : const BoxConstraints(minWidth: 96),
-                alignment: Alignment.center,
-                decoration: _decoration(),
-                child: _content(),
-              ),
+                  : const EdgeInsets.symmetric(horizontal: 20),
+              constraints: widget.expanded
+                  ? null
+                  : const BoxConstraints(minWidth: 96),
+              alignment: Alignment.center,
+              decoration: _decoration(),
+              child: _content(),
             ),
           ),
         ),
-      );
+      ),
+    );
+    // One accessible node: role button, label, enabled/busy state.
+    return Semantics(
+      button: true,
+      enabled: !disabled,
+      label: widget.label,
+      excludeSemantics: true,
+      onTap: disabled ? null : widget.onPressed,
+      child: button,
+    );
   }
 }

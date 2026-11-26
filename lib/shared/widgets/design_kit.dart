@@ -74,14 +74,18 @@ class LevelBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(iconFor(level), color: Colors.white, size: compact ? 12 : 14),
+          Icon(
+            iconFor(level),
+            color: MaamoraColors.onPrimary,
+            size: compact ? 12 : 14,
+          ),
           const SizedBox(width: 4),
           Text(
             label,
             style: GoogleFonts.cairo(
               fontSize: compact ? 11 : 12,
               fontWeight: FontWeight.w800,
-              color: Colors.white,
+              color: MaamoraColors.onPrimary,
             ),
           ),
         ],
@@ -129,8 +133,8 @@ class GradientHeroCard extends StatelessWidget {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: colors,
         ),
         borderRadius: BorderRadius.circular(22),
@@ -152,7 +156,7 @@ class GradientHeroCard extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: MaamoraColors.onPrimary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
             ),
@@ -164,7 +168,7 @@ class GradientHeroCard extends StatelessWidget {
               width: 90,
               height: 90,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
+                color: MaamoraColors.onPrimary.withValues(alpha: 0.06),
                 shape: BoxShape.circle,
               ),
             ),
@@ -180,7 +184,7 @@ class GradientHeroCard extends StatelessWidget {
                     style: GoogleFonts.cairo(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: MaamoraColors.onPrimary.withValues(alpha: 0.85),
                     ),
                   ),
                   ?trailing,
@@ -194,7 +198,7 @@ class GradientHeroCard extends StatelessWidget {
                   style: GoogleFonts.cairo(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: MaamoraColors.onPrimary,
                     height: 1.1,
                   ),
                 )
@@ -204,7 +208,7 @@ class GradientHeroCard extends StatelessWidget {
                   style: GoogleFonts.cairo(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: MaamoraColors.onPrimary,
                     height: 1.1,
                   ),
                 ),
@@ -215,7 +219,7 @@ class GradientHeroCard extends StatelessWidget {
                   style: GoogleFonts.cairo(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: MaamoraColors.onPrimary.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -246,7 +250,7 @@ class StatBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MaamoraColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.cardBorder),
       ),
@@ -302,7 +306,7 @@ class SectionCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MaamoraColors.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.cardBorder),
       ),
@@ -379,7 +383,7 @@ class EmptyState extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MaamoraColors.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: AppColors.cardBorder,

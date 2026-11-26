@@ -43,6 +43,9 @@ class AppStrings {
       'common_confirm': 'Confirmer',
       'common_share': 'Partager',
       'common_refresh': 'Actualiser',
+      'common_error_title': 'Le chargement a échoué',
+      'common_error_sub': 'Vérifie ta connexion puis réessaie.',
+      'celebration_welcome_level': 'Bienvenue au niveau',
 
       // ── Dashboard ──
       'dash_greeting': 'Salam, {name} 👋',
@@ -550,6 +553,9 @@ class AppStrings {
       'common_confirm': 'تأكيد',
       'common_share': 'مشاركة',
       'common_refresh': 'تحديث',
+      'common_error_title': 'تعذّر التحميل',
+      'common_error_sub': 'تحقّق من اتصالك ثم أعد المحاولة.',
+      'celebration_welcome_level': 'مرحباً بك في المستوى',
 
       // ── Dashboard ──
       'dash_greeting': 'سلام، {name} 👋',

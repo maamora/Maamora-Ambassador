@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
+import '../../core/l10n/app_strings.dart';
 import '../maamora_tokens.dart';
 import '../maamora_icons.dart';
 
@@ -70,10 +71,21 @@ class _TierCelebrationViewState extends State<_TierCelebrationView>
   @override
   void initState() {
     super.initState();
-    _c.forward();
     Future<void>.delayed(const Duration(milliseconds: 3600), () {
       if (mounted) widget.onDone();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_c.status == AnimationStatus.dismissed) {
+      if (MaamoraMotion.reduced(context)) {
+        _c.value = 1;
+      } else {
+        _c.forward();
+      }
+    }
   }
 
   @override
@@ -84,6 +96,21 @@ class _TierCelebrationViewState extends State<_TierCelebrationView>
 
   @override
   Widget build(BuildContext context) {
+    final subtitle = widget.subtitle ?? context.tr('celebration_welcome_level');
+    // Tap anywhere closes it early; readers hear one sentence.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onDone,
+      child: Semantics(
+        liveRegion: true,
+        label: '$subtitle ${widget.tierName}',
+        excludeSemantics: true,
+        child: _buildScene(subtitle),
+      ),
+    );
+  }
+
+  Widget _buildScene(String subtitle) {
     return Material(
       color: Colors.black.withValues(alpha: 0.72),
       child: Container(
@@ -110,7 +137,11 @@ class _TierCelebrationViewState extends State<_TierCelebrationView>
                     ScaleTransition(
                       scale: CurvedAnimation(
                         parent: _c,
-                        curve: const Interval(0, 0.55, curve: Curves.easeOutBack),
+                        curve: const Interval(
+                          0,
+                          0.55,
+                          curve: Curves.easeOutBack,
+                        ),
                       ),
                       child: _TierMedallion(
                         tierIndex: widget.tierIndex,
@@ -134,7 +165,7 @@ class _TierCelebrationViewState extends State<_TierCelebrationView>
                     FadeTransition(
                       opacity: _c,
                       child: Text(
-                        widget.subtitle ?? 'Bienvenue au niveau',
+                        subtitle,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -224,6 +255,17 @@ class _TierMedallion extends StatelessWidget {
 }
 
 /// Reveal the tier name letter-by-letter (opacity + slight rise per glyph).
+/// Arabic letters change shape when joined; splitting them per glyph would
+/// render them detached. Detects the Arabic blocks (U+0600–06FF, U+0750–077F,
+/// U+FB50–FDFF, U+FE70–FEFF).
+bool _isConnectedScript(String text) => text.runes.any(
+  (r) =>
+      (r >= 0x0600 && r <= 0x06FF) ||
+      (r >= 0x0750 && r <= 0x077F) ||
+      (r >= 0xFB50 && r <= 0xFDFF) ||
+      (r >= 0xFE70 && r <= 0xFEFF),
+);
+
 class _StaggerLetters extends StatelessWidget {
   const _StaggerLetters({
     required this.text,
@@ -240,6 +282,18 @@ class _StaggerLetters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = CurvedAnimation(parent: controller, curve: interval);
+    if (_isConnectedScript(text)) {
+      return FadeTransition(
+        opacity: t,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.2),
+            end: Offset.zero,
+          ).animate(t),
+          child: Text(text, style: style, textAlign: TextAlign.center),
+        ),
+      );
+    }
     final glyphs = text.runes.toList();
     return Wrap(
       alignment: WrapAlignment.center,
@@ -263,10 +317,7 @@ class _StaggerLetters extends StatelessWidget {
                 opacity: lt.clamp(0.0, 1.0),
                 child: Transform.translate(
                   offset: Offset(0, 10 * (1 - lt)),
-                  child: Text(
-                    String.fromCharCode(glyphs[i]),
-                    style: style,
-                  ),
+                  child: Text(String.fromCharCode(glyphs[i]), style: style),
                 ),
               );
             },

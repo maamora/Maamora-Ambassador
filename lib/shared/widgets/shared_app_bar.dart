@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/l10n/app_strings.dart';
 import '../../core/l10n/locale_provider.dart';
 import '../../core/services/ambassador_state_provider.dart';
 import '../navigation/app_routes.dart';
@@ -50,7 +51,8 @@ class SharedAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-      pageTitle == null ? _barHeight : _barHeight + _titleRowHeight);
+    pageTitle == null ? _barHeight : _barHeight + _titleRowHeight,
+  );
 
   /// First name of the signed-in user: ambassador profile first, then the
   /// Google account (covers admins, who have no ambassador record).
@@ -75,11 +77,12 @@ class SharedAppBar extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final name = _displayName(ref);
     final showName = MediaQuery.sizeOf(context).width >= 360;
-    final VoidCallback? profileTap = onAvatarTap ??
+    final VoidCallback? profileTap =
+        onAvatarTap ??
         (profileEnabled ? () => context.push(AppRoutes.profile) : null);
 
     return Material(
-      color: Colors.white,
+      color: MaamoraColors.surface,
       child: DecoratedBox(
         decoration: const BoxDecoration(
           border: Border(bottom: BorderSide(color: MaamoraColors.disabledBg)),
@@ -96,16 +99,21 @@ class SharedAppBar extends ConsumerWidget implements PreferredSizeWidget {
                   child: Row(
                     children: [
                       // Tapping the brand goes back to Home (Accueil).
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => context.go(AppRoutes.dashboard),
-                        child: Text(
-                          'Maamora',
-                          style: GoogleFonts.cairo(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
-                            height: 1.1,
+                      Semantics(
+                        button: true,
+                        label: context.tr('nav_home'),
+                        excludeSemantics: true,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => context.go(AppRoutes.dashboard),
+                          child: Text(
+                            'Maamora',
+                            style: GoogleFonts.cairo(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary,
+                              height: 1.1,
+                            ),
                           ),
                         ),
                       ),
@@ -129,8 +137,10 @@ class SharedAppBar extends ConsumerWidget implements PreferredSizeWidget {
                     children: [
                       const SizedBox(width: 4),
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 18),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 18,
+                        ),
                         color: AppColors.secondary,
                         onPressed:
                             onBack ?? () => Navigator.of(context).maybePop(),
@@ -165,7 +175,11 @@ class _LanguageMenu extends ConsumerWidget {
   const _LanguageMenu();
 
   PopupMenuItem<String> _item(
-      String code, String label, String short, String current) {
+    String code,
+    String label,
+    String short,
+    String current,
+  ) {
     final selected = current == code;
     return PopupMenuItem<String>(
       value: code,
@@ -203,17 +217,16 @@ class _LanguageMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(localeProvider).languageCode;
     return PopupMenuButton<String>(
-      tooltip: 'Language',
+      tooltip: context.tr('profile_language'),
       offset: const Offset(0, 46),
-      color: Colors.white,
+      color: MaamoraColors.surface,
       surfaceTintColor: Colors.transparent,
       elevation: 6,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: const BorderSide(color: AppColors.cardBorder),
       ),
-      onSelected: (code) =>
-          ref.read(localeProvider.notifier).set(Locale(code)),
+      onSelected: (code) => ref.read(localeProvider.notifier).set(Locale(code)),
       itemBuilder: (_) => [
         _item('fr', 'Français', 'FR', current),
         _item('ar', 'العربية', 'AR', current),
@@ -221,7 +234,7 @@ class _LanguageMenu extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: MaamoraColors.surface,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: MaamoraColors.borderStrong),
         ),
@@ -239,8 +252,11 @@ class _LanguageMenu extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 2),
-            const Icon(Icons.keyboard_arrow_down_rounded,
-                size: 18, color: AppColors.onSurfaceVariant),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: AppColors.onSurfaceVariant,
+            ),
           ],
         ),
       ),
@@ -268,58 +284,67 @@ class _ProfileChip extends StatelessWidget {
     final initial = name.isNotEmpty
         ? String.fromCharCode(name.runes.first).toUpperCase()
         : '';
-    return InkWell(
-      borderRadius: BorderRadius.circular(24),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-                image: avatarUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(avatarUrl!), fit: BoxFit.cover)
-                    : null,
-              ),
-              child: avatarUrl != null
-                  ? null
-                  : (initial.isNotEmpty
-                      ? Text(
-                          initial,
-                          style: GoogleFonts.cairo(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            height: 1.1,
-                          ),
+    return Semantics(
+      button: onTap != null,
+      label: context.tr('nav_profile'),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                  image: avatarUrl != null
+                      ? DecorationImage(
+                          image: NetworkImage(avatarUrl!),
+                          fit: BoxFit.cover,
                         )
-                      : const Icon(Icons.person_outline,
-                          size: 20, color: Colors.white)),
-            ),
-            if (showName && name.isNotEmpty) ...[
-              const SizedBox(width: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 84),
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.cairo(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondary,
+                      : null,
+                ),
+                child: avatarUrl != null
+                    ? null
+                    : (initial.isNotEmpty
+                          ? Text(
+                              initial,
+                              style: GoogleFonts.cairo(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: MaamoraColors.onPrimary,
+                                height: 1.1,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.person_outline,
+                              size: 20,
+                              color: MaamoraColors.onPrimary,
+                            )),
+              ),
+              if (showName && name.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 84),
+                  child: Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.cairo(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.secondary,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

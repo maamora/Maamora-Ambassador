@@ -25,10 +25,22 @@ abstract final class MaamoraColors {
   static final Color primaryHairline =
       AppColors.primary.withValues(alpha: 0.30); // focus rings / soft borders
 
+  /// Small orange text (< 18px) — AA 4.6:1 on white. Alias, same value as
+  /// `AppColors.primaryText`.
+  static const Color primaryText = AppColors.primaryText; // #BD5901
+
+  /// Ink placed ON brand fills (orange, navy, tiers, status). Alias of the
+  /// white surface — not a new hue.
+  static const Color onPrimary = AppColors.surface; // #FFFFFF
+
   // ── Navy (the deep brand anchor) ──
   static const Color textPrimary = AppColors.onBackground; // #1A2433
   static const Color textSecondary = AppColors.onSurfaceVariant; // #8A8078
   static const Color textFaint = Color(0xFFA79E95); // textSecondary @ 55% on cream
+
+  /// Accessible secondary grey (AA 4.5:1+ on white/cream). Alias of
+  /// `AppColors.textMuted`.
+  static const Color textMuted = AppColors.textMuted; // #7E746D
 
   // ── Surfaces (light theme) ──
   static const Color scaffold = Color(0xFFFAF5F0); // cream — charte officielle
@@ -158,6 +170,17 @@ abstract final class MaamoraDurations {
   static const Duration countUp = Duration(milliseconds: 1200);
   static const Duration shine = Duration(seconds: 4); // tier badge sweep loop
   static const Duration floatLoop = Duration(milliseconds: 2600);
+}
+
+/// Motion helpers shared by every animated component.
+abstract final class MaamoraMotion {
+  /// Standard easing for entrances and state changes.
+  static const Curve standard = Curves.easeOutCubic;
+
+  /// True when the OS asks to reduce motion: components then render their
+  /// final state immediately (no loops, no count-up, no slide).
+  static bool reduced(BuildContext context) =>
+      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 }
 
 /// ── Gradients ────────────────────────────────────────────────────────────────

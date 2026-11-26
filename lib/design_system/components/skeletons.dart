@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../core/l10n/app_strings.dart';
 import '../maamora_tokens.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
@@ -22,18 +23,20 @@ class MaamoraShimmerBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final box = Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: MaamoraColors.surfaceLow,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: MaamoraColors.border),
+      ),
+    );
+    if (MaamoraMotion.reduced(context)) return box;
     return Shimmer.fromColors(
       baseColor: MaamoraColors.surfaceLow,
-      highlightColor: const Color(0xFFFFFFFF),
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: MaamoraColors.surfaceLow,
-          borderRadius: BorderRadius.circular(radius),
-          border: Border.all(color: MaamoraColors.border),
-        ),
-      ),
+      highlightColor: MaamoraColors.surface,
+      child: box,
     );
   }
 }
@@ -104,10 +107,18 @@ class MaamoraSkeletonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: List.generate(
-        count,
-        (_) => MaamoraSkeletonRow(avatarSize: avatarSize, trailing: trailing),
+    // One "loading" announcement instead of N silent grey boxes.
+    return Semantics(
+      label: context.tr('common_loading'),
+      liveRegion: true,
+      child: ExcludeSemantics(
+        child: Column(
+          children: List.generate(
+            count,
+            (_) =>
+                MaamoraSkeletonRow(avatarSize: avatarSize, trailing: trailing),
+          ),
+        ),
       ),
     );
   }
@@ -121,6 +132,11 @@ class MaamoraSkeletonHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaamoraShimmerBox(height: height, radius: 22);
+    return Semantics(
+      label: context.tr('common_loading'),
+      child: ExcludeSemantics(
+        child: MaamoraShimmerBox(height: height, radius: 22),
+      ),
+    );
   }
 }

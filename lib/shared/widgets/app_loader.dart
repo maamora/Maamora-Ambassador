@@ -15,15 +15,9 @@ class AppLoader extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: MaamoraColors.surface,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          boxShadow: MaamoraShadows.raised,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -73,7 +67,19 @@ class _AppSkeletonState extends State<AppSkeleton>
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
-  )..repeat(reverse: true);
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MaamoraMotion.reduced(context)) {
+      _c
+        ..stop()
+        ..value = 1;
+    } else if (!_c.isAnimating) {
+      _c.repeat(reverse: true);
+    }
+  }
 
   @override
   void dispose() {
@@ -108,7 +114,7 @@ class _StripePainter extends CustomPainter {
       Paint()..color = MaamoraColors.surfaceLow,
     );
     final p = Paint()
-      ..color = Colors.white.withValues(alpha: 0.5)
+      ..color = MaamoraColors.surface.withValues(alpha: 0.5)
       ..strokeWidth = 6;
     for (double x = -size.height; x < size.width; x += 16) {
       canvas.drawLine(Offset(x, size.height), Offset(x + size.height, 0), p);
@@ -133,8 +139,8 @@ class AppSkeletonList extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            color: MaamoraColors.surface,
+            borderRadius: MaamoraRadius.cardR,
             border: Border.all(color: AppColors.cardBorder),
           ),
           child: Row(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/l10n/app_strings.dart';
 import '../../design_system/components/celebration_overlay.dart';
 import '../../core/services/ambassador_state_provider.dart';
 
@@ -23,16 +24,17 @@ class TierCelebrationWatcher extends ConsumerWidget {
 
   final Widget child;
 
-  String _label(int index) {
+  /// Same i18n keys as the dashboard tier labels (FR « Argent », AR « الفضي »).
+  String _labelKey(int index) {
     switch (index) {
       case 1:
-        return 'Bronze';
+        return 'dash_tier_bronze';
       case 2:
-        return 'Silver';
+        return 'dash_tier_silver';
       case 3:
-        return 'Gold';
+        return 'dash_tier_gold';
       default:
-        return 'Neutral';
+        return 'dash_tier_neutral';
     }
   }
 
@@ -43,17 +45,15 @@ class TierCelebrationWatcher extends ConsumerWidget {
       (previous, next) async {
         if (previous != null && next != null && next > previous) {
           final prefs = await SharedPreferences.getInstance();
-          final lastSeen =
-              prefs.getInt(_kLastSeenLevelKey) ?? 0;
+          final lastSeen = prefs.getInt(_kLastSeenLevelKey) ?? 0;
           if (next <= lastSeen) return; // already celebrated once
           await prefs.setInt(_kLastSeenLevelKey, next);
           if (context.mounted) {
-            const subtitle = 'Bienvenue au niveau';
             TierCelebration.show(
               context,
               tierIndex: next,
-              tierName: _label(next),
-              subtitle: subtitle,
+              tierName: context.tr(_labelKey(next)),
+              subtitle: context.tr('celebration_welcome_level'),
             );
           }
         }

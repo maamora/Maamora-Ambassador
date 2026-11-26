@@ -32,17 +32,22 @@ class PointsMeter extends StatelessWidget {
     final clamped = value.clamp(0.0, 1.0);
     final trackColor = this.trackColor ?? MaamoraColors.surfaceLow;
 
-    final meter = TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: clamped),
-      duration: MaamoraDurations.countUp,
+    final reduced = MaamoraMotion.reduced(context);
+    final bar = TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: reduced ? clamped : 0, end: clamped),
+      duration: reduced ? Duration.zero : MaamoraDurations.countUp,
       curve: Curves.easeOutExpo,
       builder: (context, v, _) => _LiquidBar(
         value: v,
         height: height,
         trackColor: trackColor,
-        trackRadius:
-            trackRadius ?? BorderRadius.circular(height / 2),
+        trackRadius: trackRadius ?? BorderRadius.circular(height / 2),
+        animateBand: !reduced,
       ),
+    );
+    final meter = Semantics(
+      value: '${(clamped * 100).round()} %',
+      child: ExcludeSemantics(child: bar),
     );
 
     if (!showPercent) return meter;
@@ -54,11 +59,12 @@ class PointsMeter extends StatelessWidget {
         const SizedBox(height: 4),
         CountUpPercent(
           percent: clamped,
-          style: percentStyle ??
+          style:
+              percentStyle ??
               const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: MaamoraColors.primary,
+                color: MaamoraColors.primaryText, // 11px → AA companion
               ),
         ),
       ],
@@ -72,12 +78,14 @@ class _LiquidBar extends StatelessWidget {
     required this.height,
     required this.trackColor,
     required this.trackRadius,
+    required this.animateBand,
   });
 
   final double value;
   final double height;
   final Color trackColor;
   final BorderRadius trackRadius;
+  final bool animateBand;
 
   @override
   Widget build(BuildContext context) {
@@ -115,9 +123,8 @@ class _LiquidBar extends StatelessWidget {
                           ),
                         ),
                         // Shimmer: a soft white band drifting across the fill.
-                        const Positioned.fill(
-                          child: _DriftBand(),
-                        ),
+                        if (animateBand)
+                          const Positioned.fill(child: _DriftBand()),
                       ],
                     ),
                   ),
@@ -160,10 +167,10 @@ class _DriftBandState extends State<_DriftBand>
         return FractionalTranslation(
           translation: Offset(-1.4 + t * 3.0, 0),
           child: Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: Container(
               width: 60,
-              color: Colors.white.withValues(alpha: 0.28),
+              color: MaamoraColors.onPrimary.withValues(alpha: 0.28),
             ),
           ),
         );

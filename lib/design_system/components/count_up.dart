@@ -40,12 +40,18 @@ class CountUpText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!animate) return _text(value);
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: begin, end: value),
-      duration: duration,
-      curve: curve,
-      builder: (context, v, _) => _text(v),
+    if (!animate || MaamoraMotion.reduced(context)) return _text(value);
+    // Screen readers announce the final server value, never mid-frames.
+    final finalLabel = '${prefix ?? ''}${formattedValue(value)}${suffix ?? ''}';
+    return Semantics(
+      label: finalLabel,
+      excludeSemantics: true,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: begin, end: value),
+        duration: duration,
+        curve: curve,
+        builder: (context, v, _) => _text(v),
+      ),
     );
   }
 
@@ -128,7 +134,8 @@ class CountUpPoints extends StatelessWidget {
         Text(
           label,
           style:
-              labelStyle ?? GoogleFonts.cairo(color: MaamoraColors.textSecondary),
+              labelStyle ??
+              GoogleFonts.cairo(color: MaamoraColors.textSecondary),
         ),
       ],
     );

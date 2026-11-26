@@ -32,16 +32,24 @@ class MaamoraStagger extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (MaamoraMotion.reduced(context)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      );
+    }
     final widgets = <Widget>[];
     for (var i = 0; i < children.length; i++) {
       final delay = firstDelay + step * i;
-      widgets.add(_StaggerItem(
-        delay: delay,
-        index: i,
-        crossSlide: crossSlide,
-        slideDistance: slideDistance,
-        child: children[i],
-      ));
+      widgets.add(
+        _StaggerItem(
+          delay: delay,
+          index: i,
+          crossSlide: crossSlide,
+          slideDistance: slideDistance,
+          child: children[i],
+        ),
+      );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -96,7 +104,7 @@ class _StaggerItemState extends State<_StaggerItem>
     return AnimatedBuilder(
       animation: _c,
       builder: (context, child) {
-        final t = Curves.easeOutCubic.transform(_c.value);
+        final t = MaamoraMotion.standard.transform(_c.value);
         return Opacity(
           opacity: t,
           child: FractionalTranslation(

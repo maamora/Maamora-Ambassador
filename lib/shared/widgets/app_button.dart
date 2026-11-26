@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../design_system/maamora_tokens.dart';
 import '../theme/app_colors.dart';
 import 'pressable_scale.dart';
 
@@ -27,9 +28,10 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final disabled = isLoading || onPressed == null;
     final solid = variant != AppButtonVariant.outlined;
-    final bg =
-        variant == AppButtonVariant.dark ? AppColors.secondary : AppColors.primary;
-    final fg = solid ? Colors.white : AppColors.secondary;
+    final bg = variant == AppButtonVariant.dark
+        ? AppColors.secondary
+        : AppColors.primary;
+    final fg = solid ? MaamoraColors.onPrimary : AppColors.secondary;
     final radius = BorderRadius.circular(16);
 
     final content = isLoading
@@ -66,33 +68,33 @@ class AppButton extends StatelessWidget {
     return PressableScale(
       enabled: !disabled,
       child: Opacity(
-      opacity: (onPressed == null && !isLoading) ? 0.5 : 1,
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          color: solid ? bg : Colors.white,
-          borderRadius: radius,
-          border: solid ? null : Border.all(color: AppColors.outlineVariant),
-          boxShadow: solid
-              ? [
-                  BoxShadow(
-                    color: bg.withValues(alpha: 0.28),
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
-                  ),
-                ]
-              : null,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
+        opacity: (onPressed == null && !isLoading) ? 0.5 : 1,
+        child: Container(
+          width: double.infinity,
+          height: 54,
+          decoration: BoxDecoration(
+            color: solid ? bg : MaamoraColors.surface,
             borderRadius: radius,
-            onTap: disabled ? null : onPressed,
-            child: Center(child: content),
+            border: solid ? null : Border.all(color: AppColors.outlineVariant),
+            boxShadow: solid
+                ? [
+                    BoxShadow(
+                      color: bg.withValues(alpha: 0.28),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: radius,
+              onTap: disabled ? null : onPressed,
+              child: Center(child: content),
+            ),
           ),
         ),
-      ),
       ),
     );
   }

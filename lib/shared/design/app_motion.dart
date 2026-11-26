@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../design_system/maamora_tokens.dart';
+
 /// Motion tokens + the one entry animation used across the app.
 abstract final class AppMotion {
   static const Duration fast = Duration(milliseconds: 150);
@@ -10,8 +12,7 @@ abstract final class AppMotion {
   static const Curve emphasized = Curves.easeOutCubic;
 
   /// True when the user asked the OS to reduce motion (accessibility).
-  static bool reduced(BuildContext context) =>
-      MediaQuery.disableAnimationsOf(context);
+  static bool reduced(BuildContext context) => MaamoraMotion.reduced(context);
 }
 
 extension AppEnterX on Widget {

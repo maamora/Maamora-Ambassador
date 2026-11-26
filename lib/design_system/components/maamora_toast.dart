@@ -52,26 +52,49 @@ class MaamoraToast {
     _timer = Timer(duration, _dismiss);
   }
 
-  static void success(BuildContext context, String message,
-      {String? subtitle, IconData? icon}) {
-    show(context, message,
-        subtitle: subtitle,
-        icon: icon ?? MaamoraIcons.checkFilled,
-        kind: MaamoraToastKind.success);
+  static void success(
+    BuildContext context,
+    String message, {
+    String? subtitle,
+    IconData? icon,
+  }) {
+    show(
+      context,
+      message,
+      subtitle: subtitle,
+      icon: icon ?? MaamoraIcons.checkFilled,
+      kind: MaamoraToastKind.success,
+    );
   }
 
-  static void error(BuildContext context, String message,
-      {String? subtitle, IconData? icon}) {
-    show(context, message,
-        subtitle: subtitle,
-        icon: icon ?? MaamoraIcons.close,
-        kind: MaamoraToastKind.error);
+  static void error(
+    BuildContext context,
+    String message, {
+    String? subtitle,
+    IconData? icon,
+  }) {
+    show(
+      context,
+      message,
+      subtitle: subtitle,
+      icon: icon ?? MaamoraIcons.close,
+      kind: MaamoraToastKind.error,
+    );
   }
 
-  static void info(BuildContext context, String message,
-      {String? subtitle, IconData? icon}) {
-    show(context, message,
-        subtitle: subtitle, icon: icon, kind: MaamoraToastKind.info);
+  static void info(
+    BuildContext context,
+    String message, {
+    String? subtitle,
+    IconData? icon,
+  }) {
+    show(
+      context,
+      message,
+      subtitle: subtitle,
+      icon: icon,
+      kind: MaamoraToastKind.info,
+    );
   }
 
   static void _dismiss() {
@@ -103,9 +126,23 @@ class _ToastView extends StatefulWidget {
 
 class _ToastViewState extends State<_ToastView>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 320))
-        ..forward();
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 320),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_c.status == AnimationStatus.dismissed) {
+      // Reduced motion: appear in place, no slide / tilt.
+      if (MaamoraMotion.reduced(context)) {
+        _c.value = 1;
+      } else {
+        _c.forward();
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -140,31 +177,32 @@ class _ToastViewState extends State<_ToastView>
     final t = CurvedAnimation(parent: _c, curve: Curves.easeOutBack);
     return Positioned(
       top: MediaQuery.paddingOf(context).top + 12,
-      left: 20,
-      right: 20,
-      child: GestureDetector(
-        onTap: dismiss,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(MaamoraRadius.card),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: AnimatedBuilder(
-              animation: _c,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(0, -80 * (1 - t.value)),
-                  child: Opacity(
-                    opacity: _c.value.clamp(0.0, 1.0),
-                    child: Transform.rotate(
-                      angle: 0.01 * (1 - t.value),
-                      child: child,
+      left: MaamoraSpacing.screen,
+      right: MaamoraSpacing.screen,
+      child: Semantics(
+        liveRegion: true,
+        container: true,
+        child: GestureDetector(
+          onTap: dismiss,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(MaamoraRadius.card),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: AnimatedBuilder(
+                animation: _c,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, -80 * (1 - t.value)),
+                    child: Opacity(
+                      opacity: _c.value.clamp(0.0, 1.0),
+                      child: Transform.rotate(
+                        angle: 0.01 * (1 - t.value),
+                        child: child,
+                      ),
                     ),
-                  ),
-                );
-              },
-              child: Material(
-                color: Colors.transparent,
-                child: _buildBody(),
+                  );
+                },
+                child: Material(color: Colors.transparent, child: _buildBody()),
               ),
             ),
           ),
@@ -183,17 +221,19 @@ class _ToastViewState extends State<_ToastView>
       ),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              widget.icon ?? _defaultIcon(),
-              color: Colors.white,
-              size: 18,
+          ExcludeSemantics(
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: MaamoraColors.onPrimary.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                widget.icon ?? _defaultIcon(),
+                color: MaamoraColors.onPrimary,
+                size: 18,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -206,7 +246,7 @@ class _ToastViewState extends State<_ToastView>
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: MaamoraColors.onPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
@@ -218,7 +258,7 @@ class _ToastViewState extends State<_ToastView>
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: MaamoraColors.onPrimary.withValues(alpha: 0.85),
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),

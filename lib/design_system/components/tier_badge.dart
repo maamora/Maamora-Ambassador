@@ -54,11 +54,21 @@ class _TierBadgeState extends State<TierBadge>
   @override
   void initState() {
     super.initState();
-    _shine = AnimationController(
-      vsync: this,
-      duration: MaamoraDurations.shine,
-    );
-    if (widget.animateShine) _shine.repeat();
+    _shine = AnimationController(vsync: this, duration: MaamoraDurations.shine);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // No infinite shine loop when the OS asks to reduce motion.
+    final shouldLoop = widget.animateShine && !MaamoraMotion.reduced(context);
+    if (shouldLoop && !_shine.isAnimating) {
+      _shine.repeat();
+    } else if (!shouldLoop && _shine.isAnimating) {
+      _shine
+        ..stop()
+        ..value = 0;
+    }
   }
 
   @override
@@ -93,8 +103,13 @@ class _TierBadgeState extends State<TierBadge>
             return LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: const [Colors.transparent, Colors.transparent, Colors.white,
-                Colors.transparent, Colors.transparent],
+              colors: const [
+                Colors.transparent,
+                Colors.transparent,
+                Colors.white,
+                Colors.transparent,
+                Colors.transparent,
+              ],
               stops: [
                 (position - 0.16).clamp(0.0, 1.0),
                 (position - 0.02).clamp(0.0, 1.0),
@@ -109,8 +124,10 @@ class _TierBadgeState extends State<TierBadge>
         );
       },
       child: Container(
-        padding:
-            EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical),
+        padding: EdgeInsets.symmetric(
+          horizontal: horizontal,
+          vertical: vertical,
+        ),
         decoration: BoxDecoration(
           gradient: widget.levelIndex == 0
               ? null
@@ -143,7 +160,7 @@ class _TierBadgeState extends State<TierBadge>
             Text(
               label,
               style: GoogleFonts.cairo(
-              fontSize: fontSize,
+                fontSize: fontSize,
                 fontWeight: FontWeight.w800,
                 color: _style.onColor,
                 shadows: [

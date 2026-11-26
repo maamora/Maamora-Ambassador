@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../design_system/maamora_tokens.dart';
+
 /// Design tokens. One place to tune spacing, radii, icon sizes and shadows so
 /// every screen stays consistent. Colors live in `AppColors` (brand palette).
 
@@ -29,13 +31,8 @@ abstract final class AppIconSize {
 }
 
 abstract final class AppShadows {
-  static List<BoxShadow> get soft => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          blurRadius: 14,
-          offset: const Offset(0, 4),
-        ),
-      ];
+  /// Delegates to the design-system soft elevation.
+  static List<BoxShadow> get soft => MaamoraShadows.soft;
 }
 
 extension ThemeTextX on BuildContext {
