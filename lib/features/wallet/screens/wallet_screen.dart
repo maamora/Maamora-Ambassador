@@ -99,8 +99,8 @@ class WalletScreen extends ConsumerWidget {
           Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
                 colors: [MaamoraGradients.heroOrangeTo, MaamoraColors.primary],
               ),
               borderRadius: BorderRadius.circular(22),

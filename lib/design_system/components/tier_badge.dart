@@ -101,8 +101,8 @@ class _TierBadgeState extends State<TierBadge>
             final t = _shine.value;
             final position = -0.35 + (t * 1.7);
             return LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: const [
                 Colors.transparent,
                 Colors.transparent,
@@ -117,7 +117,7 @@ class _TierBadgeState extends State<TierBadge>
                 (position + 0.10).clamp(0.0, 1.0),
                 (position + 0.24).clamp(0.0, 1.0),
               ],
-            ).createShader(bounds);
+            ).createShader(bounds, textDirection: Directionality.of(context));
           },
           blendMode: BlendMode.srcATop,
           child: child!,
@@ -132,8 +132,8 @@ class _TierBadgeState extends State<TierBadge>
           gradient: widget.levelIndex == 0
               ? null
               : LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                   colors: _style.gradient,
                 ),
           color: widget.levelIndex == 0 ? MaamoraColors.textPrimary : null,

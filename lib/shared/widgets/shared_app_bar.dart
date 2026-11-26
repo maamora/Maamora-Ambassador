@@ -137,8 +137,14 @@ class SharedAppBar extends ConsumerWidget implements PreferredSizeWidget {
                     children: [
                       const SizedBox(width: 4),
                       IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
+                        // Localized tooltip; chevron points to the reading
+                        // start (left in French, right in Arabic).
+                        tooltip:
+                            MaterialLocalizations.of(context).backButtonTooltip,
+                        icon: Icon(
+                          Directionality.of(context) == TextDirection.rtl
+                              ? Icons.arrow_forward_ios_rounded
+                              : Icons.arrow_back_ios_new_rounded,
                           size: 18,
                         ),
                         color: AppColors.secondary,

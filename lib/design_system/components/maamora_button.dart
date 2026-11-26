@@ -53,8 +53,8 @@ class _MaamoraButtonState extends State<MaamoraButton> {
         if (widget.gradient != null) {
           return BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
               colors: widget.gradient!,
             ),
             borderRadius: BorderRadius.circular(16),

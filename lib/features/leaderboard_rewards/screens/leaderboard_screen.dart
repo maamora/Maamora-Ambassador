@@ -595,7 +595,13 @@ class _RankRow extends StatelessWidget {
         return Opacity(
           opacity: tc,
           child: FractionalTranslation(
-            translation: Offset((1 - tc) * 0.06, 0),
+            // Slides in from the reading-start side (mirrored in Arabic).
+            translation: Offset(
+              (1 - tc) *
+                  0.06 *
+                  (Directionality.of(context) == TextDirection.rtl ? -1 : 1),
+              0,
+            ),
             child: child,
           ),
         );
@@ -802,8 +808,8 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
             colors: MaamoraGradients.heroNavy,
           ),
           color: _brownDark,

@@ -74,7 +74,7 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
     final quick = const [5, 10, 20, 50].where((n) => n <= _max).toList();
 
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
+      padding: EdgeInsetsDirectional.fromSTEB(
         AppSpacing.xl,
         0,
         AppSpacing.xl,

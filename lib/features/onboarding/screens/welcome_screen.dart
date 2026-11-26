@@ -144,8 +144,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               height: 68,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                   colors: MaamoraGradients.heroOrange,
                 ),
                 shape: BoxShape.circle,

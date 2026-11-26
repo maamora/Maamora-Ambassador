@@ -673,8 +673,8 @@ class _FrontShareCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: [MaamoraGradients.heroNavyFrom, MaamoraColors.textPrimary],
         ),
       ),
@@ -757,7 +757,7 @@ class _FrontShareCard extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Align(
-                alignment: Alignment.bottomRight,
+                alignment: AlignmentDirectional.bottomEnd,
                 child: Icon(
                   MaamoraIcons.qrCode,
                   color: MaamoraColors.onPrimary.withValues(alpha: 0.5),
@@ -790,8 +790,8 @@ class _BackShareCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: [MaamoraGradients.heroOrangeTo, MaamoraColors.primary],
         ),
       ),

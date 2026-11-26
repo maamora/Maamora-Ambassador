@@ -208,8 +208,8 @@ class _TierMedallion extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
             colors: style.gradient,
           ),
           shape: BoxShape.circle,
@@ -234,10 +234,11 @@ class _TierMedallion extends StatelessWidget {
               child: ShaderMask(
                 shaderCallback: (bounds) {
                   return const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
                     colors: [Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
-                  ).createShader(bounds);
+                  ).createShader(bounds,
+                      textDirection: Directionality.of(context));
                 },
                 blendMode: BlendMode.srcATop,
                 child: Icon(
