@@ -196,7 +196,7 @@ class _AdminGroupsPendingScreenState
                           vertical: 4,
                         ),
                         itemCount: filtered.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (ctx, i) => _GroupCard(
                           group: filtered[i],
                           onAssign:
@@ -346,7 +346,8 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final activeColor = color ?? _primary;
-    return GestureDetector(
+    return MaamoraTappable(
+      selected: isActive,
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -383,7 +384,7 @@ class _FilterChip extends StatelessWidget {
                 color: isActive ? MaamoraColors.onPrimary : _onSurfaceVariant,
               ),
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: 4),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
@@ -585,7 +586,7 @@ class _GroupCard extends StatelessWidget {
                           size: 16,
                           color: MaamoraColors.disabledBorder,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Text(
                           context.tr('ad_comm_paid'),
                           style: GoogleFonts.cairo(
@@ -639,7 +640,7 @@ class _GroupCard extends StatelessWidget {
                           size: 14,
                           color: MaamoraColors.textFaint,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Text(
                           context.tr('ad_group_incomplete'),
                           style: GoogleFonts.cairo(

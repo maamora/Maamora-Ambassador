@@ -154,7 +154,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                             color: MaamoraColors.onPrimary,
                                             size: 14,
                                           ),
-                                          const SizedBox(width: 3),
+                                          const SizedBox(width: 4),
                                           Text(
                                             ambassador.level.trLabel(context),
                                             style: GoogleFonts.cairo(

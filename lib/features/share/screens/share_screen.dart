@@ -305,8 +305,9 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                       ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(ctx).pop(),
+                  MaamoraIconAction(
+                    label: MaterialLocalizations.of(context).closeButtonTooltip,
+                    onPressed: () => Navigator.of(ctx).pop(),
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -371,7 +372,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -486,7 +487,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                     style: MaamoraTheme.screenTitle(),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
                     context.tr('share_subtitle'),
                     style: MaamoraTheme.support(),
@@ -596,7 +597,7 @@ class _FlipShareCardState extends State<_FlipShareCard>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return MaamoraTappable(
       onTap: _flip,
       child: AnimatedBuilder(
         animation: _c,
@@ -729,7 +730,7 @@ class _FrontShareCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 24),
               Text(
                 'MAAMORA.MA/J',
                 style: TextStyle(
@@ -755,7 +756,7 @@ class _FrontShareCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
               Align(
                 alignment: AlignmentDirectional.bottomEnd,
                 child: Icon(
@@ -806,7 +807,7 @@ class _BackShareCard extends StatelessWidget {
               color: MaamoraColors.onPrimary.withValues(alpha: 0.8),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             decoration: BoxDecoration(
@@ -824,7 +825,7 @@ class _BackShareCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           MaamoraButton(
             label: context.tr('share_copy_link'),
             leadingIcon: MaamoraIcons.copy,
@@ -900,85 +901,77 @@ class _ReferralLinkBox extends StatelessWidget {
 
           // Reset button (visible when customized)
           if (isCustomized) ...[
-            GestureDetector(
-              onTap: onReset,
-              child: Tooltip(
-                message: context.tr('share_reset'),
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: MaamoraColors.surfaceLow,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.restart_alt_rounded,
-                    color: _onSurfaceVariant,
-                    size: 18,
-                  ),
+            MaamoraIconAction(
+              label: context.tr('share_reset'),
+              onPressed: onReset,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: MaamoraColors.surfaceLow,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.restart_alt_rounded,
+                  color: _onSurfaceVariant,
+                  size: 18,
                 ),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
           ],
 
           // Paste icon button
-          GestureDetector(
-            onTap: onPaste,
-            child: Tooltip(
-              message: context.tr('share_paste_clipboard'),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: MaamoraColors.primarySoft,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.content_paste_rounded,
-                  color: _primary,
-                  size: 19,
-                ),
+          MaamoraIconAction(
+            label: context.tr('share_paste_clipboard'),
+            onPressed: onPaste,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: MaamoraColors.primarySoft,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.content_paste_rounded,
+                color: _primary,
+                size: 19,
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
 
           // Copy icon
-          GestureDetector(
-            onTap: onCopy,
-            child: Tooltip(
-              message: context.tr('share_copy_link'),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: MaamoraColors.primarySoft,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.content_copy_outlined,
-                  color: _primary,
-                  size: 19,
-                ),
+          MaamoraIconAction(
+            label: context.tr('share_copy_link'),
+            onPressed: onCopy,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: MaamoraColors.primarySoft,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.content_copy_outlined,
+                color: _primary,
+                size: 19,
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
 
           // QR icon
-          GestureDetector(
-            onTap: onQrTap,
-            child: Tooltip(
-              message: context.tr('share_show_qr'),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: MaamoraColors.primarySoft,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.qr_code_rounded,
-                  color: _primary,
-                  size: 19,
-                ),
+          MaamoraIconAction(
+            label: context.tr('share_show_qr'),
+            onPressed: onQrTap,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: MaamoraColors.primarySoft,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.qr_code_rounded,
+                color: _primary,
+                size: 19,
               ),
             ),
           ),
@@ -1106,12 +1099,12 @@ class _MessagePreviewSection extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
 
         // WhatsApp Chat Bubble (Tappable to Edit)
         Align(
           alignment: AlignmentDirectional.centerEnd,
-          child: GestureDetector(
+          child: MaamoraTappable(
             onTap: onEditTap,
             child: Container(
               constraints: const BoxConstraints(maxWidth: 320),
@@ -1132,7 +1125,7 @@ class _MessagePreviewSection extends StatelessWidget {
                   RichText(
                     text: TextSpan(children: _buildMessageSpans(message, link)),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -1144,7 +1137,7 @@ class _MessagePreviewSection extends StatelessWidget {
                             size: 13,
                             color: _onSurfaceVariant.withValues(alpha: 0.7),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: 4),
                           Text(
                             context.tr('share_edit'),
                             style: GoogleFonts.cairo(

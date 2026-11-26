@@ -146,13 +146,13 @@ class AppSkeletonList extends StatelessWidget {
           child: Row(
             children: [
               AppSkeleton(width: 56, height: 56, radius: 14),
-              SizedBox(width: 14),
+              SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppSkeleton(height: 14),
-                    SizedBox(height: 10),
+                    SizedBox(height: 12),
                     AppSkeleton(width: 120, height: 12),
                   ],
                 ),

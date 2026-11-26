@@ -293,7 +293,7 @@ class _DashStatCard extends StatelessWidget {
                       height: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     stat.label,
                     maxLines: 2,

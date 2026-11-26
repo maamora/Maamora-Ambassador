@@ -139,8 +139,9 @@ class SharedAppBar extends ConsumerWidget implements PreferredSizeWidget {
                       IconButton(
                         // Localized tooltip; chevron points to the reading
                         // start (left in French, right in Arabic).
-                        tooltip:
-                            MaterialLocalizations.of(context).backButtonTooltip,
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).backButtonTooltip,
                         icon: Icon(
                           Directionality.of(context) == TextDirection.rtl
                               ? Icons.arrow_forward_ios_rounded
@@ -248,7 +249,7 @@ class _LanguageMenu extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.language, size: 16, color: AppColors.secondary),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
               current.toUpperCase(),
               style: GoogleFonts.cairo(
@@ -257,7 +258,7 @@ class _LanguageMenu extends ConsumerWidget {
                 color: AppColors.secondary,
               ),
             ),
-            const SizedBox(width: 2),
+            const SizedBox(width: 4),
             const Icon(
               Icons.keyboard_arrow_down_rounded,
               size: 18,
@@ -297,7 +298,7 @@ class _ProfileChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(6),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -310,7 +311,11 @@ class _ProfileChip extends StatelessWidget {
                   shape: BoxShape.circle,
                   image: avatarUrl != null
                       ? DecorationImage(
-                          image: NetworkImage(avatarUrl!),
+                          // 36dp circle: decode at ~3x instead of the full photo.
+                          image: ResizeImage(
+                            NetworkImage(avatarUrl!),
+                            width: 108,
+                          ),
                           fit: BoxFit.cover,
                         )
                       : null,

@@ -337,7 +337,7 @@ class _InfoRow extends StatelessWidget {
               label,
               style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               value,
               style: GoogleFonts.cairo(

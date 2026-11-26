@@ -176,7 +176,7 @@ class _GroupOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return MaamoraTappable(
       onTap: onTap,
       child: Container(
         width: double.infinity,

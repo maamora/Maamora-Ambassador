@@ -138,7 +138,7 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
               ),
               child: Column(
                 children: [
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Container(
                     width: 40,
                     height: 4,
@@ -437,7 +437,6 @@ class _AdminNavItem extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
           width: 72,
-          height: 52,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

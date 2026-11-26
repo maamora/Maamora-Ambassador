@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/l10n/app_strings.dart';
 import '../../design_system/design_system.dart';
 
 /// Bottom bar, Maamora style — icon-only, like the approved reference:
@@ -61,10 +62,30 @@ class _SharedBottomNavBarState extends State<SharedBottomNavBar> {
           padding: EdgeInsets.only(bottom: bottom),
           child: Row(
             children: [
-              _tab(0, MaamoraIcons.home, MaamoraFilledGlyph.house),
-              _tab(1, MaamoraIcons.board, MaamoraFilledGlyph.trophy),
-              _tab(2, MaamoraIcons.share, MaamoraFilledGlyph.share),
-              _tab(3, MaamoraIcons.wallet, MaamoraFilledGlyph.wallet),
+              _tab(
+                0,
+                MaamoraIcons.home,
+                MaamoraFilledGlyph.house,
+                context.tr('nav_home'),
+              ),
+              _tab(
+                1,
+                MaamoraIcons.board,
+                MaamoraFilledGlyph.trophy,
+                context.tr('nav_board'),
+              ),
+              _tab(
+                2,
+                MaamoraIcons.share,
+                MaamoraFilledGlyph.share,
+                context.tr('nav_share'),
+              ),
+              _tab(
+                3,
+                MaamoraIcons.wallet,
+                MaamoraFilledGlyph.wallet,
+                context.tr('nav_wallet'),
+              ),
             ],
           ),
         ),
@@ -74,25 +95,43 @@ class _SharedBottomNavBarState extends State<SharedBottomNavBar> {
 
   /// Icon-only tab. Active: soft orange squircle + filled orange glyph.
   /// Inactive: quiet slate outline icon on transparent background.
-  Widget _tab(int index, IconData icon, MaamoraFilledGlyph glyph) {
+  Widget _tab(
+    int index,
+    IconData icon,
+    MaamoraFilledGlyph glyph,
+    String label,
+  ) {
     final active = widget.currentIndex == index;
+    // Icon-only visually, but never nameless for TalkBack / VoiceOver.
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: Semantics(
+        button: true,
+        selected: active,
+        label: label,
+        excludeSemantics: true,
         onTap: () => _onTap(index),
-        child: Center(
-          child: Container(
-            width: 58,
-            height: 58,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: active ? MaamoraColors.primarySoft : Colors.transparent,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: _AnimatedNavIcon(
-              outline: icon,
-              glyph: glyph,
-              active: active,
+        child: Tooltip(
+          message: label,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _onTap(index),
+            child: Center(
+              child: Container(
+                width: 58,
+                height: 58,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: active
+                      ? MaamoraColors.primarySoft
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: _AnimatedNavIcon(
+                  outline: icon,
+                  glyph: glyph,
+                  active: active,
+                ),
+              ),
             ),
           ),
         ),
@@ -118,7 +157,9 @@ class _AnimatedNavIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: active ? 1 : 0),
-      duration: MaamoraDurations.normal * 2,
+      duration: MaamoraMotion.reduced(context)
+          ? Duration.zero
+          : MaamoraDurations.normal * 2,
       curve: Curves.easeOutBack,
       builder: (context, t, child) {
         final tc = t.clamp(0.0, 1.0);
@@ -136,10 +177,7 @@ class _AnimatedNavIcon extends StatelessWidget {
                   tc,
                 ),
               ),
-              Opacity(
-                opacity: tc,
-                child: child,
-              ),
+              Opacity(opacity: tc, child: child),
             ],
           ),
         );

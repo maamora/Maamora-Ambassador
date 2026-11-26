@@ -36,7 +36,7 @@ class AdminStatCard extends StatelessWidget {
     final resolvedIconColor = iconColor ?? _primary;
     final resolvedIconBg = iconBackground ?? MaamoraColors.primarySoft;
 
-    return GestureDetector(
+    return MaamoraTappable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -90,7 +90,7 @@ class AdminStatCard extends StatelessWidget {
                       color: _primary,
                     ),
                   ),
-                  const SizedBox(width: 2),
+                  const SizedBox(width: 4),
                   const Icon(
                     Icons.arrow_forward_rounded,
                     size: 12,

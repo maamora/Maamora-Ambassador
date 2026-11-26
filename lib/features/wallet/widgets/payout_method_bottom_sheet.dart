@@ -399,7 +399,7 @@ class _PayoutMethodBottomSheetState
                         color: AppColors.onBackground,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       context.tr('payout_friday'),
                       style: GoogleFonts.cairo(
@@ -410,6 +410,7 @@ class _PayoutMethodBottomSheetState
                   ],
                 ),
                 IconButton(
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(
                     Icons.close_rounded,
@@ -462,7 +463,7 @@ class _PayoutMethodBottomSheetState
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.account_balance_rounded, size: 16),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Flexible(
                           child: Text(
                             context.tr('payout_bank_tab'),
@@ -479,7 +480,7 @@ class _PayoutMethodBottomSheetState
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.local_atm_rounded, size: 16),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Flexible(
                           child: Text(
                             context.tr('payout_cash_tab'),
@@ -530,7 +531,7 @@ class _PayoutMethodBottomSheetState
                           size: 18,
                           color: MaamoraColors.success,
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             context.tr('payout_security_note'),
@@ -580,7 +581,7 @@ class _PayoutMethodBottomSheetState
                   ),
 
                   if (hasExistingMethod) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Center(
                       child: TextButton.icon(
                         onPressed: _isSaving ? null : _removePayoutMethod,
@@ -623,7 +624,7 @@ class _PayoutMethodBottomSheetState
             color: AppColors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
@@ -662,7 +663,7 @@ class _PayoutMethodBottomSheetState
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           bank.code == '999'
@@ -699,7 +700,7 @@ class _PayoutMethodBottomSheetState
             color: AppColors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           decoration: BoxDecoration(
@@ -757,7 +758,7 @@ class _PayoutMethodBottomSheetState
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
@@ -804,45 +805,43 @@ class _PayoutMethodBottomSheetState
               ),
               const SizedBox(width: 8),
               // Paste button
-              GestureDetector(
-                onTap: _pasteRib,
-                child: Tooltip(
-                  message: context.tr('payout_paste_rib'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.content_paste_rounded,
-                          size: 14,
+              MaamoraIconAction(
+                label: context.tr('payout_paste_rib'),
+                onPressed: _pasteRib,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.content_paste_rounded,
+                        size: 14,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        context.tr('payout_paste'),
+                        style: GoogleFonts.cairo(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.primary,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          context.tr('payout_paste'),
-                          style: GoogleFonts.cairo(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Text(
           context.tr('payout_rib_hint'),
           style: GoogleFonts.cairo(
@@ -867,7 +866,7 @@ class _PayoutMethodBottomSheetState
             color: AppColors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
@@ -915,7 +914,7 @@ class _PayoutMethodBottomSheetState
             color: AppColors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           decoration: BoxDecoration(
@@ -956,7 +955,7 @@ class _PayoutMethodBottomSheetState
             color: AppColors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           decoration: BoxDecoration(
@@ -1005,7 +1004,7 @@ class _PayoutMethodBottomSheetState
             color: AppColors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           decoration: BoxDecoration(

@@ -71,19 +71,19 @@ class MaamoraSkeletonRow extends StatelessWidget {
             height: avatarSize,
             radius: avatarSize / 2,
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 MaamoraShimmerBox(height: 14, radius: 7),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 MaamoraShimmerBox(width: 110, height: 11, radius: 6),
               ],
             ),
           ),
           if (trailing) ...[
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             MaamoraShimmerBox(width: 40, height: 18, radius: 6),
           ],
         ],

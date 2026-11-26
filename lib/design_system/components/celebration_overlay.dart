@@ -161,7 +161,7 @@ class _TierCelebrationViewState extends State<_TierCelebrationView>
                         color: MaamoraColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     FadeTransition(
                       opacity: _c,
                       child: Text(

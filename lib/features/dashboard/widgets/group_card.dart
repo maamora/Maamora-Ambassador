@@ -213,7 +213,7 @@ class _StatusChip extends StatelessWidget {
             height: 6,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
           Text(
             label,
             style: context.text.labelSmall
@@ -249,7 +249,7 @@ class _Metric extends StatelessWidget {
           label,
           style: t.labelSmall?.copyWith(color: AppColors.textMuted),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
           value,
           style: t.titleSmall?.copyWith(fontWeight: FontWeight.w800, color: color),

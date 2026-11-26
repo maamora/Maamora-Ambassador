@@ -130,7 +130,7 @@ class CountUpPoints extends StatelessWidget {
       textBaseline: TextBaseline.alphabetic,
       children: [
         CountUpText(value: value, style: style, duration: duration),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         Text(
           label,
           style:

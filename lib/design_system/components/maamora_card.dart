@@ -46,13 +46,19 @@ class MaamoraCard extends StatelessWidget {
     );
     if (onTap == null) return body;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: AnimatedScale(
-        duration: MaamoraDurations.fast,
-        scale: 1.0,
-        child: body,
+    // Tappable card: one button node whose label is the card's text.
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: AnimatedScale(
+            duration: MaamoraDurations.fast,
+            scale: 1.0,
+            child: body,
+          ),
+        ),
       ),
     );
   }

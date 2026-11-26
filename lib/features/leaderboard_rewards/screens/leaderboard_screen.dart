@@ -145,7 +145,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                                 listData[i]['id'],
                             index: i - restStart,
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                         ],
                         if (restStart >= listData.length)
                           Padding(
@@ -207,7 +207,7 @@ class _LeaderboardSkeleton extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     children: [
@@ -217,7 +217,7 @@ class _LeaderboardSkeleton extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     children: [
@@ -277,7 +277,7 @@ class _Podium extends StatelessWidget {
               floatDelay: .6,
             ),
           ),
-        if (first != null || second != null) const SizedBox(width: 10),
+        if (first != null || second != null) const SizedBox(width: 12),
         Expanded(
           flex: 1,
           child: _PodiumCard(
@@ -289,7 +289,7 @@ class _Podium extends StatelessWidget {
             floatDelay: 0,
           ),
         ),
-        if (third != null || first != null) const SizedBox(width: 10),
+        if (third != null || first != null) const SizedBox(width: 12),
         if (third != null)
           Expanded(
             child: _PodiumCard(
@@ -371,7 +371,7 @@ class _PodiumCardState extends State<_PodiumCard>
         mainAxisSize: MainAxisSize.min,
         children: [
           _Avatar(name: name, size: widget.avatarSize),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -621,7 +621,7 @@ class _RankRow extends StatelessWidget {
             // Rank number with medal icon for top 3 (kept for safety although
             // rows normally start after the podium).
             SizedBox(width: 36, child: _RankChip(rank: rank)),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             _Avatar(name: name),
             const SizedBox(width: 12),
             Expanded(
@@ -646,7 +646,7 @@ class _RankRow extends StatelessWidget {
                         size: 12,
                         color: _onSurfaceVariant,
                       ),
-                      const SizedBox(width: 3),
+                      const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           city,
@@ -659,7 +659,7 @@ class _RankRow extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       LevelBadge(
                         level: AmbassadorLevelExtension.fromString(level),
                         showRate: false,
@@ -724,7 +724,7 @@ class _RankChip extends StatelessWidget {
       children: [
         if (rank <= 3) ...[
           Icon(MaamoraIcons.medal, size: 14, color: medalColor),
-          const SizedBox(width: 2),
+          const SizedBox(width: 4),
         ],
         Text(
           '$rank',
@@ -892,7 +892,7 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
                       color: MaamoraColors.onPrimary,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       if (widget.nextPerson != null) ...[

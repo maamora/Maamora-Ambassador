@@ -174,7 +174,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
                   bgColor: MaamoraColors.successSoft,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: _SummaryChip(
                   label: context.tr('ad_pending'),

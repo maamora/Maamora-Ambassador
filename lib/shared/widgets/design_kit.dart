@@ -233,7 +233,7 @@ class GradientHeroCard extends StatelessWidget {
                   ),
                 ),
               if (caption != null) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   caption!,
                   style: GoogleFonts.cairo(
@@ -278,7 +278,7 @@ class StatBox extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 18, color: AppColors.primary),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
           ],
           FittedBox(
             fit: BoxFit.scaleDown,
@@ -291,7 +291,7 @@ class StatBox extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
@@ -421,7 +421,7 @@ class EmptyState extends StatelessWidget {
             ),
             child: Icon(icon, color: AppColors.primary, size: 26),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Text(
             title,
             textAlign: TextAlign.center,
@@ -432,7 +432,7 @@ class EmptyState extends StatelessWidget {
             ),
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               subtitle!,
               textAlign: TextAlign.center,
@@ -500,7 +500,7 @@ class MaamoraListRow extends StatelessWidget {
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle!,
                     maxLines: 1,

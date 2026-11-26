@@ -556,7 +556,7 @@ class _AmbassadorRow extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -579,7 +579,7 @@ class _AmbassadorRow extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(
@@ -587,7 +587,7 @@ class _AmbassadorRow extends StatelessWidget {
                         size: 11,
                         color: _onSurfaceVariant,
                       ),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           ambassador.city,
@@ -605,7 +605,7 @@ class _AmbassadorRow extends StatelessWidget {
                         size: 11,
                         color: _onSurfaceVariant,
                       ),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           '${ambassador.totalValidatedMembers} ${context.tr('lb_members')}',

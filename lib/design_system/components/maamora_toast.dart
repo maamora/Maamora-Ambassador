@@ -252,7 +252,7 @@ class _ToastViewState extends State<_ToastView>
                   ),
                 ),
                 if (widget.subtitle != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     widget.subtitle!,
                     maxLines: 2,

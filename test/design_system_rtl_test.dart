@@ -9,8 +9,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-Widget _harness(Locale locale, Widget child,
-    {double scale = 1.3, bool reduceMotion = false}) {
+Widget _harness(
+  Locale locale,
+  Widget child, {
+  double scale = 1.3,
+  bool reduceMotion = false,
+}) {
   return MaterialApp(
     locale: locale,
     supportedLocales: const [Locale('fr'), Locale('ar')],
@@ -42,66 +46,129 @@ void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
   for (final locale in const [Locale('ar'), Locale('fr')]) {
-    testWidgets('TierBadge (shine ShaderMask) — ${locale.languageCode}',
-        (tester) async {
-      await tester.pumpWidget(_harness(
-        locale,
-        const Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            TierBadge(levelIndex: 0, label: 'الأساسي'),
-            TierBadge(levelIndex: 1, label: 'Bronze', commissionRate: 0.06),
-            TierBadge(levelIndex: 2, label: 'الفضي', size: TierBadgeSize.large),
-            TierBadge(levelIndex: 3, label: 'Gold', compact: true),
-          ],
+    testWidgets('TierBadge (shine ShaderMask) — ${locale.languageCode}', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(
+          locale,
+          const Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              TierBadge(levelIndex: 0, label: 'الأساسي'),
+              TierBadge(levelIndex: 1, label: 'Bronze', commissionRate: 0.06),
+              TierBadge(
+                levelIndex: 2,
+                label: 'الفضي',
+                size: TierBadgeSize.large,
+              ),
+              TierBadge(levelIndex: 3, label: 'Gold', compact: true),
+            ],
+          ),
         ),
-      ));
+      );
       // Laisse tourner l'animation de reflet (shader recalculé à chaque frame).
       await tester.pump(const Duration(milliseconds: 1500));
       expect(tester.takeException(), isNull);
       expect(find.byType(TierBadge), findsNWidgets(4));
     });
 
-    testWidgets('États vide / erreur + jauge — ${locale.languageCode}',
-        (tester) async {
-      await tester.pumpWidget(_harness(
-        locale,
-        const Column(
-          children: [
-            MaamoraEmptyState(
-              icon: Icons.inbox_outlined,
-              title: 'Aucun groupe pour le moment — لا توجد مجموعات حتى الآن',
-              subtitle: 'Partage un produit pour créer ton premier groupe !',
-            ),
-            SizedBox(height: 16),
-            MaamoraErrorState(),
-            SizedBox(height: 16),
-            PointsMeter(value: 0.42),
-          ],
+    testWidgets('États vide / erreur + jauge — ${locale.languageCode}', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _harness(
+          locale,
+          const Column(
+            children: [
+              MaamoraEmptyState(
+                icon: Icons.inbox_outlined,
+                title: 'Aucun groupe pour le moment — لا توجد مجموعات حتى الآن',
+                subtitle: 'Partage un produit pour créer ton premier groupe !',
+              ),
+              SizedBox(height: 16),
+              MaamoraErrorState(),
+              SizedBox(height: 16),
+              PointsMeter(value: 0.42),
+            ],
+          ),
         ),
-      ));
+      );
       await tester.pump(const Duration(milliseconds: 1500));
       expect(tester.takeException(), isNull);
       // Titre par défaut traduit (plus de français en dur en arabe).
       expect(
-        find.text(locale.languageCode == 'ar'
-            ? 'تعذّر التحميل'
-            : 'Le chargement a échoué'),
+        find.text(
+          locale.languageCode == 'ar'
+              ? 'تعذّر التحميل'
+              : 'Le chargement a échoué',
+        ),
         findsOneWidget,
       );
     });
   }
 
-  testWidgets('Mouvement réduit : la jauge affiche sa valeur finale',
-      (tester) async {
-    await tester.pumpWidget(_harness(
-      const Locale('fr'),
-      const PointsMeter(value: 0.5),
-      reduceMotion: true,
-    ));
+  testWidgets('Mouvement réduit : la jauge affiche sa valeur finale', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        const Locale('fr'),
+        const PointsMeter(value: 0.5),
+        reduceMotion: true,
+      ),
+    );
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(find.text('50 %'), findsOneWidget);
+  });
+  testWidgets('MaamoraIconAction : nom lisible + cible 48dp (AR)', (
+    tester,
+  ) async {
+    var taps = 0;
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _harness(
+        const Locale('ar'),
+        Row(
+          children: [
+            MaamoraIconAction(
+              label: 'نسخ',
+              onPressed: () => taps++,
+              child: const Icon(Icons.copy, size: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+    final size = tester.getSize(find.byType(MaamoraIconAction));
+    expect(size.width, greaterThanOrEqualTo(kMaamoraMinTapTarget));
+    expect(size.height, greaterThanOrEqualTo(kMaamoraMinTapTarget));
+    expect(find.bySemanticsLabel('نسخ'), findsOneWidget);
+    await tester.tap(find.byType(MaamoraIconAction));
+    expect(taps, 1);
+    handle.dispose();
+  });
+
+  testWidgets('MaamoraTappable : bouton sélectionné, libellé = texte', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _harness(
+        const Locale('fr'),
+        MaamoraTappable(
+          selected: true,
+          onTap: () {},
+          child: const Text('En cours'),
+        ),
+      ),
+    );
+    expect(
+      tester.getSemantics(find.byType(MaamoraTappable)),
+      isSemantics(label: 'En cours', isButton: true, isSelected: true),
+    );
+    handle.dispose();
   });
 }

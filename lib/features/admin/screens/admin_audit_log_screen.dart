@@ -375,8 +375,9 @@ class _AuditEntryRow extends StatelessWidget {
                       ),
                     ),
                     if (metadata.isNotEmpty)
-                      GestureDetector(
-                        onTap: () => _showInfoDialog(context, metadata),
+                      MaamoraIconAction(
+                        label: context.tr('ad_details'),
+                        onPressed: () => _showInfoDialog(context, metadata),
                         child: const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 6),
                           child: Icon(
@@ -395,7 +396,7 @@ class _AuditEntryRow extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   target,
                   style: GoogleFonts.cairo(

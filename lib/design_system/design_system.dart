@@ -25,3 +25,4 @@ export 'components/celebrations.dart';
 export 'components/celebration_overlay.dart';
 export 'components/states.dart';
 export 'components/skeletons.dart';
+export 'components/maamora_tappable.dart';

@@ -540,7 +540,7 @@ class _WalletTxRow extends StatelessWidget {
                         color: MaamoraColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       subtitle,
                       style: GoogleFonts.cairo(
@@ -552,7 +552,7 @@ class _WalletTxRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -574,7 +574,7 @@ class _WalletTxRow extends StatelessWidget {
                           : amountColor,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   if (!isExpired)
                     Text(
                       typeLabel,
@@ -681,7 +681,7 @@ class _PayoutMethodSectionState extends State<_PayoutMethodSection>
             child: Icon(icon, color: iconColor, size: 22),
           ),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -694,7 +694,7 @@ class _PayoutMethodSectionState extends State<_PayoutMethodSection>
                   color: MaamoraColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 4),
               Text(
                 subtitle,
                 style: GoogleFonts.cairo(
@@ -766,9 +766,8 @@ class _PayoutMethodSectionState extends State<_PayoutMethodSection>
               ),
           ],
         ),
-        const SizedBox(height: 14),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
+        const SizedBox(height: 16),
+        MaamoraTappable(
           onTap: () {
             HapticFeedback.selectionClick();
             PayoutMethodBottomSheet.show(

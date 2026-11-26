@@ -46,13 +46,12 @@ class _MaamoraSplashScreenState extends State<MaamoraSplashScreen>
         child: AnimatedBuilder(
           animation: _c,
           builder: (context, child) {
-            final breathe =
-                CurvedAnimation(parent: _c, curve: Curves.easeOut).value;
+            final breathe = CurvedAnimation(
+              parent: _c,
+              curve: Curves.easeOut,
+            ).value;
             final slowPulse = 1.0 + 0.04 * (1 - breathe);
-            return Transform.scale(
-              scale: slowPulse,
-              child: child,
-            );
+            return Transform.scale(scale: slowPulse, child: child);
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -74,18 +73,18 @@ class _MaamoraSplashScreenState extends State<MaamoraSplashScreen>
                   decoration: BoxDecoration(
                     color: MaamoraColors.surface,
                     shape: BoxShape.circle,
-                    boxShadow: MaamoraShadows.glow(MaamoraColors.primary,
-                        0.35),
+                    boxShadow: MaamoraShadows.glow(MaamoraColors.primary, 0.35),
                   ),
                   alignment: Alignment.center,
                   padding: const EdgeInsets.all(28),
                   child: Image.asset(
                     'assets/images/maamora_logo.png',
+                    excludeFromSemantics: true, // wordmark below names it
                     fit: BoxFit.contain,
                   ),
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 24),
               Text(
                 'Maamora',
                 style: GoogleFonts.cairo(
@@ -95,10 +94,7 @@ class _MaamoraSplashScreenState extends State<MaamoraSplashScreen>
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                'ambassador · app privée',
-                style: MaamoraTheme.support(),
-              ),
+              Text('ambassador · app privée', style: MaamoraTheme.support()),
               const SizedBox(height: 36),
               SizedBox(
                 width: 120,
@@ -109,7 +105,8 @@ class _MaamoraSplashScreenState extends State<MaamoraSplashScreen>
                     minHeight: 3,
                     backgroundColor: MaamoraColors.surfaceLow,
                     valueColor: const AlwaysStoppedAnimation(
-                        MaamoraColors.primary),
+                      MaamoraColors.primary,
+                    ),
                   ),
                 ),
               ),

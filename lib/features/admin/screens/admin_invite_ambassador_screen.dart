@@ -329,7 +329,7 @@ class _AdminInviteAmbassadorScreenState
             ),
           ),
           const SizedBox(height: 8),
-          GestureDetector(
+          MaamoraTappable(
             onTap: _pickDate,
             child: Container(
               width: double.infinity,
@@ -454,8 +454,9 @@ class _AdminInviteAmbassadorScreenState
                   ),
                 ),
                 const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: _copyCode,
+                MaamoraIconAction(
+                  label: context.tr('common_copy'),
+                  onPressed: _copyCode,
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
@@ -472,7 +473,7 @@ class _AdminInviteAmbassadorScreenState
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           // Lien complet (pour partage)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -494,8 +495,9 @@ class _AdminInviteAmbassadorScreenState
                   ),
                 ),
                 const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: _copyLink,
+                MaamoraIconAction(
+                  label: context.tr('common_copy'),
+                  onPressed: _copyLink,
                   child: const Icon(
                     Icons.content_copy_outlined,
                     color: _onSurfaceVariant,
@@ -517,7 +519,7 @@ class _AdminInviteAmbassadorScreenState
                   outlined: true,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: _ActionButton(
                   icon: Icons.send_rounded,
@@ -550,8 +552,9 @@ class _AdminInviteAmbassadorScreenState
               ),
             ),
             if (!_isLoadingInvites)
-              GestureDetector(
-                onTap: _fetchInvites,
+              MaamoraIconAction(
+                label: context.tr('common_refresh'),
+                onPressed: _fetchInvites,
                 child: const Icon(
                   Icons.refresh_rounded,
                   size: 20,

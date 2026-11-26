@@ -170,7 +170,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           textAlign: TextAlign.center,
           style: MaamoraTheme.screenTitle().copyWith(fontSize: 28),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         Text(
           context.tr('welcome_sub'),
           textAlign: TextAlign.center,
@@ -199,14 +199,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   size: 18,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Text(
                 context.tr('welcome_link_title'),
                 style: MaamoraTheme.sectionHeader().copyWith(fontSize: 15),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
@@ -228,8 +228,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   ),
                 ),
                 const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: _copyLink,
+                MaamoraIconAction(
+                  label: context.tr('common_copy'),
+                  onPressed: _copyLink,
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
                     child: Icon(
@@ -270,7 +271,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             color: MaamoraColors.primary,
             size: 22,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Tu démarres au niveau Starter — 4% de commission. Réalise 6 commandes pour atteindre Bronze et débloquer 6%.',

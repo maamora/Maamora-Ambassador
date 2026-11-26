@@ -174,7 +174,7 @@ class _EditMessageBottomSheetState extends State<EditMessageBottomSheet> {
                         color: _onBackground,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       context.tr('edit_sub'),
                       style: GoogleFonts.cairo(
