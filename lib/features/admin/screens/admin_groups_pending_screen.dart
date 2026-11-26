@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/design/app_motion.dart';
 import '../../../shared/widgets/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -205,7 +206,7 @@ class _AdminGroupsPendingScreenState
                                   !_assigning.contains(filtered[i].id)
                               ? () => _handleAssign(ctx, filtered[i], notifier)
                               : null,
-                        ),
+                        ).enter(context, index: i < 8 ? i : 0),
                       ),
                     ),
             ),

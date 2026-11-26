@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../shared/theme/app_theme.dart';
 import 'maamora_tokens.dart';
+import 'components/maamora_motion.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
 /// MAAMORA THEME — the app theme, upgraded in place.
@@ -23,6 +25,16 @@ class MaamoraTheme {
     // Cream scaffold per the Maamora charte; cards stay pure white.
     final withCream = base.copyWith(
       scaffoldBackgroundColor: MaamoraColors.scaffold,
+      // Material motion: pushed pages use the shared-axis "scaled" depth
+      // transition (direction-neutral → same in FR and AR). iOS keeps its
+      // native swipe-back transition.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: MaamoraPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: base.colorScheme.copyWith(
         surface: MaamoraColors.surface,
         onSurface: MaamoraColors.textPrimary,
@@ -39,9 +51,7 @@ class MaamoraTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MaamoraRadius.input),
-          borderSide: const BorderSide(
-            color: MaamoraColors.border,
-          ),
+          borderSide: const BorderSide(color: MaamoraColors.border),
         ),
       ),
       appBarTheme: base.appBarTheme.copyWith(
@@ -59,49 +69,49 @@ class MaamoraTheme {
 
   /// The single hero metric per screen: 48px+ bold.
   static TextStyle heroMetric() => GoogleFonts.cairo(
-        fontSize: 50,
-        fontWeight: FontWeight.w800,
-        height: 1.05,
-        color: Colors.white,
-      );
+    fontSize: 50,
+    fontWeight: FontWeight.w800,
+    height: 1.05,
+    color: Colors.white,
+  );
 
   static TextStyle heroMetricDark() => GoogleFonts.cairo(
-        fontSize: 50,
-        fontWeight: FontWeight.w800,
-        height: 1.05,
-        color: MaamoraColors.textPrimary,
-      );
+    fontSize: 50,
+    fontWeight: FontWeight.w800,
+    height: 1.05,
+    color: MaamoraColors.textPrimary,
+  );
 
   static TextStyle screenTitle() => GoogleFonts.cairo(
-        fontSize: 26,
-        fontWeight: FontWeight.w800,
-        color: MaamoraColors.textPrimary,
-        height: 1.15,
-      );
+    fontSize: 26,
+    fontWeight: FontWeight.w800,
+    color: MaamoraColors.textPrimary,
+    height: 1.15,
+  );
 
   static TextStyle support() => GoogleFonts.cairo(
-        fontSize: 13.5,
-        fontWeight: FontWeight.w500,
-        color: MaamoraColors.textSecondary,
-        height: 1.5,
-      );
+    fontSize: 13.5,
+    fontWeight: FontWeight.w500,
+    color: MaamoraColors.textSecondary,
+    height: 1.5,
+  );
 
   static TextStyle sectionHeader() => GoogleFonts.cairo(
-        fontSize: 16,
-        fontWeight: FontWeight.w800,
-        color: MaamoraColors.textPrimary,
-      );
+    fontSize: 16,
+    fontWeight: FontWeight.w800,
+    color: MaamoraColors.textPrimary,
+  );
 
   static TextStyle eyebrow() => GoogleFonts.cairo(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.2,
-        color: MaamoraColors.textSecondary,
-      );
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1.2,
+    color: MaamoraColors.textSecondary,
+  );
 
   static TextStyle metricValue() => GoogleFonts.cairo(
-        fontSize: 17,
-        fontWeight: FontWeight.w800,
-        color: MaamoraColors.textPrimary,
-      );
+    fontSize: 17,
+    fontWeight: FontWeight.w800,
+    color: MaamoraColors.textPrimary,
+  );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/l10n/app_strings.dart';
+import '../../design_system/components/maamora_motion.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/leaderboard_rewards/screens/leaderboard_screen.dart';
 import '../../features/share/screens/share_screen.dart';
@@ -59,7 +60,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           title: _getTitle(_currentIndex),
           onAvatarTap: () => context.push(AppRoutes.profile),
         ),
-        body: IndexedStack(
+        // Tabs stay alive (state, scroll, data) and the selected one fades
+        // through in — Material motion for sibling destinations.
+        body: MaamoraFadeThroughIndexedStack(
           index: _currentIndex,
           children: _pages,
         ),

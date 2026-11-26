@@ -159,7 +159,10 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
           ),
         ),
       ),
-      body: _buildCurrentPage(),
+      body: MaamoraFadeThroughSwitcher(
+        pageKey: _currentIndex,
+        child: _buildCurrentPage(),
+      ),
       bottomNavigationBar: _AdminBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
@@ -216,9 +219,12 @@ class _AmbassadorsTabWrapper extends ConsumerWidget {
         ),
         const Divider(height: 1, color: MaamoraColors.surfaceLow),
         Expanded(
-          child: currentSubTab == 0
-              ? const AdminAmbassadorsPendingScreen()
-              : const AdminAmbassadorsListScreen(),
+          child: MaamoraFadeThroughSwitcher(
+            pageKey: currentSubTab,
+            child: currentSubTab == 0
+                ? const AdminAmbassadorsPendingScreen()
+                : const AdminAmbassadorsListScreen(),
+          ),
         ),
       ],
     );
@@ -265,9 +271,12 @@ class _SettingsTabWrapper extends StatelessWidget {
         ),
         const Divider(height: 1, color: MaamoraColors.surfaceLow),
         Expanded(
-          child: currentSubTab == 0
-              ? const AdminCommissionsScreen()
-              : const AdminAuditLogScreen(),
+          child: MaamoraFadeThroughSwitcher(
+            pageKey: currentSubTab,
+            child: currentSubTab == 0
+                ? const AdminCommissionsScreen()
+                : const AdminAuditLogScreen(),
+          ),
         ),
       ],
     );

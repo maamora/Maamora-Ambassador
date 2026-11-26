@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/design/app_motion.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/admin_status_badge.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -143,7 +144,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
             const SizedBox(height: MaamoraSpacing.sm),
         itemBuilder: (context, i) {
           final p = _payouts[i];
-          return _PayoutRow(payoutData: p);
+          return _PayoutRow(payoutData: p).enter(context, index: i < 8 ? i : 0);
         },
       ),
     );
