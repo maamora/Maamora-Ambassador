@@ -11,6 +11,7 @@ import '../../../shared/navigation/app_routes.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/design_kit.dart';
+import '../../../design_system/design_system.dart';
 import '../../../shared/widgets/responsive.dart';
 import '../../groups/providers/my_groups_provider.dart';
 import '../providers/dashboard_providers.dart';
@@ -101,8 +102,9 @@ class _DashboardContent extends ConsumerWidget {
       ambassador: ambassador,
       groupsCount: groupsAsync.value?.length ?? 0,
     ).enter(context, index: 2);
-    final level = LevelProgressCard(ambassador: ambassador)
-        .enter(context, index: 3);
+    final level = LevelProgressCard(
+      ambassador: ambassador,
+    ).enter(context, index: 3);
     final cta = AppButton(
       label: context.tr('dash_new_group'),
       leadingIcon: Icons.add_rounded,
@@ -134,7 +136,15 @@ class _DashboardContent extends ConsumerWidget {
                         flex: 5,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [greeting, gap, hero, gap, stats, gap, level],
+                          children: [
+                            greeting,
+                            gap,
+                            hero,
+                            gap,
+                            stats,
+                            gap,
+                            level,
+                          ],
                         ),
                       ),
                       const SizedBox(width: AppSpacing.xl),
@@ -198,14 +208,18 @@ class _Greeting extends StatelessWidget {
             children: [
               Text(
                 context.tr('dash_greeting', args: {'name': name}),
-                style: t.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w800, height: 1.2),
+                style: t.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 context.tr('dash_subtitle'),
-                style: t.bodySmall
-                    ?.copyWith(color: AppColors.textMuted, height: 1.4),
+                style: t.bodySmall?.copyWith(
+                  color: AppColors.textMuted,
+                  height: 1.4,
+                ),
               ),
             ],
           ),
@@ -229,7 +243,7 @@ class _EarningsHero extends ConsumerWidget {
     final unit = context.tr('dash_unit_dh');
     const icon = Icon(
       Icons.account_balance_wallet_outlined,
-      color: Colors.white,
+      color: MaamoraColors.onPrimary,
       size: AppIconSize.lg,
     );
 
@@ -291,7 +305,7 @@ class _StatsRow extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: StatBox(
-              value: ambassador.level.label,
+              value: ambassador.level.trLabel(context),
               label: context.tr('dash_level'),
               icon: Icons.military_tech_outlined,
             ),
@@ -375,8 +389,13 @@ class _InlineError extends StatelessWidget {
     return SectionCard(
       child: Row(
         children: [
-          const Icon(Icons.error_outline,
-              size: AppIconSize.lg, color: AppColors.error),
+          const ExcludeSemantics(
+            child: Icon(
+              Icons.error_outline,
+              size: AppIconSize.lg,
+              color: AppColors.error,
+            ),
+          ),
           const SizedBox(width: AppSpacing.md),
           Expanded(child: Text(message, style: context.text.bodyMedium)),
           TextButton(
@@ -401,31 +420,13 @@ class _DashboardError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Same error presentation as every other screen (icon, text, retry).
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_off_outlined,
-                size: 48, color: AppColors.textMuted),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              message ?? context.tr('dash_error_title'),
-              textAlign: TextAlign.center,
-              style:
-                  context.text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              width: 220,
-              child: AppButton(
-                label: context.tr('common_retry'),
-                variant: AppButtonVariant.outlined,
-                onPressed: onRetry,
-              ),
-            ),
-          ],
+        padding: const EdgeInsets.all(MaamoraSpacing.screen),
+        child: MaamoraErrorState(
+          title: message ?? context.tr('dash_error_title'),
+          onRetry: onRetry,
         ),
       ),
     );

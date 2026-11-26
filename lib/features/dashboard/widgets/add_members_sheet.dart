@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../shared/design/app_tokens.dart';
 import '../../../shared/theme/app_colors.dart';
+import '../../../design_system/maamora_tokens.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/pressable_scale.dart';
 
@@ -60,8 +61,9 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
     setState(() {
       _count = clamped;
       _controller.text = '$clamped';
-      _controller.selection =
-          TextSelection.collapsed(offset: _controller.text.length);
+      _controller.selection = TextSelection.collapsed(
+        offset: _controller.text.length,
+      );
     });
   }
 
@@ -156,8 +158,9 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
                     shape: const StadiumBorder(),
                     labelStyle: t.labelLarge?.copyWith(
                       fontWeight: FontWeight.w800,
-                      color:
-                          _count == n ? Colors.white : AppColors.primaryText,
+                      color: _count == n
+                          ? MaamoraColors.onPrimary
+                          : AppColors.primaryText,
                     ),
                     onSelected: (_) => _setCount(n),
                   ),
@@ -207,7 +210,7 @@ class _StepButton extends StatelessWidget {
             child: Icon(
               icon,
               semanticLabel: label,
-              color: enabled ? Colors.white : AppColors.textMuted,
+              color: enabled ? MaamoraColors.onPrimary : AppColors.textMuted,
             ),
           ),
         ),

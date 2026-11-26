@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,30 +23,42 @@ class WalletScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: MaamoraColors.scaffold,
       body: walletAsync.when(
-        data: (data) => SingleChildScrollView(
-          padding: const EdgeInsetsDirectional.only(
-            start: 20,
-            end: 20,
-            top: 24,
-            bottom: 100, // For bottom nav bar padding
-          ),
-          child: MaamoraStagger(
-            crossSlide: false,
-            children: [
-              _balanceHero(context, data.balance),
-              const SizedBox(height: 24),
-              _EarningsBreakdown(data),
-              const SizedBox(height: 28),
-              if (currentAmbassador != null)
-                _PayoutMethodSection(ambassador: currentAmbassador),
-            ],
+        // Pull-to-refresh: invalidates the wallet (balance, commissions,
+        // payouts) and the profile (payout method). Old data stays visible
+        // while the refetch runs.
+        data: (data) => RefreshIndicator(
+          color: MaamoraColors.primary,
+          onRefresh: () async {
+            ref.invalidate(profileProvider);
+            ref.invalidate(walletProvider);
+            await ref.read(walletProvider.future);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsetsDirectional.only(
+              start: 20,
+              end: 20,
+              top: 24,
+              bottom: 100, // For bottom nav bar padding
+            ),
+            child: MaamoraStagger(
+              crossSlide: false,
+              children: [
+                _balanceHero(context, data.balance),
+                const SizedBox(height: 24),
+                _EarningsBreakdown(data),
+                const SizedBox(height: 28),
+                if (currentAmbassador != null)
+                  _PayoutMethodSection(ambassador: currentAmbassador),
+              ],
+            ),
           ),
         ),
         loading: () => const _WalletSkeleton(),
         error: (err, _) => Padding(
           padding: const EdgeInsets.all(20),
           child: MaamoraErrorState(
-            subtitle: err.toString(),
+            subtitle: context.tr('common_error_sub'),
             onRetry: () => ref.invalidate(walletProvider),
           ),
         ),
@@ -73,7 +85,10 @@ class WalletScreen extends ConsumerWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
-                      colors: [MaamoraColors.primaryHalo, MaamoraColors.primaryHaloEnd],
+                      colors: [
+                        MaamoraColors.primaryHalo,
+                        MaamoraColors.primaryHaloEnd,
+                      ],
                       radius: 0.9,
                     ),
                   ),
@@ -105,7 +120,7 @@ class WalletScreen extends ConsumerWidget {
                     width: 128,
                     height: 128,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: MaamoraColors.onPrimary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -117,13 +132,13 @@ class WalletScreen extends ConsumerWidget {
                     width: 96,
                     height: 96,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: MaamoraColors.onPrimary.withValues(alpha: 0.05),
                       shape: BoxShape.circle,
                     ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(MaamoraSpacing.screen),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -137,10 +152,12 @@ class WalletScreen extends ConsumerWidget {
                               Text(
                                 context.tr('wallet_vendredi'),
                                 style: MaamoraTheme.eyebrow().copyWith(
-                                  color: Colors.white.withValues(alpha: 0.85),
+                                  color: MaamoraColors.onPrimary.withValues(
+                                    alpha: 0.85,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: MaamoraSpacing.sm),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.baseline,
                                 textBaseline: TextBaseline.alphabetic,
@@ -150,7 +167,7 @@ class WalletScreen extends ConsumerWidget {
                                     style: GoogleFonts.cairo(
                                       fontSize: 50,
                                       fontWeight: FontWeight.w800,
-                                      color: Colors.white,
+                                      color: MaamoraColors.onPrimary,
                                       height: 1.02,
                                     ),
                                   ),
@@ -159,8 +176,9 @@ class WalletScreen extends ConsumerWidget {
                                     style: GoogleFonts.cairo(
                                       fontSize: 24,
                                       fontWeight: FontWeight.w600,
-                                      color:
-                                          Colors.white.withValues(alpha: 0.9),
+                                      color: MaamoraColors.onPrimary.withValues(
+                                        alpha: 0.9,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -168,14 +186,16 @@ class WalletScreen extends ConsumerWidget {
                             ],
                           ),
                           Container(
-                            padding: const EdgeInsets.all(10),
+                            padding: const EdgeInsets.all(MaamoraSpacing.md),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: MaamoraColors.onPrimary.withValues(
+                                alpha: 0.2,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               MaamoraIcons.wallet,
-                              color: Colors.white,
+                              color: MaamoraColors.onPrimary,
                               size: 22,
                             ),
                           ),
@@ -184,12 +204,18 @@ class WalletScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
+                          color: MaamoraColors.onPrimary.withValues(
+                            alpha: 0.15,
+                          ),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: MaamoraColors.onPrimary.withValues(
+                              alpha: 0.2,
+                            ),
                           ),
                         ),
                         child: Row(
@@ -197,7 +223,7 @@ class WalletScreen extends ConsumerWidget {
                           children: [
                             const Icon(
                               MaamoraIcons.verifiedUser,
-                              color: Colors.white,
+                              color: MaamoraColors.onPrimary,
                               size: 16,
                             ),
                             const SizedBox(width: 8),
@@ -205,7 +231,7 @@ class WalletScreen extends ConsumerWidget {
                               context.tr('wallet_id_verified'),
                               style: GoogleFonts.cairo(
                                 fontSize: 13,
-                                color: Colors.white,
+                                color: MaamoraColors.onPrimary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -283,7 +309,10 @@ class _EarningsBreakdown extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(context.tr('wallet_detail'), style: MaamoraTheme.sectionHeader()),
+            Text(
+              context.tr('wallet_detail'),
+              style: MaamoraTheme.sectionHeader(),
+            ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -298,13 +327,13 @@ class _EarningsBreakdown extends StatelessWidget {
                     style: GoogleFonts.cairo(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: MaamoraColors.primary,
+                      color: MaamoraColors.primaryText,
                     ),
                   ),
                   const SizedBox(width: 4),
                   const Icon(
                     MaamoraIcons.chevronRight,
-                    color: MaamoraColors.primary,
+                    color: MaamoraColors.primaryText,
                     size: 14,
                   ),
                 ],
@@ -338,7 +367,7 @@ class _EarningsBreakdown extends StatelessWidget {
                   Color iconBgColor = MaamoraColors.navySoft;
                   bool isExpired = false;
                   String typeLabel = '';
-                  Color amountColor = MaamoraColors.primary;
+                  Color amountColor = MaamoraColors.primaryText;
 
                   if (tx is Commission) {
                     title = context.tr('wallet_tx_commission');
@@ -352,11 +381,15 @@ class _EarningsBreakdown extends StatelessWidget {
                       title = context.tr('wallet_tx_bonus');
                       icon = MaamoraIcons.referral;
                     }
-                    subtitle = tx.status.value.toUpperCase();
-                    amountStr = "'+${tx.amount.toStringAsFixed(0)} ${context.tr('dash_unit_dh')}";
+                    subtitle = _statusLabel(context, tx.status.value);
+                    // Stray leading quote removed: it made every commission
+                    // render with a "-" sign (startsWith('+') was false).
+                    amountStr =
+                        "+${tx.amount.toStringAsFixed(0)} ${context.tr('dash_unit_dh')}";
                     isExpired = tx.status == CommissionStatus.voided;
                     typeLabel = context.tr('wallet_tx_commission');
-                    amountColor = MaamoraColors.primary;
+                    // 14px text → AA orange companion (sign carries meaning too).
+                    amountColor = MaamoraColors.primaryText;
                   } else if (tx is Payout) {
                     final methodStr = tx.method == PayoutMethod.bank
                         ? context.tr('wallet_tx_bank')
@@ -369,8 +402,9 @@ class _EarningsBreakdown extends StatelessWidget {
                         : MaamoraIcons.cash;
                     iconColor = MaamoraColors.danger;
                     iconBgColor = MaamoraColors.dangerSoft;
-                    subtitle = tx.status.value.toUpperCase();
-                    amountStr = "'-${tx.amount.toStringAsFixed(0)} ${context.tr('dash_unit_dh')}";
+                    subtitle = _statusLabel(context, tx.status.value);
+                    amountStr =
+                        "-${tx.amount.toStringAsFixed(0)} ${context.tr('dash_unit_dh')}";
                     typeLabel = context.tr('wallet_tx_payout');
                     amountColor = MaamoraColors.danger;
                   }
@@ -457,7 +491,13 @@ class _WalletTxRow extends StatelessWidget {
         return Opacity(
           opacity: tc,
           child: FractionalTranslation(
-            translation: Offset((1 - tc) * 0.06, 0),
+            // Slides in from the reading-start side (mirrored in Arabic).
+            translation: Offset(
+              (1 - tc) *
+                  0.06 *
+                  (Directionality.of(context) == TextDirection.rtl ? -1 : 1),
+              0,
+            ),
             child: child,
           ),
         );
@@ -517,15 +557,18 @@ class _WalletTxRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   CountUpText(
-                    value: double.tryParse(
+                    value:
+                        double.tryParse(
                           amount.replaceAll(RegExp(r'[^0-9.]'), ''),
                         ) ??
                         0,
                     prefix: amount.startsWith('+') ? '+' : '-',
-                    suffix: context.tr('dash_unit_dh'),
+                    suffix: ' ${context.tr('dash_unit_dh')}',
                     style: GoogleFonts.cairo(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
+                      // Digits keep the same width → amounts align in the list.
+                      fontFeatures: const [FontFeature.tabularFigures()],
                       color: isExpired
                           ? MaamoraColors.textSecondary
                           : amountColor,
@@ -681,11 +724,13 @@ class _PayoutMethodSectionState extends State<_PayoutMethodSection>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(context.tr('wallet_method_title'), style: MaamoraTheme.sectionHeader()),
+            Text(
+              context.tr('wallet_method_title'),
+              style: MaamoraTheme.sectionHeader(),
+            ),
             if (hasMethod)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: MaamoraColors.successSoft,
                   borderRadius: BorderRadius.circular(999),
@@ -751,5 +796,22 @@ class _PayoutMethodSectionState extends State<_PayoutMethodSection>
         ),
       ],
     );
+  }
+}
+
+/// Translated label for a commission / payout status value (display only;
+/// the raw value from the server is never changed).
+String _statusLabel(BuildContext context, String raw) {
+  switch (raw) {
+    case 'pending':
+      return context.tr('wallet_st_pending');
+    case 'payable':
+      return context.tr('wallet_st_payable');
+    case 'paid':
+      return context.tr('wallet_st_paid');
+    case 'voided':
+      return context.tr('wallet_st_voided');
+    default:
+      return raw;
   }
 }

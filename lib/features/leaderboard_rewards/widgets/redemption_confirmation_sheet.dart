@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../design_system/design_system.dart';
+import '../../../core/l10n/app_strings.dart';
 
 // Dev 4 — Confirm Redemption sheet, opened via showModalBottomSheet from
 // rewards_screen.dart. Pure presentation: detail rows + onConfirm are
@@ -24,10 +25,12 @@ class RedemptionConfirmationSheet extends StatefulWidget {
   final Future<void> Function() onConfirm;
 
   @override
-  State<RedemptionConfirmationSheet> createState() => _RedemptionConfirmationSheetState();
+  State<RedemptionConfirmationSheet> createState() =>
+      _RedemptionConfirmationSheetState();
 }
 
-class _RedemptionConfirmationSheetState extends State<RedemptionConfirmationSheet> {
+class _RedemptionConfirmationSheetState
+    extends State<RedemptionConfirmationSheet> {
   bool _isSubmitting = false;
 
   Future<void> _handleConfirm() async {
@@ -39,8 +42,10 @@ class _RedemptionConfirmationSheetState extends State<RedemptionConfirmationShee
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Une erreur est survenue : $e')),
+      // Toast (root overlay) is visible above the sheet.
+      MaamoraToast.error(
+        context,
+        context.tr('common_error', args: {'e': e.toString()}),
       );
     }
   }
@@ -54,7 +59,12 @@ class _RedemptionConfirmationSheetState extends State<RedemptionConfirmationShee
           color: _surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: EdgeInsetsDirectional.fromSTEB(20, 12, 20, 20 + MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsetsDirectional.fromSTEB(
+          20,
+          12,
+          20,
+          20 + MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -67,16 +77,20 @@ class _RedemptionConfirmationSheetState extends State<RedemptionConfirmationShee
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            const Text(
-              "Confirmer l'échange en espèces",
+            Text(
+              context.tr('rd_title'),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: _onSurface),
+              style: const TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+                color: _onSurface,
+              ),
             ),
-            const SizedBox(height: 4),
-            const Text(
-              'Veuillez vérifier les détails ci-dessous.',
+            const SizedBox(height: MaamoraSpacing.xs),
+            Text(
+              context.tr('rd_sub'),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: _onSurfaceVariant),
+              style: const TextStyle(fontSize: 13, color: _onSurfaceVariant),
             ),
             const SizedBox(height: 20),
             Container(
@@ -85,22 +99,32 @@ class _RedemptionConfirmationSheetState extends State<RedemptionConfirmationShee
               decoration: BoxDecoration(
                 color: _surfaceContainerLow,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: _outlineVariant.withValues(alpha: 0.6)),
+                border: Border.all(
+                  color: _outlineVariant.withValues(alpha: 0.6),
+                ),
               ),
               child: Column(
                 children: [
-                  _DetailRow(icon: Icons.star_outline, label: 'Montant', value: widget.pointsLabel),
-                  _DetailRow(icon: Icons.account_balance_outlined, label: 'Méthode', value: widget.method),
+                  _DetailRow(
+                    icon: Icons.star_outline,
+                    label: context.tr('rd_amount'),
+                    value: widget.pointsLabel,
+                  ),
+                  _DetailRow(
+                    icon: Icons.account_balance_outlined,
+                    label: context.tr('rd_method'),
+                    value: widget.method,
+                  ),
                   _DetailRow(
                     icon: Icons.payments_outlined,
-                    label: 'Valeur',
+                    label: context.tr('rd_value'),
                     value: widget.valueLabel,
-                    valueColor: _primaryContainer,
+                    valueColor: MaamoraColors.primaryText,
                     valueBold: true,
                   ),
                   _DetailRow(
                     icon: Icons.account_circle_outlined,
-                    label: 'Destination',
+                    label: context.tr('rd_destination'),
                     value: widget.destination,
                     isLast: true,
                   ),
@@ -110,30 +134,43 @@ class _RedemptionConfirmationSheetState extends State<RedemptionConfirmationShee
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 54,
               child: FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: _primaryContainer,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 onPressed: _isSubmitting ? null : _handleConfirm,
                 child: _isSubmitting
                     ? const SizedBox(
                         width: 22,
                         height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: MaamoraColors.onPrimary,
+                        ),
                       )
-                    : const Text(
-                        'Confirmer',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    : Text(
+                        context.tr('common_confirm'),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: MaamoraColors.onPrimary,
+                        ),
                       ),
               ),
             ),
             TextButton(
-              onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(false),
-              child: const Text(
-                'Modifier',
-                style: TextStyle(color: _onSurfaceVariant, fontWeight: FontWeight.w600),
+              onPressed: _isSubmitting
+                  ? null
+                  : () => Navigator.of(context).pop(false),
+              child: Text(
+                context.tr('rd_edit'),
+                style: const TextStyle(
+                  color: _onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -167,24 +204,39 @@ class _DetailRow extends StatelessWidget {
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : Border(bottom: BorderSide(color: _outlineVariant.withValues(alpha: 0.4))),
+            : Border(
+                bottom: BorderSide(
+                  color: _outlineVariant.withValues(alpha: 0.4),
+                ),
+              ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              Icon(icon, size: 20, color: _onSurfaceVariant),
-              const SizedBox(width: 8),
-              Text(label, style: const TextStyle(fontSize: 14, color: _onSurface)),
+              ExcludeSemantics(
+                child: Icon(icon, size: 20, color: _onSurfaceVariant),
+              ),
+              const SizedBox(width: MaamoraSpacing.sm),
+              Text(
+                label,
+                style: const TextStyle(fontSize: 14, color: _onSurface),
+              ),
             ],
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: valueBold ? FontWeight.w800 : FontWeight.w600,
-              fontSize: valueBold ? 17 : 14,
-              color: valueColor ?? _onSurface,
+          const SizedBox(width: MaamoraSpacing.md),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: valueBold ? FontWeight.w800 : FontWeight.w600,
+                fontSize: valueBold ? 17 : 14,
+                color: valueColor ?? _onSurface,
+              ),
             ),
           ),
         ],
@@ -193,7 +245,7 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-const Color _surface = Colors.white;
+const Color _surface = MaamoraColors.surface;
 const Color _surfaceContainerLow = MaamoraColors.primarySoft;
 const Color _onSurface = MaamoraColors.textPrimary;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;

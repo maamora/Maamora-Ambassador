@@ -32,24 +32,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _handleGoogleSignIn() async {
     setState(() => _isSigningIn = true);
-    
+
     await ref.read(authProvider.notifier).signInWithGoogle();
-    
+
     if (!mounted) return;
     setState(() => _isSigningIn = false);
 
     final authState = ref.read(authProvider);
-    
+
     if (authState.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authState.errorMessage!), backgroundColor: Colors.red),
-      );
+      MaamoraToast.error(context, authState.errorMessage!);
       return;
     }
 
     _routeBasedOnStatus(authState.status);
   }
-  
+
   void _routeBasedOnStatus(AmbassadorStatus status) {
     switch (status) {
       case AmbassadorStatus.admin:
@@ -80,7 +78,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     // Listen to status changes to handle automatic redirects (e.g. if user is already signed in)
     ref.listen<AuthState>(authProvider, (previous, next) {
-      if (previous?.isLoading == true && next.isLoading == false && next.status != AmbassadorStatus.unauthenticated && next.status != AmbassadorStatus.initial) {
+      if (previous?.isLoading == true &&
+          next.isLoading == false &&
+          next.status != AmbassadorStatus.unauthenticated &&
+          next.status != AmbassadorStatus.initial) {
         if (!_isSigningIn) {
           final location = GoRouterState.of(context).matchedLocation;
           if (location == AppRoutes.login) {
@@ -93,7 +94,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Initial check in case state is already loaded when screen mounts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = ref.read(authProvider);
-      if (!authState.isLoading && authState.status != AmbassadorStatus.unauthenticated && authState.status != AmbassadorStatus.initial) {
+      if (!authState.isLoading &&
+          authState.status != AmbassadorStatus.unauthenticated &&
+          authState.status != AmbassadorStatus.initial) {
         final location = GoRouterState.of(context).matchedLocation;
         if (location == AppRoutes.login) {
           _routeBasedOnStatus(authState.status);
@@ -102,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: MaamoraColors.scaffold,
       body: Stack(
         children: [
           SafeArea(
@@ -110,8 +113,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: SingleChildScrollView(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: MaamoraSpacing.xl,
+                    vertical: MaamoraSpacing.lg,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -119,28 +124,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         alignment: AlignmentDirectional.centerEnd,
                         child: LanguageToggle(),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: MaamoraSpacing.screen),
                       Center(child: _buildHeader()),
                       const SizedBox(height: 36),
                       Text(
                         context.tr('login_welcome'),
                         style: AppTheme.headlineXl.copyWith(fontSize: 28),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: MaamoraSpacing.sm),
                       Text(
                         context.tr('login_subtitle'),
-                        style: AppTheme.bodyMd
-                            .copyWith(color: AppColors.onSurfaceVariant),
+                        style: AppTheme.bodyMd.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
                       ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: MaamoraSpacing.xl),
+                      // Google = the one primary action of this screen.
                       AppButton(
                         label: context.tr('login_google'),
-                        variant: AppButtonVariant.outlined,
+                        variant: AppButtonVariant.filled,
                         leadingIcon: Icons.g_mobiledata,
                         isLoading: _isSigningIn,
                         onPressed: _handleGoogleSignIn,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: MaamoraSpacing.xl),
                       _buildInviteCard(),
                     ],
                   ),
@@ -157,12 +164,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       children: [
         // Real Maamora logo (assets/images/maamora_logo.png)
+        // Wordmark below already names the brand → logo is decorative.
         Image.asset(
           'assets/images/maamora_logo.png',
           width: 140,
+          cacheWidth: 420,
           fit: BoxFit.contain,
+          excludeFromSemantics: true,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: MaamoraSpacing.md),
         const Text(
           'Maamora',
           style: TextStyle(
@@ -171,23 +181,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             color: AppColors.primary,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: MaamoraSpacing.xs),
         Text(
           context.tr('login_tagline'),
-          style: AppTheme.bodySm.copyWith(color: AppColors.primary),
+          // Small orange text → AA companion colour.
+          style: AppTheme.bodySm.copyWith(color: AppColors.primaryText),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: MaamoraSpacing.md),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+          padding: const EdgeInsets.symmetric(
+            horizontal: MaamoraSpacing.md,
+            vertical: MaamoraSpacing.xs,
+          ),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+            color: MaamoraColors.surface,
+            borderRadius: BorderRadius.circular(MaamoraRadius.chip),
+            border: Border.all(color: MaamoraColors.primaryHairline),
           ),
           child: Text(
             context.tr('login_badge'),
-            style: AppTheme.labelMd
-                .copyWith(color: AppColors.secondary, fontSize: 11),
+            style: AppTheme.labelMd.copyWith(
+              color: AppColors.secondary,
+              fontSize: 11,
+            ),
           ),
         ),
       ],
@@ -197,36 +213,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget _buildInviteCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(MaamoraSpacing.screen),
       decoration: BoxDecoration(
         color: MaamoraColors.primarySoft,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+        borderRadius: MaamoraRadius.cardR,
+        border: Border.all(color: MaamoraColors.primaryHairline),
       ),
       child: Column(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+          ExcludeSemantics(
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: MaamoraColors.surface,
+                borderRadius: BorderRadius.circular(MaamoraRadius.input),
+              ),
+              child: const Icon(
+                Icons.vpn_key_outlined,
+                color: AppColors.primary,
+                size: 24,
+              ),
             ),
-            child: const Icon(Icons.vpn_key_outlined,
-                color: AppColors.primary, size: 24),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: MaamoraSpacing.md),
           Text(
             context.tr('login_new'),
             style: AppTheme.headlineSm.copyWith(fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: MaamoraSpacing.sm),
           Text(
             context.tr('login_need_invite'),
             textAlign: TextAlign.center,
             style: AppTheme.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MaamoraSpacing.lg),
           AppButton(
             label: context.tr('login_have_invite'),
             variant: AppButtonVariant.outlined,

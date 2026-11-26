@@ -38,15 +38,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     );
-    _fadeIn = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
+    _fadeIn = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _slideUp = Tween<Offset>(
       begin: const Offset(0, 0.15),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
     HapticFeedback.mediumImpact();
   }
@@ -153,7 +152,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               ),
               child: const Icon(
                 MaamoraIcons.checkFilled,
-                color: Colors.white,
+                color: MaamoraColors.onPrimary,
                 size: 34,
               ),
             ),
@@ -307,14 +306,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           label: context.tr('welcome_levels'),
           leadingIcon: MaamoraIcons.board,
           variant: MaamoraButtonVariant.outlined,
-          height: 52,
           onPressed: widget.onSeeHowLevelsWork,
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: MaamoraSpacing.md),
         MaamoraButton(
           label: context.tr('welcome_dash'),
           variant: MaamoraButtonVariant.ghost,
-          height: 44,
+          height: 48, // ≥ 48dp touch target
           onPressed: widget.onGoToDashboard,
         ),
       ],

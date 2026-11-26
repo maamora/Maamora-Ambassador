@@ -47,10 +47,7 @@ const List<String> kCashPickupProviders = [
 class PayoutMethodBottomSheet extends ConsumerStatefulWidget {
   final Ambassador ambassador;
 
-  const PayoutMethodBottomSheet({
-    super.key,
-    required this.ambassador,
-  });
+  const PayoutMethodBottomSheet({super.key, required this.ambassador});
 
   static Future<void> show({
     required BuildContext context,
@@ -65,10 +62,12 @@ class PayoutMethodBottomSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<PayoutMethodBottomSheet> createState() => _PayoutMethodBottomSheetState();
+  ConsumerState<PayoutMethodBottomSheet> createState() =>
+      _PayoutMethodBottomSheetState();
 }
 
-class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomSheet>
+class _PayoutMethodBottomSheetState
+    extends ConsumerState<PayoutMethodBottomSheet>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late final TextEditingController _ribController;
@@ -85,19 +84,32 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
   void initState() {
     super.initState();
     final isCash = widget.ambassador.payoutMethod == 'cash_pickup';
-    _tabController = TabController(length: 2, vsync: this, initialIndex: isCash ? 1 : 0);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: isCash ? 1 : 0,
+    );
 
     // Initial values from ambassador
-    final initialRibDigits = _extractDigits(widget.ambassador.payoutBankRib ?? '');
+    final initialRibDigits = _extractDigits(
+      widget.ambassador.payoutBankRib ?? '',
+    );
     _ribController = TextEditingController(text: _formatRib(initialRibDigits));
-    _bankAccountHolderController = TextEditingController(text: widget.ambassador.fullName);
-    
+    _bankAccountHolderController = TextEditingController(
+      text: widget.ambassador.fullName,
+    );
+
     // Parse cash pickup details if present
     final cashDetails = widget.ambassador.payoutCashPoint ?? '';
-    _cashRecipientController = TextEditingController(text: widget.ambassador.fullName);
+    _cashRecipientController = TextEditingController(
+      text: widget.ambassador.fullName,
+    );
     _cinController = TextEditingController(text: _parseCin(cashDetails));
-    _cashAgencyNoteController = TextEditingController(text: _parseNote(cashDetails));
-    _selectedCashProvider = _parseProvider(cashDetails) ?? kCashPickupProviders.first;
+    _cashAgencyNoteController = TextEditingController(
+      text: _parseNote(cashDetails),
+    );
+    _selectedCashProvider =
+        _parseProvider(cashDetails) ?? kCashPickupProviders.first;
 
     // Detect bank from RIB prefix or default
     if (initialRibDigits.length >= 3) {
@@ -191,7 +203,9 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
       final text = data?.text;
       if (text != null && text.isNotEmpty) {
         final rawDigits = _extractDigits(text);
-        final digits = rawDigits.length > 24 ? rawDigits.substring(0, 24) : rawDigits;
+        final digits = rawDigits.length > 24
+            ? rawDigits.substring(0, 24)
+            : rawDigits;
         final formatted = _formatRib(digits);
         setState(() {
           _ribController.text = formatted;
@@ -209,19 +223,11 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
       if (isBankTab) {
         final ribDigits = _extractDigits(_ribController.text);
         if (ribDigits.length != 24) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Text(context.tr('payout_rib_len', args: {'n': ribDigits.length})),
-                ],
-              ),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
+          // Toast lives in the root overlay → visible above this sheet
+          // (a SnackBar would render behind it).
+          MaamoraToast.error(
+            context,
+            context.tr('payout_rib_len', args: {'n': ribDigits.length}),
           );
           setState(() => _isSaving = false);
           return;
@@ -229,13 +235,16 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
 
         final bankName = _selectedBank?.name ?? 'Banque';
         final holder = _bankAccountHolderController.text.trim();
-        final formattedRibValue = '$bankName - $ribDigits${holder.isNotEmpty ? ' ($holder)' : ''}';
+        final formattedRibValue =
+            '$bankName - $ribDigits${holder.isNotEmpty ? ' ($holder)' : ''}';
 
-        await ref.read(profileProvider.notifier).updateProfile(
-          payoutMethod: 'bank',
-          payoutBankRib: formattedRibValue,
-          payoutCashPoint: null,
-        );
+        await ref
+            .read(profileProvider.notifier)
+            .updateProfile(
+              payoutMethod: 'bank',
+              payoutBankRib: formattedRibValue,
+              payoutCashPoint: null,
+            );
       } else {
         // Cash Pickup
         final cin = _cinController.text.trim();
@@ -243,58 +252,33 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         final note = _cashAgencyNoteController.text.trim();
 
         if (cin.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
-                  SizedBox(width: 8),
-                  Text(context.tr('payout_cin_required')),
-                ],
-              ),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          );
+          MaamoraToast.error(context, context.tr('payout_cin_required'));
           setState(() => _isSaving = false);
           return;
         }
 
-        final cashValue = '$_selectedCashProvider - ${recipient.isNotEmpty ? recipient : widget.ambassador.fullName} (CIN: $cin)${note.isNotEmpty ? ' - Agence: $note' : ''}';
+        final cashValue =
+            '$_selectedCashProvider - ${recipient.isNotEmpty ? recipient : widget.ambassador.fullName} (CIN: $cin)${note.isNotEmpty ? ' - Agence: $note' : ''}';
 
-        await ref.read(profileProvider.notifier).updateProfile(
-          payoutMethod: 'cash_pickup',
-          payoutBankRib: null,
-          payoutCashPoint: cashValue,
-        );
+        await ref
+            .read(profileProvider.notifier)
+            .updateProfile(
+              payoutMethod: 'cash_pickup',
+              payoutBankRib: null,
+              payoutCashPoint: cashValue,
+            );
       }
 
       if (mounted) {
+        // Toast first (root overlay), then close: it survives the pop.
+        MaamoraToast.success(context, context.tr('payout_saved'));
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                SizedBox(width: 8),
-                Text(context.tr('payout_saved')),
-              ],
-            ),
-            backgroundColor: MaamoraColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 3),
-          ),
-        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.tr('common_error', args: {'e': e.toString()})),
-            backgroundColor: AppColors.error,
-          ),
+        MaamoraToast.error(
+          context,
+          context.tr('common_error', args: {'e': e.toString()}),
         );
       }
     } finally {
@@ -315,7 +299,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         ),
         content: Text(
           context.tr('payout_delete_msg'),
-          style: GoogleFonts.cairo(fontSize: 14, color: AppColors.onSurfaceVariant),
+          style: GoogleFonts.cairo(
+            fontSize: 14,
+            color: AppColors.onSurfaceVariant,
+          ),
         ),
         actions: [
           TextButton(
@@ -325,7 +312,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
+              foregroundColor: MaamoraColors.onPrimary,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: Text(context.tr('payout_delete_btn')),
@@ -337,24 +324,22 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
     if (confirm == true) {
       setState(() => _isSaving = true);
       try {
-        await ref.read(profileProvider.notifier).updateProfile(
-          payoutMethod: null,
-          payoutBankRib: null,
-          payoutCashPoint: null,
-        );
+        await ref
+            .read(profileProvider.notifier)
+            .updateProfile(
+              payoutMethod: null,
+              payoutBankRib: null,
+              payoutCashPoint: null,
+            );
         if (mounted) {
+          MaamoraToast.info(context, context.tr('payout_deleted'));
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.tr('payout_deleted')),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.tr('common_error', args: {'e': e.toString()})), backgroundColor: AppColors.error),
+          MaamoraToast.error(
+            context,
+            context.tr('common_error', args: {'e': e.toString()}),
           );
         }
       } finally {
@@ -426,7 +411,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded, color: AppColors.onSurfaceVariant),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                   style: IconButton.styleFrom(
                     backgroundColor: AppColors.background,
                     padding: const EdgeInsets.all(8),
@@ -453,15 +441,9 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
                 indicator: BoxDecoration(
-                  color: Colors.white,
+                  color: MaamoraColors.surface,
                   borderRadius: BorderRadius.circular(9),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
+                  boxShadow: MaamoraShadows.soft,
                 ),
                 labelColor: AppColors.primary,
                 unselectedLabelColor: AppColors.onSurfaceVariant,
@@ -572,7 +554,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                       onPressed: _isSaving ? null : _save,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: MaamoraColors.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -584,7 +566,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                               height: 22,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
-                                color: Colors.white,
+                                color: MaamoraColors.onPrimary,
                               ),
                             )
                           : Text(
@@ -602,7 +584,11 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                     Center(
                       child: TextButton.icon(
                         onPressed: _isSaving ? null : _removePayoutMethod,
-                        icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 16,
+                          color: AppColors.error,
+                        ),
                         label: Text(
                           context.tr('payout_delete'),
                           style: GoogleFonts.cairo(
@@ -641,7 +627,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: MaamoraColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.cardBorder),
           ),
@@ -649,14 +635,20 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
             child: DropdownButton<MoroccanBank>(
               value: _selectedBank,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.onSurfaceVariant),
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppColors.onSurfaceVariant,
+              ),
               items: kMoroccanBanks.map((bank) {
                 return DropdownMenuItem<MoroccanBank>(
                   value: bank,
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.background,
                           borderRadius: BorderRadius.circular(4),
@@ -711,7 +703,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: MaamoraColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.cardBorder),
           ),
@@ -725,8 +717,15 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
             decoration: InputDecoration(
               border: InputBorder.none,
               hintText: context.tr('payout_holder_hint'),
-              hintStyle: TextStyle(color: MaamoraColors.textFaint, fontSize: 13),
-              icon: Icon(Icons.person_outline, size: 20, color: AppColors.onSurfaceVariant),
+              hintStyle: TextStyle(
+                color: MaamoraColors.textFaint,
+                fontSize: 13,
+              ),
+              icon: Icon(
+                Icons.person_outline,
+                size: 20,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
           ),
         ),
@@ -749,7 +748,11 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
               style: GoogleFonts.cairo(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: isRibComplete ? AppColors.success : (ribDigits.isNotEmpty ? AppColors.primary : AppColors.onSurfaceVariant),
+                color: isRibComplete
+                    ? AppColors.success
+                    : (ribDigits.isNotEmpty
+                          ? AppColors.primary
+                          : AppColors.onSurfaceVariant),
               ),
             ),
           ],
@@ -758,12 +761,14 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: MaamoraColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isRibComplete
                   ? AppColors.success
-                  : (ribDigits.isNotEmpty ? AppColors.primary : AppColors.cardBorder),
+                  : (ribDigits.isNotEmpty
+                        ? AppColors.primary
+                        : AppColors.cardBorder),
               width: isRibComplete || ribDigits.isNotEmpty ? 1.5 : 1.0,
             ),
           ),
@@ -804,7 +809,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                 child: Tooltip(
                   message: context.tr('payout_paste_rib'),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.background,
                       borderRadius: BorderRadius.circular(6),
@@ -812,7 +820,11 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.content_paste_rounded, size: 14, color: AppColors.primary),
+                        const Icon(
+                          Icons.content_paste_rounded,
+                          size: 14,
+                          color: AppColors.primary,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           context.tr('payout_paste'),
@@ -859,7 +871,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: MaamoraColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.cardBorder),
           ),
@@ -867,7 +879,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
             child: DropdownButton<String>(
               value: _selectedCashProvider,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.onSurfaceVariant),
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppColors.onSurfaceVariant,
+              ),
               items: kCashPickupProviders.map((provider) {
                 return DropdownMenuItem<String>(
                   value: provider,
@@ -904,7 +919,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: MaamoraColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.cardBorder),
           ),
@@ -918,8 +933,15 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
             decoration: InputDecoration(
               border: InputBorder.none,
               hintText: context.tr('payout_name_hint'),
-              hintStyle: TextStyle(color: MaamoraColors.textFaint, fontSize: 13),
-              icon: Icon(Icons.badge_outlined, size: 20, color: AppColors.onSurfaceVariant),
+              hintStyle: TextStyle(
+                color: MaamoraColors.textFaint,
+                fontSize: 13,
+              ),
+              icon: Icon(
+                Icons.badge_outlined,
+                size: 20,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
           ),
         ),
@@ -938,7 +960,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: MaamoraColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.cardBorder),
           ),
@@ -947,8 +969,10 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
             textCapitalization: TextCapitalization.characters,
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-              TextInputFormatter.withFunction((oldValue, newValue) =>
-                  newValue.copyWith(text: newValue.text.toUpperCase())),
+              TextInputFormatter.withFunction(
+                (oldValue, newValue) =>
+                    newValue.copyWith(text: newValue.text.toUpperCase()),
+              ),
             ],
             style: GoogleFonts.jetBrainsMono(
               fontSize: 14,
@@ -958,8 +982,15 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
             decoration: InputDecoration(
               border: InputBorder.none,
               hintText: context.tr('payout_cin_hint'),
-              hintStyle: TextStyle(color: MaamoraColors.textFaint, fontSize: 13),
-              icon: Icon(Icons.credit_card_rounded, size: 20, color: AppColors.onSurfaceVariant),
+              hintStyle: TextStyle(
+                color: MaamoraColors.textFaint,
+                fontSize: 13,
+              ),
+              icon: Icon(
+                Icons.credit_card_rounded,
+                size: 20,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
           ),
         ),
@@ -978,7 +1009,7 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: MaamoraColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.cardBorder),
           ),
@@ -992,8 +1023,15 @@ class _PayoutMethodBottomSheetState extends ConsumerState<PayoutMethodBottomShee
             decoration: InputDecoration(
               border: InputBorder.none,
               hintText: context.tr('payout_city_hint'),
-              hintStyle: TextStyle(color: MaamoraColors.textFaint, fontSize: 13),
-              icon: Icon(Icons.location_on_outlined, size: 20, color: AppColors.onSurfaceVariant),
+              hintStyle: TextStyle(
+                color: MaamoraColors.textFaint,
+                fontSize: 13,
+              ),
+              icon: Icon(
+                Icons.location_on_outlined,
+                size: 20,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
           ),
         ),

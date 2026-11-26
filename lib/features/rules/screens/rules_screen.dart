@@ -112,13 +112,10 @@ class RulesScreen extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
                 colors: levelIndex == 0
-                    ? const [
-                        MaamoraColors.navySoft,
-                        MaamoraColors.textPrimary,
-                      ]
+                    ? const [MaamoraColors.navySoft, MaamoraColors.textPrimary]
                     : tierStyle.gradient,
               ),
               boxShadow: [
@@ -129,9 +126,11 @@ class RulesScreen extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(icon, color: tierStyle.onColor, size: 24),
+            child: ExcludeSemantics(
+              child: Icon(icon, color: tierStyle.onColor, size: 24),
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: MaamoraSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,6 +149,7 @@ class RulesScreen extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: MaamoraColors.textSecondary,
+                    height: 1.5,
                   ),
                 ),
               ],
@@ -185,7 +185,7 @@ class RulesScreen extends StatelessWidget {
     final rules = [
       context.tr('rules_note1'),
       context.tr('rules_note2'),
-      'Si tu manques le seuil de commandes de ton palier, une période de grâce d\'un mois s\'applique avant redescente.',
+      context.tr('rules_note3'),
       context.tr('rules_note4'),
       context.tr('rules_note5'),
     ];
@@ -195,37 +195,44 @@ class RulesScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: MaamoraColors.primarySoft,
         borderRadius: BorderRadius.circular(MaamoraRadius.card),
-        border: Border.all(
-          color: MaamoraColors.primaryHairline,
-          width: 1.5,
-        ),
+        border: Border.all(color: MaamoraColors.primaryHairline, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                MaamoraIcons.info,
-                color: MaamoraColors.primary,
-                size: 22,
+              const ExcludeSemantics(
+                child: Icon(
+                  MaamoraIcons.info,
+                  color: MaamoraColors.primary,
+                  size: 22,
+                ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                context.tr('rules_good_to_know'),
-                style: MaamoraTheme.sectionHeader(),
+              const SizedBox(width: MaamoraSpacing.sm),
+              Expanded(
+                child: Text(
+                  context.tr('rules_good_to_know'),
+                  style: MaamoraTheme.sectionHeader(),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           ...rules.map(
             (rule) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsetsDirectional.only(
+                bottom: MaamoraSpacing.md,
+              ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsetsDirectional.only(top: 7, end: 10),
+                    // Bullet aligned on the first line (taller AR line-height).
+                    padding: const EdgeInsetsDirectional.only(
+                      top: 9,
+                      end: MaamoraSpacing.md,
+                    ),
                     child: Container(
                       width: 6,
                       height: 6,
@@ -241,6 +248,8 @@ class RulesScreen extends StatelessWidget {
                       style: MaamoraTheme.support().copyWith(
                         fontSize: 13.5,
                         color: MaamoraColors.textPrimary,
+                        // Generous leading: Arabic diacritics need room.
+                        height: 1.7,
                       ),
                     ),
                   ),

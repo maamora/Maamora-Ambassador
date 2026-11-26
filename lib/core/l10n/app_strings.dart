@@ -156,6 +156,10 @@ class AppStrings {
       'wallet_configured': 'Configuré',
       'wallet_todo': 'À faire',
       'wallet_tx_payout': 'Retrait',
+      'wallet_st_pending': 'En attente',
+      'wallet_st_payable': 'Validée, à verser',
+      'wallet_st_paid': 'Payée',
+      'wallet_st_voided': 'Annulée',
 
       // ── Payout sheet ──
       'payout_mode_title': 'Mode de versement',
@@ -204,7 +208,7 @@ class AppStrings {
       'reg_name_lbl': 'Nom complet (comme sur la CIN)',
       'reg_name_hint': 'Fatima Zahra',
       'reg_phone_lbl': 'Numéro de téléphone',
-      'reg_phone_hint': '6 XX XX XX XX',
+      'reg_phone_hint': '06 XX XX XX XX',
       'reg_phone_err': 'Numéro à 10 chiffres requis',
       'reg_city_lbl': 'Ville ou quartier (Douar)',
       'reg_city_hint': 'Ex : Salé, Tabriquet',
@@ -224,6 +228,11 @@ class AppStrings {
       'reg_check_failed': 'Impossible de vérifier le code. Contacte ton administrateur si le problème persiste.',
       'reg_accept_nda': 'Veuillez accepter les conditions NDA.',
       'reg_code_hint': 'ex : SALE-7F3K',
+      'reg_step': 'Étape {n} sur 4',
+      'reg_step_1': 'Code d\'invitation',
+      'reg_step_2': 'Tes informations',
+      'reg_step_3': 'Connexion Google',
+      'reg_step_4': 'Activation',
       'reg_payout_cash': 'Cash (en main propre)',
 
       // ── Welcome ──
@@ -246,6 +255,15 @@ class AppStrings {
       'status_not_found_title': 'Profil introuvable',
       'status_not_found_sub': 'Compte non trouvé ou invitation inexistante.',
       'status_back_login': 'Retour à la connexion',
+      'status_pending_hello': 'Presque prêt, {name} !',
+      'status_pending_hello_anon': 'Presque prêt !',
+      'status_pending_sub':
+          'L\'équipe Maamora examine ta candidature. Cela prend généralement moins de 24 h.',
+      'status_pending_badge': 'En cours de validation',
+      'status_details_title': 'Ta candidature',
+      'status_full_name': 'Nom complet',
+      'status_city': 'Ville',
+      'status_payout': 'Mode de paiement',
 
       // ── Rules ──
       'rules_title': 'Niveaux & Règles',
@@ -262,7 +280,7 @@ class AppStrings {
       'rules_commission': 'COMMISSION',
       'rules_note1': 'Les commissions sont calculées et payées le 1er de chaque mois.',
       'rules_note2': 'Les niveaux sont basés uniquement sur les commandes livrées avec succès.',
-      'rules_note3': 'Si tu manques le seuil de ton palier, une période de grâce s\'applique avant redescente.',
+      'rules_note3': 'Si tu manques le seuil de commandes de ton palier, une période de grâce d\'un mois s\'applique avant redescente.',
       'rules_note4': 'Les retours et annulations sont déduits de ton total mensuel.',
       'rules_note5': 'Partager ton lien et faire signer le NDA rapporte dès le niveau Neutral (3%).',
       'rules_good_to_know': 'Bon à savoir',
@@ -310,6 +328,16 @@ class AppStrings {
       'cg_price': 'Prix par personne (DH)',
       'cg_seats': 'Places totales',
       'cg_required': 'Requis',
+      'cg_invalid_number': 'Saisis un nombre valide (ex : 120 ou 99.5)',
+      'rd_title': 'Confirmer l\'échange en espèces',
+      'rd_sub': 'Vérifie les détails ci-dessous.',
+      'rd_amount': 'Montant',
+      'rd_method': 'Méthode',
+      'rd_value': 'Valeur',
+      'rd_destination': 'Destination',
+      'rd_edit': 'Modifier',
+      'profile_logout_confirm': 'Tu veux vraiment te déconnecter ?',
+      'profile_logout_failed': 'La déconnexion a échoué. Réessaie.',
       'cg_created': 'Groupe créé ! En attente de validation admin.',
 
       // ── Pickup ──
@@ -665,6 +693,10 @@ class AppStrings {
       'wallet_configured': 'مهيأة',
       'wallet_todo': 'قيد الإنجاز',
       'wallet_tx_payout': 'سحب',
+      'wallet_st_pending': 'قيد الانتظار',
+      'wallet_st_payable': 'جاهزة للدفع',
+      'wallet_st_paid': 'مدفوعة',
+      'wallet_st_voided': 'ملغاة',
 
       // ── Payout sheet ──
       'payout_mode_title': 'طريقة استلام الأرباح',
@@ -709,7 +741,7 @@ class AppStrings {
       'reg_name_lbl': 'الاسم الكامل (كما في البطاقة)',
       'reg_name_hint': 'فاطمة الزهراء',
       'reg_phone_lbl': 'رقم الهاتف',
-      'reg_phone_hint': '6 XX XX XX XX',
+      'reg_phone_hint': '06 XX XX XX XX',
       'reg_phone_err': 'رقم من 10 أرقام مطلوب',
       'reg_city_lbl': 'المدينة أو الحي (الدوار)',
       'reg_city_hint': 'مثال: سلا، تابريكت',
@@ -728,6 +760,11 @@ class AppStrings {
       'reg_check_failed': 'تعذّر التحقق من الرمز. تواصل مع المسؤول إذا استمرت المشكلة.',
       'reg_accept_nda': 'يرجى الموافقة على شروط الاتفاقية.',
       'reg_code_hint': 'مثال: SALE-7F3K',
+      'reg_step': 'الخطوة {n} من 4',
+      'reg_step_1': 'رمز الدعوة',
+      'reg_step_2': 'معلوماتك',
+      'reg_step_3': 'الربط مع Google',
+      'reg_step_4': 'التفعيل',
       'reg_payout_cash': 'نقداً (تسليم مباشر)',
 
       // ── Welcome ──
@@ -749,6 +786,15 @@ class AppStrings {
       'status_not_found_title': 'الملف غير موجود',
       'status_not_found_sub': 'الحساب غير موجود أو الدعوة غير صالحة.',
       'status_back_login': 'عودة إلى تسجيل الدخول',
+      'status_pending_hello': 'أوشكت على الانضمام يا {name}!',
+      'status_pending_hello_anon': 'أوشكت على الانضمام!',
+      'status_pending_sub':
+          'يراجع فريق معمورة طلبك. يستغرق ذلك عادةً أقل من 24 ساعة.',
+      'status_pending_badge': 'قيد المراجعة',
+      'status_details_title': 'طلبك',
+      'status_full_name': 'الاسم الكامل',
+      'status_city': 'المدينة',
+      'status_payout': 'طريقة الدفع',
 
       // ── Rules ──
       'rules_title': 'المستويات والقواعد',
@@ -765,7 +811,7 @@ class AppStrings {
       'rules_commission': 'العمولة',
       'rules_note1': 'تُحسب العمولات وتُصرف في الأول من كل شهر.',
       'rules_note2': 'تعتمد المستويات على الطلبات الموصّلة بنجاح فقط.',
-      'rules_note3': 'إن لم تحقق سقف طلبات مستواك، تُطبَّق فترة سماح قبل النزول.',
+      'rules_note3': 'إن لم تحقق سقف طلبات مستواك، تُطبَّق فترة سماح لمدة شهر قبل النزول.',
       'rules_note4': 'تُخصم المرتجعات والإلغاءات من إجماليك الشهري.',
       'rules_note5': 'مشاركة رابطك وجمع التوقيعات تدر عمولة منذ المستوى الأول (3%).',
       'rules_good_to_know': 'معلومة مهمة',
@@ -813,6 +859,16 @@ class AppStrings {
       'cg_price': 'السعر للفرد (درهم)',
       'cg_seats': 'إجمالي المقاعد',
       'cg_required': 'مطلوب',
+      'cg_invalid_number': 'أدخل رقماً صالحاً (مثال: 120 أو 99.5)',
+      'rd_title': 'تأكيد الاستبدال نقداً',
+      'rd_sub': 'تحقّق من التفاصيل أدناه.',
+      'rd_amount': 'المبلغ',
+      'rd_method': 'الطريقة',
+      'rd_value': 'القيمة',
+      'rd_destination': 'الوجهة',
+      'rd_edit': 'تعديل',
+      'profile_logout_confirm': 'هل تريد حقاً تسجيل الخروج؟',
+      'profile_logout_failed': 'تعذّر تسجيل الخروج. أعد المحاولة.',
       'cg_created': 'تم إنشاء المجموعة! في انتظار موافقة المسؤول.',
 
       // ── Pickup ──

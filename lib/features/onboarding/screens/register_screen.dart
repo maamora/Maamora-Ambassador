@@ -59,10 +59,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _restoreFormData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _nameController.text = prefs.getString('reg_name') ?? _nameController.text;
-      _phoneController.text = prefs.getString('reg_phone') ?? _phoneController.text;
-      _cityController.text = prefs.getString('reg_city') ?? _cityController.text;
-      _codeController.text = prefs.getString('reg_code') ?? _codeController.text;
+      _nameController.text =
+          prefs.getString('reg_name') ?? _nameController.text;
+      _phoneController.text =
+          prefs.getString('reg_phone') ?? _phoneController.text;
+      _cityController.text =
+          prefs.getString('reg_city') ?? _cityController.text;
+      _codeController.text =
+          prefs.getString('reg_code') ?? _codeController.text;
       _selectedPayout = prefs.getString('reg_payout') ?? _selectedPayout;
       _ndaAccepted = prefs.getBool('reg_nda') ?? _ndaAccepted;
       _isCodeValidated = prefs.getBool('reg_code_valid') ?? _isCodeValidated;
@@ -113,8 +117,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     try {
-      final dynamic result = await Supabase.instance.client
-          .rpc('verify_invite_code_status', params: {'p_code': code});
+      final dynamic result = await Supabase.instance.client.rpc(
+        'verify_invite_code_status',
+        params: {'p_code': code},
+      );
 
       if (!mounted) return;
 
@@ -151,7 +157,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       // Statut effectif : un code « unused » dont la date est passée est expiré.
       var effective = (status ?? '').toLowerCase();
-      if ((effective == 'unused' || effective == 'available' || effective.isEmpty) &&
+      if ((effective == 'unused' ||
+              effective == 'available' ||
+              effective.isEmpty) &&
           expiresAt != null &&
           DateTime.now().isAfter(expiresAt)) {
         effective = 'expired';
@@ -206,9 +214,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!mounted) return;
     final authState = ref.read(authProvider);
     if (authState.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authState.errorMessage!), backgroundColor: Colors.red),
-      );
+      MaamoraToast.error(context, authState.errorMessage!);
     }
   }
 
@@ -219,12 +225,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final code = _codeController.text.trim();
 
     if (!_ndaAccepted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.tr('reg_accept_nda')),
-          backgroundColor: AppColors.primary,
-        ),
-      );
+      MaamoraToast.info(context, context.tr('reg_accept_nda'));
       return;
     }
 
@@ -238,20 +239,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     try {
-      await ref.read(authProvider.notifier).registerAmbassador(
-        fullName: name,
-        phone: '+212$phoneDigits',
-        city: city,
-        inviteCode: code,
-      );
+      await ref
+          .read(authProvider.notifier)
+          .registerAmbassador(
+            fullName: name,
+            phone: '+212$phoneDigits',
+            city: city,
+            inviteCode: code,
+          );
       if (!mounted) return;
       await _clearFormData();
       widget.onActivateSuccess?.call();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-      );
+      MaamoraToast.error(context, e.toString());
     } finally {
       if (mounted) {
         setState(() => _isActivating = false);
@@ -270,17 +271,34 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final isAuthenticated = authState.status != AmbassadorStatus.initial &&
+    final isAuthenticated =
+        authState.status != AmbassadorStatus.initial &&
         authState.status != AmbassadorStatus.unauthenticated;
     final isGoogleLoading = authState.isLoading;
 
     // Condition to enable Google button
     final canSignInGoogle = _isCodeValidated && _ndaAccepted;
     // Condition to enable Activate button
-    final canActivate = _isCodeValidated && _isFormComplete() && _ndaAccepted && isAuthenticated;
+    final canActivate =
+        _isCodeValidated &&
+        _isFormComplete() &&
+        _ndaAccepted &&
+        isAuthenticated;
+
+    // Presentation-only progress: derived from the existing gates above.
+    final int step;
+    if (!_isCodeValidated) {
+      step = 1;
+    } else if (!_isFormComplete()) {
+      step = 2;
+    } else if (!isAuthenticated) {
+      step = 3;
+    } else {
+      step = 4;
+    }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: MaamoraColors.scaffold,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -290,19 +308,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 28,
+                      horizontal: MaamoraSpacing.xl,
+                      vertical: MaamoraSpacing.xl,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTitle(),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: MaamoraSpacing.screen),
+                        _RegisterSteps(step: step),
+                        const SizedBox(height: MaamoraSpacing.xl),
                         _buildCodeSection(),
                         const SizedBox(height: 24),
                         _buildFormFields(),
                         const SizedBox(height: 24),
-                        _buildGoogleButton(canSignInGoogle, isAuthenticated, isGoogleLoading),
+                        _buildGoogleButton(
+                          canSignInGoogle,
+                          isAuthenticated,
+                          isGoogleLoading,
+                        ),
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -329,15 +353,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: MaamoraSpacing.sm),
         Row(
           children: [
-            const Icon(
-              Icons.lock_outline,
-              size: 15,
-              color: AppColors.onSurfaceVariant,
+            const ExcludeSemantics(
+              child: Icon(
+                Icons.lock_outline,
+                size: 16,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: MaamoraSpacing.sm),
             Expanded(
               child: Text(
                 context.tr('reg_sub'),
@@ -355,27 +381,33 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Widget _buildCodeSection() {
     if (_isCodeValidated) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: MaamoraColors.primarySoft, // Orange clair
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.check_circle, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                context.tr('reg_code_valid', args: {'code': _codeController.text.trim()}),
-                style: AppTheme.bodyMd.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+      return Semantics(
+        liveRegion: true,
+        child: Container(
+          padding: const EdgeInsets.all(MaamoraSpacing.lg),
+          decoration: BoxDecoration(
+            color: MaamoraColors.successSoft,
+            borderRadius: MaamoraRadius.inputR,
+            border: Border.all(color: MaamoraColors.successEdge),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.check_circle, color: MaamoraColors.success),
+              const SizedBox(width: MaamoraSpacing.md),
+              Expanded(
+                child: Text(
+                  context.tr(
+                    'reg_code_valid',
+                    args: {'code': _codeController.text.trim()},
+                  ),
+                  style: AppTheme.bodyMd.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: MaamoraColors.successOn,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -384,7 +416,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildFieldLabel(context.tr('reg_code_lbl')),
-        const SizedBox(height: 8),
+        const SizedBox(height: MaamoraSpacing.sm),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -393,17 +425,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 controller: _codeController,
                 hint: context.tr('reg_code_hint'),
                 icon: Icons.card_giftcard_outlined,
+                hasError: _codeError != null,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) {
+                  if (!_isCheckingCode) _verifyCode();
+                },
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: MaamoraSpacing.md),
             SizedBox(
               height: 54, // Same height as text field
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: MaamoraColors.onPrimary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: MaamoraRadius.inputR,
                   ),
                   elevation: 0,
                 ),
@@ -412,7 +449,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: MaamoraColors.onPrimary,
+                        ),
                       )
                     : Text(context.tr('reg_verify')),
               ),
@@ -420,12 +460,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ],
         ),
         if (_codeError != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            _codeError!,
-            style: const TextStyle(color: Colors.red, fontSize: 13),
-          ),
-        ]
+          const SizedBox(height: MaamoraSpacing.sm),
+          _InlineFieldError(message: _codeError!),
+        ],
       ],
     );
   }
@@ -440,29 +477,32 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildFieldLabel(context.tr('reg_name_lbl')),
-            const SizedBox(height: 8),
+            const SizedBox(height: MaamoraSpacing.sm),
             _buildTextField(
               controller: _nameController,
               hint: context.tr('reg_name_hint'),
               icon: Icons.person_outline,
+              keyboardType: TextInputType.name,
+              textInputAction: TextInputAction.next,
               onChanged: (_) => setState(() {}),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: MaamoraSpacing.screen),
             _buildFieldLabel(context.tr('reg_phone_lbl')),
-            const SizedBox(height: 8),
+            const SizedBox(height: MaamoraSpacing.sm),
             _buildPhoneInput(),
-            const SizedBox(height: 20),
+            const SizedBox(height: MaamoraSpacing.screen),
             _buildFieldLabel(context.tr('reg_city_lbl')),
-            const SizedBox(height: 8),
+            const SizedBox(height: MaamoraSpacing.sm),
             _buildTextField(
               controller: _cityController,
               hint: context.tr('reg_city_hint'),
               icon: Icons.location_on_outlined,
+              textInputAction: TextInputAction.done,
               onChanged: (_) => setState(() {}),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: MaamoraSpacing.screen),
             _buildFieldLabel(context.tr('reg_payout_lbl')),
-            const SizedBox(height: 8),
+            const SizedBox(height: MaamoraSpacing.sm),
             _buildPayoutDropdown(),
           ],
         ),
@@ -476,29 +516,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
+        AnimatedContainer(
+          duration: MaamoraDurations.fast,
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            color: MaamoraColors.surface,
+            borderRadius: MaamoraRadius.inputR,
             border: Border.all(
               color: digits.isNotEmpty && !isPhoneValid
-                  ? Colors.red
+                  ? MaamoraColors.danger
                   : MaamoraColors.border,
             ),
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: MaamoraSpacing.md,
+                  vertical: MaamoraSpacing.lg,
+                ),
                 decoration: const BoxDecoration(
                   color: MaamoraColors.surfaceLow,
                   borderRadius: BorderRadiusDirectional.only(
-                    topStart: Radius.circular(11),
-                    bottomStart: Radius.circular(11),
+                    topStart: Radius.circular(MaamoraRadius.input - 1),
+                    bottomStart: Radius.circular(MaamoraRadius.input - 1),
                   ),
                 ),
+                // The country code stays LTR even in Arabic.
                 child: Text(
                   '+212',
+                  textDirection: TextDirection.ltr,
                   style: AppTheme.bodyMd.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.secondary,
@@ -510,6 +556,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 child: TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
+                  textDirection: TextDirection.ltr,
                   // Chiffres uniquement, 10 max (ex : 0612345678).
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -525,7 +573,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 16,
+                    ),
                   ),
                 ),
               ),
@@ -533,11 +584,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         ),
         if (digits.isNotEmpty && !isPhoneValid) ...[
-          const SizedBox(height: 6),
-          Text(
-            context.tr('reg_phone_err'),
-            style: const TextStyle(color: Colors.red, fontSize: 12),
-          ),
+          const SizedBox(height: MaamoraSpacing.sm),
+          _InlineFieldError(message: context.tr('reg_phone_err')),
         ],
       ],
     );
@@ -559,35 +607,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     required String hint,
     required IconData icon,
     TextInputType? keyboardType,
+    TextInputAction? textInputAction,
     ValueChanged<String>? onChanged,
+    ValueChanged<String>? onSubmitted,
+    bool hasError = false,
   }) {
-    return Container(
+    return AnimatedContainer(
+      duration: MaamoraDurations.fast,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MaamoraColors.border),
+        color: MaamoraColors.surface,
+        borderRadius: MaamoraRadius.inputR,
+        border: Border.all(
+          color: hasError ? MaamoraColors.danger : MaamoraColors.border,
+        ),
       ),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
+        textInputAction: textInputAction,
         onChanged: onChanged,
+        onSubmitted: onSubmitted,
         style: AppTheme.bodyMd.copyWith(color: AppColors.onSurface),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: AppTheme.bodyMd.copyWith(
             color: AppColors.onSurfaceVariant.withValues(alpha: 0.55),
           ),
-          prefixIcon: Icon(
-            icon,
-            color: AppColors.onSurfaceVariant,
-            size: 20,
-          ),
+          prefixIcon: Icon(icon, color: AppColors.onSurfaceVariant, size: 20),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
+            horizontal: MaamoraSpacing.lg,
+            vertical: MaamoraSpacing.lg,
           ),
         ),
       ),
@@ -597,11 +649,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget _buildPayoutDropdown() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: MaamoraColors.surface,
+        borderRadius: MaamoraRadius.inputR,
         border: Border.all(color: MaamoraColors.border),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: MaamoraSpacing.md),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedPayout,
@@ -613,11 +665,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 color: AppColors.onSurfaceVariant,
                 size: 20,
               ),
-              const SizedBox(width: 12),
-              Text(
-                context.tr('reg_payout_hint'),
-                style: AppTheme.bodyMd.copyWith(
-                  color: AppColors.onSurfaceVariant.withValues(alpha: 0.55),
+              const SizedBox(width: MaamoraSpacing.md),
+              Flexible(
+                child: Text(
+                  context.tr('reg_payout_hint'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTheme.bodyMd.copyWith(
+                    color: AppColors.onSurfaceVariant.withValues(alpha: 0.55),
+                  ),
                 ),
               ),
             ],
@@ -628,10 +684,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
           style: AppTheme.bodyMd.copyWith(color: AppColors.onSurface),
           items: _payoutMethods.map((method) {
-            return DropdownMenuItem<String>(
-              value: method,
-              child: Text(method),
-            );
+            return DropdownMenuItem<String>(value: method, child: Text(method));
           }).toList(),
           onChanged: (val) {
             setState(() {
@@ -643,24 +696,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  Widget _buildGoogleButton(bool canSignIn, bool isAuthenticated, bool isLoading) {
+  Widget _buildGoogleButton(
+    bool canSignIn,
+    bool isAuthenticated,
+    bool isLoading,
+  ) {
     if (isAuthenticated) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: MaamoraSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.green.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.green),
+          color: MaamoraColors.successSoft,
+          borderRadius: MaamoraRadius.inputR,
+          border: Border.all(color: MaamoraColors.successEdge),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Text(
-              context.tr('reg_google_connected'),
-              style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+            const Icon(Icons.check_circle, color: MaamoraColors.success),
+            const SizedBox(width: MaamoraSpacing.sm),
+            Flexible(
+              child: Text(
+                context.tr('reg_google_connected'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: MaamoraColors.successOn,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),
@@ -672,18 +736,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       height: 54,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          side: BorderSide(color: canSignIn ? MaamoraColors.borderStrong : Colors.grey.shade300),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          backgroundColor: MaamoraColors.surface,
+          side: BorderSide(
+            color: canSignIn
+                ? MaamoraColors.borderStrong
+                : MaamoraColors.disabledBg,
           ),
+          shape: RoundedRectangleBorder(borderRadius: MaamoraRadius.inputR),
         ),
         onPressed: canSignIn && !isLoading ? _handleGoogleSignIn : null,
         child: isLoading
             ? const SizedBox(
                 width: 22,
                 height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.primary),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: AppColors.primary,
+                ),
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -691,14 +760,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Icon(
                     Icons.g_mobiledata,
                     size: 28,
-                    color: canSignIn ? AppColors.secondary : Colors.grey,
+                    color: canSignIn
+                        ? AppColors.secondary
+                        : MaamoraColors.disabledFg,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: MaamoraSpacing.sm),
                   Text(
                     context.tr('reg_google_btn'),
                     style: AppTheme.bodyMd.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: canSignIn ? AppColors.secondary : Colors.grey,
+                      color: canSignIn
+                          ? AppColors.secondary
+                          : MaamoraColors.disabledFg,
                     ),
                   ),
                 ],
@@ -709,62 +782,75 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Widget _buildBottomSection(bool canActivate) {
     return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        MaamoraSpacing.xl,
+        MaamoraSpacing.lg,
+        MaamoraSpacing.xl,
+        MaamoraSpacing.xl,
+      ),
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: MaamoraColors.surface,
+        border: Border(top: BorderSide(color: MaamoraColors.border)),
       ),
       child: Column(
         children: [
-          // NDA checkbox
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 22,
-                height: 22,
-                child: Checkbox(
-                  value: _ndaAccepted,
-                  activeColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  side: const BorderSide(
-                    color: MaamoraColors.textFaint,
-                    width: 1.5,
-                  ),
-                  onChanged: (val) {
-                    setState(() => _ndaAccepted = val ?? false);
-                  },
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: AppTheme.bodyMd.copyWith(
-                      color: AppColors.onSurfaceVariant,
-                      fontSize: 13,
-                      height: 1.4,
+          // NDA checkbox — the whole row is the tap target (≥ 48dp).
+          MergeSemantics(
+            child: InkWell(
+              borderRadius: MaamoraRadius.inputR,
+              onTap: () => setState(() => _ndaAccepted = !_ndaAccepted),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Checkbox(
+                        value: _ndaAccepted,
+                        activeColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        side: const BorderSide(
+                          color: MaamoraColors.textFaint,
+                          width: 1.5,
+                        ),
+                        onChanged: (val) {
+                          setState(() => _ndaAccepted = val ?? false);
+                        },
+                      ),
                     ),
-                    children: [
-                      TextSpan(text: context.tr('reg_nda_iagree')),
-                      TextSpan(
-                        text: context.tr('reg_nda_link'),
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
+                    const SizedBox(width: MaamoraSpacing.md),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: AppTheme.bodyMd.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                          children: [
+                            TextSpan(text: context.tr('reg_nda_iagree')),
+                            TextSpan(
+                              text: context.tr('reg_nda_link'),
+                              style: const TextStyle(
+                                color: AppColors.primaryText,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            TextSpan(text: context.tr('reg_nda_commit')),
+                          ],
                         ),
                       ),
-                      TextSpan(
-                        text: context.tr('reg_nda_commit'),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MaamoraSpacing.md),
           // Activate button
           SizedBox(
             width: double.infinity,
@@ -774,7 +860,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 backgroundColor: canActivate
                     ? AppColors.primary
                     : AppColors.primary.withValues(alpha: 0.55),
-                foregroundColor: Colors.white,
+                foregroundColor: MaamoraColors.onPrimary,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -787,34 +873,147 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       height: 22,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        color: Colors.white,
+                        color: MaamoraColors.onPrimary,
                       ),
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          context.tr('reg_submit'),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                        Flexible(
+                          child: Text(
+                            context.tr('reg_submit'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: MaamoraColors.onPrimary,
+                            ),
                           ),
                         ),
-                        SizedBox(width: 8),
-                        Icon(
+                        const SizedBox(width: MaamoraSpacing.sm),
+                        const Icon(
                           Icons.arrow_forward,
-                          color: Colors.white,
+                          color: MaamoraColors.onPrimary,
                           size: 18,
                         ),
                       ],
                     ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: MaamoraSpacing.sm),
           TextButton(
             onPressed: widget.onGoToLogin,
+            style: TextButton.styleFrom(foregroundColor: AppColors.primaryText),
             child: Text(context.tr('reg_have_account')),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Error shown right under its field: icon + text, announced to readers.
+class _InlineFieldError extends StatelessWidget {
+  const _InlineFieldError({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const ExcludeSemantics(
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(top: 2),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 16,
+                color: MaamoraColors.danger,
+              ),
+            ),
+          ),
+          const SizedBox(width: MaamoraSpacing.xs + 2),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: MaamoraColors.danger,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Four-segment progress (Code → Infos → Google → Activation). Pure display:
+/// the step is derived from the screen's existing gates, never stored.
+class _RegisterSteps extends StatelessWidget {
+  const _RegisterSteps({required this.step});
+
+  final int step;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduced = MaamoraMotion.reduced(context);
+    return Semantics(
+      label:
+          '${context.tr('reg_step', args: {'n': step})}. ${context.tr('reg_step_$step')}',
+      excludeSemantics: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              for (var i = 1; i <= 4; i++) ...[
+                if (i > 1) const SizedBox(width: MaamoraSpacing.xs + 2),
+                Expanded(
+                  child: AnimatedContainer(
+                    duration: reduced ? Duration.zero : MaamoraDurations.normal,
+                    curve: MaamoraMotion.standard,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: i <= step
+                          ? MaamoraColors.primary
+                          : MaamoraColors.border,
+                      borderRadius: BorderRadius.circular(MaamoraRadius.chip),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: MaamoraSpacing.sm),
+          AnimatedSwitcher(
+            duration: reduced ? Duration.zero : MaamoraDurations.normal,
+            child: Row(
+              key: ValueKey(step),
+              children: [
+                Text(
+                  context.tr('reg_step_$step'),
+                  style: AppTheme.labelMd.copyWith(
+                    color: AppColors.primaryText,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  context.tr('reg_step', args: {'n': step}),
+                  style: AppTheme.labelMd.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

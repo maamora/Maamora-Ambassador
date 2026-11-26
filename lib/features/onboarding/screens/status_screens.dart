@@ -3,6 +3,7 @@ import '../../../shared/widgets/shared_app_bar.dart';
 import '../../../shared/widgets/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../design_system/design_system.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../providers/auth_provider.dart';
@@ -17,7 +18,7 @@ class PendingScreen extends ConsumerWidget {
     final profileAsync = ref.watch(profileProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: MaamoraColors.scaffold,
       appBar: SharedAppBar(
         pageTitle: context.tr('status_submitted'),
         profileEnabled: false,
@@ -28,119 +29,107 @@ class PendingScreen extends ConsumerWidget {
       ),
       body: profileAsync.when(
         data: (profile) {
-          final firstName = profile?.fullName.split(' ').first ?? 'Ambassador';
+          final firstName = (profile?.fullName ?? '').trim().split(' ').first;
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MaamoraSpacing.screen,
+              vertical: MaamoraSpacing.xl,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 24),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.hourglass_empty,
-                        size: 48,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const PositionedDirectional(
-                      top: 10,
-                      end: 10,
-                      child: Icon(Icons.star, size: 16, color: AppColors.primary),
-                    ),
-                    const PositionedDirectional(
-                      bottom: 20,
-                      start: 10,
-                      child: Icon(Icons.star_border, size: 20, color: AppColors.primary),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
+                const SizedBox(height: MaamoraSpacing.lg),
+                const _StatusEmblem(icon: Icons.hourglass_empty_rounded),
+                const SizedBox(height: MaamoraSpacing.xl),
                 Text(
-                  "You're almost in, $firstName!",
+                  firstName.isEmpty
+                      ? context.tr('status_pending_hello_anon')
+                      : context.tr(
+                          'status_pending_hello',
+                          args: {'name': firstName},
+                        ),
                   style: AppTheme.headlineSm.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                    color: MaamoraColors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: MaamoraSpacing.md),
                 Text(
-                  "Your application is being reviewed by the Maamora team. This usually takes less than 24h.",
-                  style: AppTheme.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
+                  context.tr('status_pending_sub'),
+                  style: AppTheme.bodyMd.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                    height: 1.5,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: MaamoraSpacing.xl),
+                // Status = colour + icon + label (never colour alone).
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: MaamoraSpacing.lg,
+                    vertical: MaamoraSpacing.sm,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.amber.shade100,
-                    borderRadius: BorderRadius.circular(30),
+                    color: MaamoraColors.warningSoft,
+                    borderRadius: BorderRadius.circular(MaamoraRadius.chip),
+                    border: Border.all(color: MaamoraColors.warningEdge),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.circle, size: 10, color: Colors.amber.shade800),
-                      const SizedBox(width: 8),
-                      Text(
-                        "PENDING REVIEW",
-                        style: AppTheme.labelMd.copyWith(
-                          color: Colors.amber.shade900,
-                          fontWeight: FontWeight.bold,
+                      const Icon(
+                        MaamoraIcons.timer,
+                        size: 16,
+                        color: MaamoraColors.warningDeep,
+                      ),
+                      const SizedBox(width: MaamoraSpacing.sm),
+                      Flexible(
+                        child: Text(
+                          context.tr('status_pending_badge'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTheme.labelMd.copyWith(
+                            color: MaamoraColors.warningDeep,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 48),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(20),
+                const SizedBox(height: MaamoraSpacing.xl + MaamoraSpacing.lg),
+                MaamoraCard(
+                  padding: const EdgeInsets.all(MaamoraSpacing.screen),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Application Details",
-                        style: AppTheme.headlineSm.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.secondary,
-                        ),
+                        context.tr('status_details_title'),
+                        style: MaamoraTheme.sectionHeader(),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: MaamoraSpacing.lg),
                       _DetailRow(
                         icon: Icons.person_outline,
-                        label: "Full Name",
-                        value: profile?.fullName ?? '-',
+                        label: context.tr('status_full_name'),
+                        value: profile?.fullName,
                       ),
-                      const Divider(height: 24),
+                      const Divider(
+                        height: MaamoraSpacing.xl,
+                        color: MaamoraColors.border,
+                      ),
                       _DetailRow(
                         icon: Icons.location_city_outlined,
-                        label: "City",
-                        value: profile?.city ?? '-',
+                        label: context.tr('status_city'),
+                        value: profile?.city,
                       ),
-                      const Divider(height: 24),
+                      const Divider(
+                        height: MaamoraSpacing.xl,
+                        color: MaamoraColors.border,
+                      ),
                       _DetailRow(
                         icon: Icons.account_balance_wallet_outlined,
-                        label: "Payout Method",
-                        value: profile?.payoutMethod ?? '-',
+                        label: context.tr('status_payout'),
+                        value: profile?.payoutMethod,
                       ),
                     ],
                   ),
@@ -150,7 +139,37 @@ class PendingScreen extends ConsumerWidget {
           );
         },
         loading: () => const AppLoader(),
-        error: (err, stack) => Center(child: Text(context.tr('status_error'))),
+        error: (err, stack) => Padding(
+          padding: const EdgeInsets.all(MaamoraSpacing.screen),
+          child: Center(
+            child: MaamoraErrorState(
+              title: context.tr('status_error'),
+              onRetry: () => ref.invalidate(profileProvider),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Large soft circle with the status icon — shared by every status screen.
+class _StatusEmblem extends StatelessWidget {
+  const _StatusEmblem({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: Container(
+        width: 112,
+        height: 112,
+        decoration: const BoxDecoration(
+          color: MaamoraColors.primarySoft,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 48, color: MaamoraColors.primary),
       ),
     );
   }
@@ -161,31 +180,35 @@ class _DetailRow extends StatelessWidget {
   final String label;
   final String? value;
 
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    this.value,
-  });
+  const _DetailRow({required this.icon, required this.label, this.value});
 
   @override
   Widget build(BuildContext context) {
+    final shown = (value == null || value!.trim().isEmpty) ? '—' : value!;
     return Row(
       children: [
-        Icon(icon, size: 20, color: AppColors.onSurfaceVariant),
-        const SizedBox(width: 12),
+        ExcludeSemantics(
+          child: Icon(icon, size: 20, color: AppColors.onSurfaceVariant),
+        ),
+        const SizedBox(width: MaamoraSpacing.md),
         Text(
           label,
           style: AppTheme.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
         ),
-        const Spacer(),
-        if (value != null)
-          Text(
-            value!,
+        const SizedBox(width: MaamoraSpacing.md),
+        // Long values (payout details) must never push the row off-screen.
+        Expanded(
+          child: Text(
+            shown,
+            textAlign: TextAlign.end,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppTheme.bodyMd.copyWith(
-              color: AppColors.secondary,
+              color: MaamoraColors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
+        ),
       ],
     );
   }
@@ -227,16 +250,12 @@ class UnregisteredScreen extends ConsumerWidget {
       icon: Icons.no_accounts_outlined,
       title: context.tr('status_not_found_title'),
       message: context.tr('status_not_found_sub'),
-      action: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-        ),
+      action: MaamoraButton(
+        label: context.tr('status_back_login'),
         onPressed: () {
           ref.read(authProvider.notifier).signOut();
           context.go('/login');
         },
-        child: Text(context.tr('status_back_login')),
       ),
     );
   }
@@ -258,33 +277,37 @@ class _StatusScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: MaamoraColors.scaffold,
       appBar: const SharedAppBar(profileEnabled: false),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(MaamoraSpacing.xl),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 64, color: AppColors.primary),
-              const SizedBox(height: 24),
+              _StatusEmblem(icon: icon),
+              const SizedBox(height: MaamoraSpacing.xl),
               Text(
                 title,
+                textAlign: TextAlign.center,
                 style: AppTheme.headlineSm.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.secondary,
+                  fontWeight: FontWeight.w800,
+                  color: MaamoraColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: MaamoraSpacing.md),
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: AppTheme.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
+                style: AppTheme.bodyMd.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  height: 1.5,
+                ),
               ),
               if (action != null) ...[
-                const SizedBox(height: 24),
+                const SizedBox(height: MaamoraSpacing.xl),
                 action!,
-              ]
+              ],
             ],
           ),
         ),

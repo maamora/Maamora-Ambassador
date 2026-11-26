@@ -53,8 +53,10 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
   }
 
   String _getDefaultMessage(String city, String fullLink) {
-    return context.tr('share_default_msg',
-        args: {'city': city, 'link': fullLink});
+    return context.tr(
+      'share_default_msg',
+      args: {'city': city, 'link': fullLink},
+    );
   }
 
   Future<void> _loadSavedData({
@@ -99,7 +101,11 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     }
   }
 
-  String _updateMessageWithLink(String message, String oldLink, String newLink) {
+  String _updateMessageWithLink(
+    String message,
+    String oldLink,
+    String newLink,
+  ) {
     final trimmedNew = newLink.trim();
     if (message.isEmpty) return trimmedNew;
 
@@ -110,7 +116,10 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
 
       // Check if message ends with oldLink
       if (trimmedOld.isNotEmpty && trimmedMsg.endsWith(trimmedOld)) {
-        final prefix = trimmedMsg.substring(0, trimmedMsg.length - trimmedOld.length);
+        final prefix = trimmedMsg.substring(
+          0,
+          trimmedMsg.length - trimmedOld.length,
+        );
         return '$prefix$trimmedNew';
       }
 
@@ -134,7 +143,9 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     final matches = urlRegex.allMatches(message);
     if (matches.isNotEmpty) {
       final lastMatch = matches.last;
-      return message.substring(0, lastMatch.start) + trimmedNew + message.substring(lastMatch.end);
+      return message.substring(0, lastMatch.start) +
+          trimmedNew +
+          message.substring(lastMatch.end);
     }
 
     // 3. Fallback: append at the end
@@ -144,7 +155,12 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
   void _onLinkChanged(String newLink) {
     final trimmedLink = newLink.trim();
     final oldLink = _activeLink;
-    final baseMsg = _customMessage ?? _getDefaultMessage(_currentCity, oldLink.isNotEmpty ? oldLink : _defaultLink);
+    final baseMsg =
+        _customMessage ??
+        _getDefaultMessage(
+          _currentCity,
+          oldLink.isNotEmpty ? oldLink : _defaultLink,
+        );
     final updatedMsg = _updateMessageWithLink(baseMsg, oldLink, trimmedLink);
 
     setState(() {
@@ -163,30 +179,15 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
         _linkController.text = text;
         _onLinkChanged(text);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.content_paste_rounded, color: Colors.white, size: 20),
-                  SizedBox(width: 8),
-                  Text(context.tr('share_pasted_synced')),
-                ],
-              ),
-              backgroundColor: MaamoraColors.success,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              duration: const Duration(seconds: 2),
-            ),
+          MaamoraToast.success(
+            context,
+            context.tr('share_pasted_synced'),
+            icon: Icons.content_paste_rounded,
           );
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.tr('share_clipboard_empty')),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          MaamoraToast.info(context, context.tr('share_clipboard_empty'));
         }
       }
     } catch (_) {}
@@ -200,15 +201,14 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
       _customMessage = defaultMsg;
     });
     _persistData(_currentAmbassadorId, _defaultLink, defaultMsg);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.tr('share_reset_done')),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    MaamoraToast.info(context, context.tr('share_reset_done'));
   }
 
-  Future<void> _persistData(String ambassadorId, String link, String message) async {
+  Future<void> _persistData(
+    String ambassadorId,
+    String link,
+    String message,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('custom_share_link_$ambassadorId', link);
@@ -223,21 +223,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     _persistData(_currentAmbassadorId, _activeLink, newMessage);
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Text(context.tr('share_msg_updated')),
-            ],
-          ),
-          backgroundColor: MaamoraColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      MaamoraToast.success(context, context.tr('share_msg_updated'));
     }
   }
 
@@ -286,7 +272,11 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     return trimmed;
   }
 
-  void _showQrDialog(BuildContext context, String currentLink, String defaultSlug) {
+  void _showQrDialog(
+    BuildContext context,
+    String currentLink,
+    String defaultSlug,
+  ) {
     final qrData = _getQrCodeData(currentLink, defaultSlug);
     final displaySlug = _getDisplaySlug(currentLink, defaultSlug);
 
@@ -323,7 +313,11 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                         color: MaamoraColors.surfaceLow,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(Icons.close_rounded, size: 18, color: _onSurfaceVariant),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 18,
+                        color: _onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
@@ -342,16 +336,10 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  color: MaamoraColors.surface,
+                  borderRadius: BorderRadius.circular(MaamoraRadius.sheet),
                   border: Border.all(color: _cardBorder, width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: MaamoraShadows.soft,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -360,7 +348,8 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                       data: qrData,
                       version: QrVersions.auto,
                       size: 200,
-                      backgroundColor: Colors.white,
+                      backgroundColor: MaamoraColors.surface,
+                      semanticsLabel: context.tr('share_copy_link'),
                       eyeStyle: const QrEyeStyle(
                         eyeShape: QrEyeShape.square,
                         color: _onBackground,
@@ -374,14 +363,20 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                           child: Text(
                             context.tr('share_qr_error'),
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.cairo(fontSize: 12, color: Colors.red),
+                            style: GoogleFonts.cairo(
+                              fontSize: 12,
+                              color: MaamoraColors.danger,
+                            ),
                           ),
                         );
                       },
                     ),
                     const SizedBox(height: 10),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: _primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
@@ -404,24 +399,27 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    final linkToCopy = currentLink.trim().isNotEmpty ? currentLink.trim() : qrData;
+                    final linkToCopy = currentLink.trim().isNotEmpty
+                        ? currentLink.trim()
+                        : qrData;
                     Clipboard.setData(ClipboardData(text: linkToCopy));
-                    Navigator.of(ctx).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(context.tr('share_copied_clipboard')),
-                        duration: Duration(seconds: 2),
-                      ),
+                    HapticFeedback.lightImpact();
+                    MaamoraToast.success(
+                      context,
+                      context.tr('share_copied_clipboard'),
                     );
+                    Navigator.of(ctx).pop();
                   },
                   icon: const Icon(Icons.content_copy_outlined, size: 18),
                   label: Text(context.tr('share_copy_link')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: MaamoraColors.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -440,9 +438,19 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
       backgroundColor: _background,
       body: profileAsync.when(
         loading: () => const AppLoader(),
-        error: (err, _) => Center(child: Text(context.tr('common_error', args: {'e': err.toString()}))),
+        error: (err, _) => Padding(
+          padding: const EdgeInsets.all(MaamoraSpacing.screen),
+          child: Center(
+            child: MaamoraErrorState(
+              subtitle: context.tr('common_error_sub'),
+              onRetry: () => ref.invalidate(profileProvider),
+            ),
+          ),
+        ),
         data: (ambassador) {
-          if (ambassador == null) return Center(child: Text(context.tr('common_not_logged_in')));
+          if (ambassador == null) {
+            return Center(child: Text(context.tr('common_not_logged_in')));
+          }
 
           final defaultFullLink = 'maamora.ma/join/${ambassador.referralSlug}';
 
@@ -453,14 +461,20 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
             city: ambassador.city,
           );
 
-          final effectiveLink = _activeLink.isNotEmpty ? _activeLink : defaultFullLink;
-          final defaultMessage = _getDefaultMessage(ambassador.city, effectiveLink);
+          final effectiveLink = _activeLink.isNotEmpty
+              ? _activeLink
+              : defaultFullLink;
+          final defaultMessage = _getDefaultMessage(
+            ambassador.city,
+            effectiveLink,
+          );
           final activeMessage = _customMessage ?? defaultMessage;
 
           return SafeArea(
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(
-                  parent: ClampingScrollPhysics()),
+                parent: ClampingScrollPhysics(),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -482,8 +496,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
 
                   // ⭐ Premium share card — flip 3D au tap pour révéler le code.
                   _FlipShareCard(
-                    displayName:
-                        (ambassador.fullName.split(' ').first),
+                    displayName: (ambassador.fullName.split(' ').first),
                     referralSlug: ambassador.referralSlug,
                     link: effectiveLink,
                   ),
@@ -505,7 +518,11 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
                         subtitle: context.tr('share_ready_whatsapp'),
                       );
                     },
-                    onQrTap: () => _showQrDialog(context, effectiveLink, ambassador.referralSlug),
+                    onQrTap: () => _showQrDialog(
+                      context,
+                      effectiveLink,
+                      ambassador.referralSlug,
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -648,8 +665,9 @@ class _FrontShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final code =
-        referralSlug.length > 6 ? referralSlug.toUpperCase() : referralSlug;
+    final code = referralSlug.length > 6
+        ? referralSlug.toUpperCase()
+        : referralSlug;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -678,7 +696,7 @@ class _FrontShareCard extends StatelessWidget {
                     ),
                     child: const Icon(
                       MaamoraIcons.crown,
-                      color: Colors.white,
+                      color: MaamoraColors.onPrimary,
                       size: 22,
                     ),
                   ),
@@ -693,7 +711,7 @@ class _FrontShareCard extends StatelessWidget {
                           style: GoogleFonts.cairo(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: MaamoraColors.onPrimary,
                           ),
                         ),
                         Text(
@@ -701,7 +719,9 @@ class _FrontShareCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(alpha: 0.8),
+                            color: MaamoraColors.onPrimary.withValues(
+                              alpha: 0.8,
+                            ),
                           ),
                         ),
                       ],
@@ -716,7 +736,7 @@ class _FrontShareCard extends StatelessWidget {
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.4,
-                  color: Colors.white.withValues(alpha: 0.65),
+                  color: MaamoraColors.onPrimary.withValues(alpha: 0.65),
                 ),
               ),
               const SizedBox(height: 4),
@@ -740,7 +760,7 @@ class _FrontShareCard extends StatelessWidget {
                 alignment: Alignment.bottomRight,
                 child: Icon(
                   MaamoraIcons.qrCode,
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: MaamoraColors.onPrimary.withValues(alpha: 0.5),
                   size: 22,
                 ),
               ),
@@ -783,15 +803,14 @@ class _BackShareCard extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.4,
-              color: Colors.white.withValues(alpha: 0.8),
+              color: MaamoraColors.onPrimary.withValues(alpha: 0.8),
             ),
           ),
           const SizedBox(height: 10),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: MaamoraColors.onPrimary,
               borderRadius: BorderRadius.circular(14),
               boxShadow: MaamoraShadows.soft,
             ),
@@ -872,10 +891,7 @@ class _ReferralLinkBox extends StatelessWidget {
                 border: InputBorder.none,
                 isDense: true,
                 hintText: context.tr('share_paste_hint'),
-                hintStyle: TextStyle(
-                  color: _onSurfaceVariant,
-                  fontSize: 13,
-                ),
+                hintStyle: TextStyle(color: _onSurfaceVariant, fontSize: 13),
                 contentPadding: EdgeInsets.symmetric(vertical: 6),
               ),
             ),
@@ -894,7 +910,11 @@ class _ReferralLinkBox extends StatelessWidget {
                     color: MaamoraColors.surfaceLow,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.restart_alt_rounded, color: _onSurfaceVariant, size: 18),
+                  child: const Icon(
+                    Icons.restart_alt_rounded,
+                    color: _onSurfaceVariant,
+                    size: 18,
+                  ),
                 ),
               ),
             ),
@@ -912,7 +932,11 @@ class _ReferralLinkBox extends StatelessWidget {
                   color: MaamoraColors.primarySoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.content_paste_rounded, color: _primary, size: 19),
+                child: const Icon(
+                  Icons.content_paste_rounded,
+                  color: _primary,
+                  size: 19,
+                ),
               ),
             ),
           ),
@@ -929,7 +953,11 @@ class _ReferralLinkBox extends StatelessWidget {
                   color: MaamoraColors.primarySoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.content_copy_outlined, color: _primary, size: 19),
+                child: const Icon(
+                  Icons.content_copy_outlined,
+                  color: _primary,
+                  size: 19,
+                ),
               ),
             ),
           ),
@@ -946,7 +974,11 @@ class _ReferralLinkBox extends StatelessWidget {
                   color: MaamoraColors.primarySoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.qr_code_rounded, color: _primary, size: 19),
+                child: const Icon(
+                  Icons.qr_code_rounded,
+                  color: _primary,
+                  size: 19,
+                ),
               ),
             ),
           ),
@@ -974,10 +1006,7 @@ class _MessagePreviewSection extends StatelessWidget {
     if (text.isEmpty) return spans;
 
     final trimmed = activeLink.trim();
-    final patterns = <String>[
-      r'https?://[^\s]+',
-      r'maamora\.ma/[^\s]+',
-    ];
+    final patterns = <String>[r'https?://[^\s]+', r'maamora\.ma/[^\s]+'];
 
     if (trimmed.isNotEmpty) {
       patterns.insert(
@@ -991,40 +1020,46 @@ class _MessagePreviewSection extends StatelessWidget {
 
     for (final match in regex.allMatches(text)) {
       if (match.start > lastIndex) {
-        spans.add(TextSpan(
-          text: text.substring(lastIndex, match.start),
+        spans.add(
+          TextSpan(
+            text: text.substring(lastIndex, match.start),
+            style: GoogleFonts.cairo(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: _onBackground,
+              height: 1.5,
+            ),
+          ),
+        );
+      }
+      spans.add(
+        TextSpan(
+          text: match.group(0),
+          style: GoogleFonts.cairo(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: _primary,
+            decoration: TextDecoration.underline,
+            decorationColor: _primary,
+            height: 1.5,
+          ),
+        ),
+      );
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < text.length) {
+      spans.add(
+        TextSpan(
+          text: text.substring(lastIndex),
           style: GoogleFonts.cairo(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: _onBackground,
             height: 1.5,
           ),
-        ));
-      }
-      spans.add(TextSpan(
-        text: match.group(0),
-        style: GoogleFonts.cairo(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: _primary,
-          decoration: TextDecoration.underline,
-          decorationColor: _primary,
-          height: 1.5,
         ),
-      ));
-      lastIndex = match.end;
-    }
-
-    if (lastIndex < text.length) {
-      spans.add(TextSpan(
-        text: text.substring(lastIndex),
-        style: GoogleFonts.cairo(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          color: _onBackground,
-          height: 1.5,
-        ),
-      ));
+      );
     }
 
     return spans;
@@ -1089,21 +1124,13 @@ class _MessagePreviewSection extends StatelessWidget {
                   bottomStart: Radius.circular(16),
                   bottomEnd: Radius.circular(16),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                boxShadow: MaamoraShadows.soft,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   RichText(
-                    text: TextSpan(
-                      children: _buildMessageSpans(message, link),
-                    ),
+                    text: TextSpan(children: _buildMessageSpans(message, link)),
                   ),
                   const SizedBox(height: 6),
                   Row(

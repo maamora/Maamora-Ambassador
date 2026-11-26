@@ -8,6 +8,7 @@ import '../../../shared/theme/app_colors.dart';
 import '../providers/my_groups_provider.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../design_system/design_system.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
   const CreateGroupScreen({super.key});
@@ -22,7 +23,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   final _descController = TextEditingController();
   final _priceController = TextEditingController();
   final _seatsController = TextEditingController();
-  
+
   bool _isLoading = false;
 
   @override
@@ -36,26 +37,28 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
-      await ref.read(myGroupsProvider.notifier).createGroup(
-        productName: _nameController.text.trim(),
-        productDescription: _descController.text.trim(),
-        pricePerPerson: double.parse(_priceController.text.trim()),
-        seatsTotal: int.parse(_seatsController.text.trim()),
-      );
+      await ref
+          .read(myGroupsProvider.notifier)
+          .createGroup(
+            productName: _nameController.text.trim(),
+            productDescription: _descController.text.trim(),
+            pricePerPerson: double.parse(_priceController.text.trim()),
+            seatsTotal: int.parse(_seatsController.text.trim()),
+          );
       if (mounted) {
+        // Toast in the root overlay survives the pop.
+        MaamoraToast.success(context, context.tr('cg_created'));
         context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.tr('cg_created'))),
-        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.tr('common_error', args: {'e': e.toString()}))),
+        MaamoraToast.error(
+          context,
+          context.tr('common_error', args: {'e': e.toString()}),
         );
       }
     } finally {
@@ -63,38 +66,60 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     }
   }
 
+  /// Required + must parse exactly like `_submit` does (same parser), so the
+  /// error shows under the field instead of failing after the tap.
+  String? _requiredNumber(String? val, {required bool integer}) {
+    if (val == null || val.isEmpty) return context.tr('cg_required');
+    final ok = integer
+        ? int.tryParse(val.trim()) != null
+        : double.tryParse(val.trim()) != null;
+    return ok ? null : context.tr('cg_invalid_number');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: MaamoraColors.scaffold,
       appBar: SharedAppBar(pageTitle: context.tr('cg_title')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(MaamoraSpacing.screen),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 context.tr('cg_details'),
-                style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.onSurface),
+                style: GoogleFonts.cairo(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.onSurface,
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: context.tr('cg_product_name')
+                  labelText: context.tr('cg_product_name'),
                 ),
-                validator: (val) => (val == null || val.isEmpty) ? context.tr('cg_required') : null,
+                textInputAction: TextInputAction.next,
+                textCapitalization: TextCapitalization.sentences,
+                validator: (val) => (val == null || val.isEmpty)
+                    ? context.tr('cg_required')
+                    : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descController,
                 decoration: InputDecoration(
-                  labelText: context.tr('cg_product_desc')
+                  labelText: context.tr('cg_product_desc'),
                 ),
                 maxLines: 3,
-                validator: (val) => (val == null || val.isEmpty) ? context.tr('cg_required') : null,
+                textCapitalization: TextCapitalization.sentences,
+                validator: (val) => (val == null || val.isEmpty)
+                    ? context.tr('cg_required')
+                    : null,
               ),
               const SizedBox(height: 16),
               Row(
@@ -103,26 +128,33 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                     child: TextFormField(
                       controller: _priceController,
                       decoration: InputDecoration(
-                        labelText: context.tr('cg_price')
+                        labelText: context.tr('cg_price'),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      validator: (val) => (val == null || val.isEmpty) ? context.tr('cg_required') : null,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      textInputAction: TextInputAction.next,
+                      validator: (val) => _requiredNumber(val, integer: false),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: MaamoraSpacing.md),
                   Expanded(
                     child: TextFormField(
                       controller: _seatsController,
                       decoration: InputDecoration(
-                        labelText: context.tr('cg_seats')
+                        labelText: context.tr('cg_seats'),
                       ),
                       keyboardType: TextInputType.number,
-                      validator: (val) => (val == null || val.isEmpty) ? context.tr('cg_required') : null,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) {
+                        if (!_isLoading) _submit();
+                      },
+                      validator: (val) => _requiredNumber(val, integer: true),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: MaamoraSpacing.xl),
               AppButton(
                 label: context.tr('cg_title'),
                 isLoading: _isLoading,

@@ -51,12 +51,14 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         error: (err, _) => Padding(
           padding: const EdgeInsets.all(20),
           child: MaamoraErrorState(
-            subtitle: err.toString(),
+            subtitle: context.tr('common_error_sub'),
             onRetry: () => ref.invalidate(leaderboardProvider(city)),
           ),
         ),
         data: (data) {
-          final listData = _isMyCity ? data.cityRankings : data.nationalRankings;
+          final listData = _isMyCity
+              ? data.cityRankings
+              : data.nationalRankings;
 
           Map<String, dynamic>? myEntry;
           Map<String, dynamic>? nextPerson;
@@ -93,8 +95,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                       child: MaamoraEmptyState(
                         icon: MaamoraIcons.board,
                         title: context.tr('lb_empty'),
-                        subtitle:
-                            context.tr('lb_empty_sub'),
+                        subtitle: context.tr('lb_empty_sub'),
                       ),
                     ),
                   ],
@@ -139,7 +140,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                           _RankRow(
                             rank: i + 1,
                             entry: listData[i],
-                            isMe: ambassadorState.ambassador?.id ==
+                            isMe:
+                                ambassadorState.ambassador?.id ==
                                 listData[i]['id'],
                             index: i - restStart,
                           ),
@@ -229,7 +231,7 @@ class _LeaderboardSkeleton extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: MaamoraShimmerBox(height: 36, width: 180, radius: 18),
             ),
             const SizedBox(height: 16),
@@ -412,8 +414,9 @@ class _PodiumCardState extends State<_PodiumCard>
                 ],
               ),
               color: widget.medalColor.withValues(alpha: 0.16),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(14)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(14),
+              ),
               border: Border.all(
                 color: widget.medalColor.withValues(alpha: 0.35),
               ),
@@ -483,7 +486,9 @@ class _TogglePills extends StatelessWidget {
         children: [
           Expanded(
             child: _Pill(
-              label: context.tr('lb_my_city') + (city.isNotEmpty ? ' ($city)' : ''),
+              label:
+                  context.tr('lb_my_city') +
+                  (city.isNotEmpty ? ' ($city)' : ''),
               isActive: isMyCity,
               onToggle: () => onToggle(true),
             ),
@@ -514,29 +519,41 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        onToggle();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(vertical: 11),
-        decoration: BoxDecoration(
-          color: isActive ? _brownDark : Colors.transparent,
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: isActive
-              ? MaamoraShadows.glow(_brownDark, 0.25)
-              : null,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: GoogleFonts.cairo(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w700,
-            color: isActive ? Colors.white : _onSurfaceVariant,
+    // Segmented control: announced as a selectable button, 48dp tall.
+    return Semantics(
+      button: true,
+      selected: isActive,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onToggle();
+        },
+        child: AnimatedContainer(
+          duration: MaamoraMotion.reduced(context)
+              ? Duration.zero
+              : MaamoraDurations.normal,
+          curve: MaamoraMotion.standard,
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(
+            vertical: MaamoraSpacing.md,
+            horizontal: MaamoraSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: isActive ? _brownDark : Colors.transparent,
+            borderRadius: BorderRadius.circular(26),
+            boxShadow: isActive ? MaamoraShadows.glow(_brownDark, 0.25) : null,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.cairo(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: isActive ? MaamoraColors.onPrimary : _onSurfaceVariant,
+            ),
           ),
         ),
       ),
@@ -589,9 +606,7 @@ class _RankRow extends StatelessWidget {
           color: isMe ? MaamoraColors.primarySoft : _surface,
           borderRadius: BorderRadius.circular(MaamoraRadius.cardSm),
           border: Border.all(
-            color: isMe
-                ? MaamoraColors.primaryHairline
-                : _cardBorder,
+            color: isMe ? MaamoraColors.primaryHairline : _cardBorder,
           ),
           boxShadow: MaamoraShadows.soft,
         ),
@@ -599,10 +614,7 @@ class _RankRow extends StatelessWidget {
           children: [
             // Rank number with medal icon for top 3 (kept for safety although
             // rows normally start after the podium).
-            SizedBox(
-              width: 36,
-              child: _RankChip(rank: rank),
-            ),
+            SizedBox(width: 36, child: _RankChip(rank: rank)),
             const SizedBox(width: 10),
             _Avatar(name: name),
             const SizedBox(width: 12),
@@ -623,8 +635,11 @@ class _RankRow extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(MaamoraIcons.location,
-                          size: 12, color: _onSurfaceVariant),
+                      const Icon(
+                        MaamoraIcons.location,
+                        size: 12,
+                        color: _onSurfaceVariant,
+                      ),
                       const SizedBox(width: 3),
                       Flexible(
                         child: Text(
@@ -766,8 +781,9 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
       final nextOrders =
           (widget.nextPerson!['total_validated_members'] as num?)?.toInt() ?? 0;
       ordersToPass = nextOrders - orders + 1;
-      nextName =
-          (widget.nextPerson!['full_name'] as String? ?? 'Next').split(' ').first;
+      nextName = (widget.nextPerson!['full_name'] as String? ?? 'Next')
+          .split(' ')
+          .first;
     }
 
     return AnimatedBuilder(
@@ -801,7 +817,7 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
+                color: MaamoraColors.onPrimary.withValues(alpha: 0.18),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
@@ -810,7 +826,7 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
                 style: GoogleFonts.cairo(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: MaamoraColors.onPrimary,
                 ),
               ),
             ),
@@ -832,9 +848,9 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
                   gradient: const SweepGradient(
                     colors: [
                       _gold,
-                      Colors.white,
+                      MaamoraColors.onPrimary,
                       _gold,
-                      Colors.white,
+                      MaamoraColors.onPrimary,
                       _gold,
                     ],
                   ),
@@ -846,11 +862,11 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.25),
+                    color: MaamoraColors.onPrimary.withValues(alpha: 0.25),
                   ),
                   child: const Icon(
                     MaamoraIcons.referral,
-                    color: Colors.white,
+                    color: MaamoraColors.onPrimary,
                     size: 22,
                   ),
                 ),
@@ -867,7 +883,7 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
                     style: GoogleFonts.cairo(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: MaamoraColors.onPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -876,31 +892,41 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
                       if (widget.nextPerson != null) ...[
                         Flexible(
                           child: Text(
-                            context.tr('lb_pass_hint',
-                                args: {'n': '$ordersToPass', 'name': nextName}),
+                            context.tr(
+                              'lb_pass_hint',
+                              args: {'n': '$ordersToPass', 'name': nextName},
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.cairo(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: Colors.white.withValues(alpha: 0.85),
+                              color: MaamoraColors.onPrimary.withValues(
+                                alpha: 0.85,
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Icon(MaamoraIcons.arrowUp,
-                            color: Colors.white.withValues(alpha: 0.85),
-                            size: 14),
+                        Icon(
+                          MaamoraIcons.arrowUp,
+                          color: MaamoraColors.onPrimary.withValues(
+                            alpha: 0.85,
+                          ),
+                          size: 14,
+                        ),
                       ] else ...[
                         Text(
                           'Tu es n°1 !',
                           style: GoogleFonts.cairo(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: MaamoraColors.onPrimary.withValues(
+                              alpha: 0.85,
+                            ),
                           ),
                         ),
-                      ]
+                      ],
                     ],
                   ),
                 ],
@@ -915,7 +941,7 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
                   style: GoogleFonts.cairo(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: MaamoraColors.onPrimary,
                   ),
                 ),
                 Text(
@@ -923,7 +949,7 @@ class _MyPinnedRowState extends State<_MyPinnedRow>
                   style: GoogleFonts.cairo(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.75),
+                    color: MaamoraColors.onPrimary.withValues(alpha: 0.75),
                   ),
                 ),
               ],
@@ -950,7 +976,8 @@ class _Avatar extends StatelessWidget {
       height: size,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: MaamoraColors.creamIntense, // cream-intense chip (charte derived)
+        color:
+            MaamoraColors.creamIntense, // cream-intense chip (charte derived)
         border: Border.fromBorderSide(
           BorderSide(color: _cardBorder, width: 1.5),
         ),

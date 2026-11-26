@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/l10n/app_strings.dart';
 import '../../models/models.dart';
 import '../theme/app_colors.dart';
 import '../../design_system/design_system.dart';
@@ -11,6 +12,25 @@ export 'app_loader.dart';
 /// Shared building blocks used across every screen, so the whole app reads
 /// as one consistent design system (same cards, same badges, same loading,
 /// same empty states) instead of each screen inventing its own.
+
+// ── Level names (i18n) ──────────────────────────────────────────────────────
+
+/// Translated tier name for display. `AmbassadorLevel.label` stays the
+/// model's raw English value (used by business code); screens show this.
+extension AmbassadorLevelL10n on AmbassadorLevel {
+  String trLabel(BuildContext context) {
+    switch (this) {
+      case AmbassadorLevel.neutral:
+        return context.tr('dash_tier_neutral');
+      case AmbassadorLevel.bronze:
+        return context.tr('dash_tier_bronze');
+      case AmbassadorLevel.silver:
+        return context.tr('dash_tier_silver');
+      case AmbassadorLevel.gold:
+        return context.tr('dash_tier_gold');
+    }
+  }
+}
 
 // ── Level badge (bronze / silver / gold / platinum) ─────────────────────────
 
@@ -53,8 +73,8 @@ class LevelBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = colorFor(level);
     final label = showRate
-        ? '${level.label} · ${(level.commissionRate * 100).toInt()}%'
-        : level.label;
+        ? '${level.trLabel(context)} · ${(level.commissionRate * 100).toInt()}%'
+        : level.trLabel(context);
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 8 : 12,

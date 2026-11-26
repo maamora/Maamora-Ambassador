@@ -7,9 +7,9 @@ import '../providers/my_groups_provider.dart';
 import '../../../shared/widgets/design_kit.dart';
 import '../../../design_system/design_system.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../shared/navigation/app_routes.dart';
 
 // Colors: charte centralisée (tokens DS)
-const Color _surface = MaamoraColors.surface;
 const Color _surfaceContainerLowest = MaamoraColors.surface;
 const Color _onBackground = MaamoraColors.textPrimary;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;
@@ -18,101 +18,123 @@ const Color _outlineVariant = MaamoraColors.border;
 class MyGroupsScreen extends ConsumerWidget {
   const MyGroupsScreen({super.key});
 
+  /// Pull-to-refresh: invalidates the groups provider; the current list stays
+  /// on screen until the new one arrives.
+  Future<void> _refresh(WidgetRef ref) async {
+    ref.invalidate(myGroupsProvider);
+    await ref.read(myGroupsProvider.future);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final groupsAsync = ref.watch(myGroupsProvider);
 
     return Scaffold(
-      backgroundColor: _surface,
+      backgroundColor: MaamoraColors.scaffold,
       appBar: const SharedAppBar(),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: MaamoraSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: MaamoraSpacing.lg),
               Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _onBackground, size: 20),
+                  // Localized tooltip + icon mirrored in Arabic.
+                  BackButton(
+                    color: _onBackground,
                     onPressed: () => context.pop(),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    context.tr('groups_title'),
-                    style: GoogleFonts.cairo(
-                      color: _onBackground,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
+                  const SizedBox(width: MaamoraSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      context.tr('groups_title'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: MaamoraTheme.screenTitle(),
                     ),
                   ),
-                  const Spacer(),
                   IconButton(
+                    tooltip: context.tr('common_refresh'),
                     icon: const Icon(Icons.refresh, color: _onSurfaceVariant),
-                    onPressed: () => ref.read(myGroupsProvider.notifier).refresh(),
+                    onPressed: () =>
+                        ref.read(myGroupsProvider.notifier).refresh(),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: MaamoraSpacing.lg),
               Expanded(
                 child: groupsAsync.when(
                   data: (groups) {
                     if (groups.isEmpty) {
-                      return MaamoraEmptyState(
-                        icon: MaamoraIcons.users,
-                        title: context.tr('groups_empty'),
-                        subtitle: context.tr('groups_empty_sub'),
+                      // Still pullable, and the empty state offers the action.
+                      return RefreshIndicator(
+                        color: MaamoraColors.primary,
+                        onRefresh: () => _refresh(ref),
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            MaamoraEmptyState(
+                              icon: MaamoraIcons.users,
+                              title: context.tr('groups_empty'),
+                              subtitle: context.tr('groups_empty_sub'),
+                              actionLabel: context.tr('dash_new_group'),
+                              onAction: () =>
+                                  context.push(AppRoutes.createGroup),
+                            ),
+                          ],
+                        ),
                       );
                     }
-                    return ListView.separated(
-                      itemCount: groups.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 16),
-                      padding: const EdgeInsets.only(bottom: 24),
-                      itemBuilder: (context, index) {
-                        final g = groups[index];
-                        return _GroupOrderCard(
-                          imageUrl: g.productImageUrl ?? '',
-                          title: g.productName,
-                          membersCount: g.membersCount,
-                          membersTotal: g.seatsTotal,
-                          statut: g.status.name,
-                          progressRatio: g.progressRatio,
-                          isConfirmed: g.commissionAssigned,
-                          prixGroupe: g.pricePerPerson,
-                          originalPrice: g.pricePerPerson,
-                          onTap: () {
-                            // TODO: Add new flow for order details if needed
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(context.tr('groups_order_soon'))),
-                            );
-                          },
-                          onInvite: () {
-                            // TODO: Implement direct share logic
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(context.tr('groups_share_soon'))),
-                            );
-                          },
-                        );
-                      },
+                    return RefreshIndicator(
+                      color: MaamoraColors.primary,
+                      onRefresh: () => _refresh(ref),
+                      child: ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: groups.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(height: MaamoraSpacing.md),
+                        padding: const EdgeInsetsDirectional.only(
+                          bottom: MaamoraSpacing.xl,
+                        ),
+                        itemBuilder: (context, index) {
+                          final g = groups[index];
+                          return _GroupOrderCard(
+                            imageUrl: g.productImageUrl ?? '',
+                            title: g.productName,
+                            membersCount: g.membersCount,
+                            membersTotal: g.seatsTotal,
+                            statut: g.status.name,
+                            progressRatio: g.progressRatio,
+                            isConfirmed: g.commissionAssigned,
+                            prixGroupe: g.pricePerPerson,
+                            originalPrice: g.pricePerPerson,
+                            onTap: () {
+                              // TODO: Add new flow for order details if needed
+                              MaamoraToast.info(
+                                context,
+                                context.tr('groups_order_soon'),
+                              );
+                            },
+                            onInvite: () {
+                              // TODO: Implement direct share logic
+                              MaamoraToast.info(
+                                context,
+                                context.tr('groups_share_soon'),
+                              );
+                            },
+                          );
+                        },
+                      ),
                     );
                   },
                   loading: () => const AppSkeletonList(count: 4),
                   error: (err, _) => Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          context.tr('groups_failed'),
-                          style: GoogleFonts.cairo(color: MaamoraColors.danger),
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () =>
-                              ref.read(myGroupsProvider.notifier).refresh(),
-                          child: Text(context.tr('common_retry')),
-                        ),
-                      ],
+                    child: MaamoraErrorState(
+                      title: context.tr('groups_failed'),
+                      onRetry: () =>
+                          ref.read(myGroupsProvider.notifier).refresh(),
                     ),
                   ),
                 ),
@@ -154,7 +176,6 @@ class _GroupOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -162,15 +183,9 @@ class _GroupOrderCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: _surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _outlineVariant.withValues(alpha: 0.5)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          borderRadius: MaamoraRadius.cardSmR,
+          border: Border.all(color: _outlineVariant),
+          boxShadow: MaamoraShadows.soft,
         ),
         child: Row(
           children: [
@@ -182,17 +197,26 @@ class _GroupOrderCard extends StatelessWidget {
                 height: 64,
                 color: MaamoraColors.creamIntense,
                 child: imageUrl.isNotEmpty
-                    ? Image.network(imageUrl, fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Icon(
-                          Icons.image_not_supported_outlined,
-                          size: 24,
-                          color: _outlineVariant,
-                        ))
-                    : const Icon(Icons.image_not_supported_outlined,
-                        size: 24, color: _outlineVariant),
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        cacheWidth: 192,
+                        excludeFromSemantics: true,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.image_not_supported_outlined,
+                              size: 24,
+                              color: _outlineVariant,
+                            ),
+                      )
+                    : const Icon(
+                        Icons.image_not_supported_outlined,
+                        size: 24,
+                        color: _outlineVariant,
+                      ),
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: MaamoraSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,15 +235,25 @@ class _GroupOrderCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.people_alt_outlined,
-                          size: 14, color: _onSurfaceVariant),
+                      const Icon(
+                        Icons.people_alt_outlined,
+                        size: 14,
+                        color: _onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
-                      Text(
-                        '$membersCount/$membersTotal filled',
-                        style: GoogleFonts.cairo(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: _onSurfaceVariant,
+                      Flexible(
+                        child: Text(
+                          context.tr(
+                            'groups_filled',
+                            args: {'a': membersCount, 'b': membersTotal},
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.cairo(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: _onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],
@@ -230,20 +264,41 @@ class _GroupOrderCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            // Status badge
+            // Status badge: colour + icon + label (never colour alone).
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: isConfirmed ? MaamoraColors.successSoft : _outlineVariant.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
+                color: isConfirmed
+                    ? MaamoraColors.successSoft
+                    : MaamoraColors.surfaceLow,
+                borderRadius: BorderRadius.circular(MaamoraRadius.chip),
               ),
-              child: Text(
-                isConfirmed ? context.tr('groups_confirmed') : context.tr('groups_pending'),
-                style: GoogleFonts.cairo(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: isConfirmed ? MaamoraColors.success : _onSurfaceVariant,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isConfirmed
+                        ? Icons.check_circle_rounded
+                        : Icons.schedule_rounded,
+                    size: 12,
+                    color: isConfirmed
+                        ? MaamoraColors.successOn
+                        : MaamoraColors.textPrimary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    isConfirmed
+                        ? context.tr('groups_confirmed')
+                        : context.tr('groups_pending'),
+                    style: GoogleFonts.cairo(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isConfirmed
+                          ? MaamoraColors.successOn
+                          : MaamoraColors.textPrimary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
