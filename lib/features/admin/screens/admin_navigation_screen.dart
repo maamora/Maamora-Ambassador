@@ -436,50 +436,53 @@ class _AdminNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final count = badge ?? 0;
-    return Semantics(
-      button: true,
-      selected: isActive,
-      label: count > 0 ? '$label, $count' : label,
-      excludeSemantics: true,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          width: 72,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Icon(
-                    icon,
-                    color: isActive ? _primary : _onSurfaceVariant,
-                    size: 24,
-                  ),
-                  if (count > 0)
-                    PositionedDirectional(
-                      top: -6,
-                      end: -10,
-                      child: _CountBadge(count: count, background: _primary),
+    // Equal share of the bar width (a fixed 72dp cut « Ambassadeurs »).
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: isActive,
+        label: count > 0 ? '$label, $count' : label,
+        excludeSemantics: true,
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      icon,
+                      color: isActive ? _primary : _onSurfaceVariant,
+                      size: 24,
                     ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.cairo(
-                  // Small active label → AA orange companion.
-                  color: isActive
-                      ? MaamoraColors.primaryText
-                      : _onSurfaceVariant,
-                  fontSize: 10.5,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    if (count > 0)
+                      PositionedDirectional(
+                        top: -6,
+                        end: -10,
+                        child: _CountBadge(count: count, background: _primary),
+                      ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.cairo(
+                    // Small active label → AA orange companion.
+                    color: isActive
+                        ? MaamoraColors.primaryText
+                        : _onSurfaceVariant,
+                    fontSize: 10.5,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
