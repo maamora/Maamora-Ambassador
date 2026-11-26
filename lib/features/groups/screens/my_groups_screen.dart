@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/design/app_motion.dart';
 import '../../../shared/widgets/shared_app_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -124,7 +125,7 @@ class MyGroupsScreen extends ConsumerWidget {
                                 context.tr('groups_share_soon'),
                               );
                             },
-                          );
+                          ).enter(context, index: index < 8 ? index : 0);
                         },
                       ),
                     );

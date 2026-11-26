@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/design/app_motion.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -380,7 +381,7 @@ class _AdminAmbassadorsPendingScreenState
             },
             onAccept: () => _confirmAccept(candidate),
             onReject: () => _showRejectDialog(candidate),
-          );
+          ).enter(context, index: index < 8 ? index : 0);
         },
       ),
     );

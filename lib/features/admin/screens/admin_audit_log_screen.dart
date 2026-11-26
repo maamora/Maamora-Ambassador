@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/design/app_motion.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../design_system/design_system.dart';
@@ -166,7 +167,10 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
           final entry = _logs[i];
           final targetId = entry['target_id'] as String?;
           final targetName = targetId != null ? _targetNames[targetId] : null;
-          return _AuditEntryRow(entryData: entry, targetName: targetName);
+          return _AuditEntryRow(
+            entryData: entry,
+            targetName: targetName,
+          ).enter(context, index: i < 8 ? i : 0);
         },
       ),
     );

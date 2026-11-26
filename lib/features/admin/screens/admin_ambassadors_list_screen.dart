@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../shared/design/app_motion.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
@@ -338,8 +339,9 @@ class _AdminAmbassadorsListScreenState
         itemCount: displayedList.length,
         separatorBuilder: (context, index) =>
             const SizedBox(height: MaamoraSpacing.sm),
-        itemBuilder: (context, i) =>
-            _AmbassadorRow(ambassador: displayedList[i]),
+        itemBuilder: (context, i) => _AmbassadorRow(
+          ambassador: displayedList[i],
+        ).enter(context, index: i < 8 ? i : 0),
       ),
     );
   }

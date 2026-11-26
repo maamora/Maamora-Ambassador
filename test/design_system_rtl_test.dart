@@ -171,4 +171,53 @@ void main() {
     );
     handle.dispose();
   });
+  testWidgets('Onglets : fade through sans perdre leur état', (tester) async {
+    Widget tabs(int index) => _harness(
+      const Locale('fr'),
+      SizedBox(
+        height: 200,
+        child: MaamoraFadeThroughIndexedStack(
+          index: index,
+          children: const [
+            TextField(key: Key('tab0-field')),
+            Text('Onglet 2'),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpWidget(tabs(0));
+    await tester.enterText(find.byKey(const Key('tab0-field')), 'saisie');
+    await tester.pumpWidget(tabs(1));
+    await tester.pump(const Duration(milliseconds: 150)); // mi-transition
+    expect(tester.takeException(), isNull);
+    await tester.pumpAndSettle();
+    expect(find.text('Onglet 2'), findsOneWidget);
+    await tester.pumpWidget(tabs(0));
+    await tester.pumpAndSettle();
+    // Le texte saisi dans l'onglet 1 est toujours là (IndexedStack conservé).
+    expect(find.text('saisie'), findsOneWidget);
+  });
+  for (final locale in const [Locale('fr'), Locale('ar')]) {
+    testWidgets('Jauge en arc : valeur lue + rendu ${locale.languageCode}', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _harness(
+          locale,
+          const MaamoraArcGauge(
+            value: 0.7,
+            width: 120,
+            semanticLabel: 'Places prises',
+            center: Text('7/10'),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(tester.takeException(), isNull);
+      expect(find.text('7/10'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp('^Places prises')), findsOneWidget);
+      handle.dispose();
+    });
+  }
 }

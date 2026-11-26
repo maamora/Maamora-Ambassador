@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+
+import '../../../design_system/components/maamora_arc_gauge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_strings.dart';
 import '../../../models/models.dart';
 import '../../../shared/design/app_tokens.dart';
 import '../../../shared/theme/app_colors.dart';
-import '../../../shared/widgets/design_kit.dart';
-import '../../../shared/widgets/icon_tile.dart';
 import '../../../shared/widgets/pressable_scale.dart';
 import '../../groups/providers/my_groups_provider.dart';
 import 'add_members_sheet.dart';
@@ -56,7 +56,10 @@ class _GroupCardState extends ConsumerState<GroupCard> {
           .read(myGroupsProvider.notifier)
           .addParticipant(_group.id, count: count);
       messenger.showSnackBar(
-        SnackBar(content: Text(successText), backgroundColor: AppColors.success),
+        SnackBar(
+          content: Text(successText),
+          backgroundColor: AppColors.success,
+        ),
       );
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(failText)));
@@ -95,7 +98,24 @@ class _GroupCardState extends ConsumerState<GroupCard> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const IconTile(icon: Icons.shopping_bag_outlined),
+              // Brand arc as the group's fill meter (green once full).
+              MaamoraArcGauge(
+                value: ratio,
+                width: 64,
+                color: full ? AppColors.success : null,
+                semanticLabel: context.tr(
+                  'dash_seats_filled',
+                  args: {'a': group.membersCount, 'b': group.seatsTotal},
+                ),
+                center: Text(
+                  '${(ratio * 100).round()}%',
+                  style: t.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: accentText,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -105,10 +125,22 @@ class _GroupCardState extends ConsumerState<GroupCard> {
                       group.productName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: t.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w700, height: 1.25),
+                      style: t.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.sm - 2),
+                    const SizedBox(height: 2),
+                    Text(
+                      context.tr(
+                        'dash_seats_filled',
+                        args: {'a': group.membersCount, 'b': group.seatsTotal},
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.bodySmall?.copyWith(color: AppColors.textMuted),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
                     _StatusChip(
                       label: context.tr(full ? 'dash_closed' : 'dash_active'),
                       color: accent,
@@ -134,29 +166,6 @@ class _GroupCardState extends ConsumerState<GroupCard> {
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  context.tr('dash_seats_filled', args: {
-                    'a': group.membersCount,
-                    'b': group.seatsTotal,
-                  }),
-                  style: t.bodySmall?.copyWith(color: AppColors.textMuted),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                '${(ratio * 100).round()}%',
-                style: t.bodySmall
-                    ?.copyWith(fontWeight: FontWeight.w800, color: accentText),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          ThinProgress(value: ratio, height: 8, color: accent),
           if (!full) ...[
             const SizedBox(height: AppSpacing.md),
             const Divider(height: 1, color: AppColors.cardBorder),
@@ -216,8 +225,10 @@ class _StatusChip extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             label,
-            style: context.text.labelSmall
-                ?.copyWith(fontWeight: FontWeight.w700, color: textColor),
+            style: context.text.labelSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
           ),
         ],
       ),
@@ -242,17 +253,18 @@ class _Metric extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.text;
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: t.labelSmall?.copyWith(color: AppColors.textMuted),
-        ),
+        Text(label, style: t.labelSmall?.copyWith(color: AppColors.textMuted)),
         const SizedBox(height: 4),
         Text(
           value,
-          style: t.titleSmall?.copyWith(fontWeight: FontWeight.w800, color: color),
+          style: t.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
         ),
       ],
     );

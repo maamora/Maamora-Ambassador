@@ -159,7 +159,10 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
           ),
         ),
       ),
-      body: _buildCurrentPage(),
+      body: MaamoraFadeThroughSwitcher(
+        pageKey: _currentIndex,
+        child: _buildCurrentPage(),
+      ),
       bottomNavigationBar: _AdminBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
@@ -216,9 +219,12 @@ class _AmbassadorsTabWrapper extends ConsumerWidget {
         ),
         const Divider(height: 1, color: MaamoraColors.surfaceLow),
         Expanded(
-          child: currentSubTab == 0
-              ? const AdminAmbassadorsPendingScreen()
-              : const AdminAmbassadorsListScreen(),
+          child: MaamoraFadeThroughSwitcher(
+            pageKey: currentSubTab,
+            child: currentSubTab == 0
+                ? const AdminAmbassadorsPendingScreen()
+                : const AdminAmbassadorsListScreen(),
+          ),
         ),
       ],
     );
@@ -265,9 +271,12 @@ class _SettingsTabWrapper extends StatelessWidget {
         ),
         const Divider(height: 1, color: MaamoraColors.surfaceLow),
         Expanded(
-          child: currentSubTab == 0
-              ? const AdminCommissionsScreen()
-              : const AdminAuditLogScreen(),
+          child: MaamoraFadeThroughSwitcher(
+            pageKey: currentSubTab,
+            child: currentSubTab == 0
+                ? const AdminCommissionsScreen()
+                : const AdminAuditLogScreen(),
+          ),
         ),
       ],
     );
@@ -427,50 +436,53 @@ class _AdminNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final count = badge ?? 0;
-    return Semantics(
-      button: true,
-      selected: isActive,
-      label: count > 0 ? '$label, $count' : label,
-      excludeSemantics: true,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          width: 72,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Icon(
-                    icon,
-                    color: isActive ? _primary : _onSurfaceVariant,
-                    size: 24,
-                  ),
-                  if (count > 0)
-                    PositionedDirectional(
-                      top: -6,
-                      end: -10,
-                      child: _CountBadge(count: count, background: _primary),
+    // Equal share of the bar width (a fixed 72dp cut « Ambassadeurs »).
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: isActive,
+        label: count > 0 ? '$label, $count' : label,
+        excludeSemantics: true,
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      icon,
+                      color: isActive ? _primary : _onSurfaceVariant,
+                      size: 24,
                     ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.cairo(
-                  // Small active label → AA orange companion.
-                  color: isActive
-                      ? MaamoraColors.primaryText
-                      : _onSurfaceVariant,
-                  fontSize: 10.5,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    if (count > 0)
+                      PositionedDirectional(
+                        top: -6,
+                        end: -10,
+                        child: _CountBadge(count: count, background: _primary),
+                      ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.cairo(
+                    // Small active label → AA orange companion.
+                    color: isActive
+                        ? MaamoraColors.primaryText
+                        : _onSurfaceVariant,
+                    fontSize: 10.5,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
