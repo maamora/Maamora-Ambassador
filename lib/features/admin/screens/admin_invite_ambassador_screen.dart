@@ -9,8 +9,8 @@ import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = MaamoraColors.primary;
-const Color _background = Colors.white;
-const Color _surface = Colors.white;
+const Color _background = MaamoraColors.scaffold;
+const Color _surface = MaamoraColors.surface;
 const Color _onBackground = MaamoraColors.textPrimary;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;
 const Color _cardBorder = MaamoraColors.border;
@@ -67,7 +67,8 @@ class AdminInviteAmbassadorScreen extends StatefulWidget {
 
 class _AdminInviteAmbassadorScreenState
     extends State<AdminInviteAmbassadorScreen> {
-  final _cityController = TextEditingController(); // visuel uniquement, non envoyé en DB
+  final _cityController =
+      TextEditingController(); // visuel uniquement, non envoyé en DB
   DateTime? _selectedExpiry;
   String? _generatedCode;
   bool _isGenerating = false;
@@ -111,10 +112,10 @@ class _AdminInviteAmbassadorScreenState
 
       // Les codes encore utilisables d'abord, les expirés/utilisés en bas.
       int rank(_InviteCode i) => switch (i.status) {
-            'unused' => 0,
-            'used' => 1,
-            _ => 2, // expired, revoked
-          };
+        'unused' => 0,
+        'used' => 1,
+        _ => 2, // expired, revoked
+      };
       list.sort((a, b) {
         final r = rank(a).compareTo(rank(b));
         if (r != 0) return r;
@@ -131,7 +132,10 @@ class _AdminInviteAmbassadorScreenState
       debugPrint('[AdminInvite] fetchInvites error: $e');
       if (mounted) {
         setState(() {
-          _invitesError = context.tr('ad_inv_load_err', args: {'e': e.toString()});
+          _invitesError = context.tr(
+            'ad_inv_load_err',
+            args: {'e': e.toString()},
+          );
           _isLoadingInvites = false;
         });
       }
@@ -146,11 +150,15 @@ class _AdminInviteAmbassadorScreenState
     });
 
     try {
-      final response = await Supabase.instance.client
-          .rpc('admin_create_invite_code', params: {
-            'p_expires_at': _selectedExpiry?.toIso8601String(),
-            'p_city': _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
-          });
+      final response = await Supabase.instance.client.rpc(
+        'admin_create_invite_code',
+        params: {
+          'p_expires_at': _selectedExpiry?.toIso8601String(),
+          'p_city': _cityController.text.trim().isNotEmpty
+              ? _cityController.text.trim()
+              : null,
+        },
+      );
 
       final generatedCode = response as String;
 
@@ -166,11 +174,9 @@ class _AdminInviteAmbassadorScreenState
       debugPrint('[AdminInvite] generate error: $e');
       if (mounted) {
         setState(() => _isGenerating = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.tr('ad_inv_gen_err', args: {'e': e.toString()})),
-            backgroundColor: Colors.red,
-          ),
+        MaamoraToast.error(
+          context,
+          context.tr('ad_inv_gen_err', args: {'e': e.toString()}),
         );
       }
     }
@@ -190,29 +196,22 @@ class _AdminInviteAmbassadorScreenState
 
   void _copyCode() {
     Clipboard.setData(ClipboardData(text: _generatedCode ?? ''));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.tr('share_copied_clipboard')),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    HapticFeedback.lightImpact();
+    MaamoraToast.success(context, context.tr('share_copied_clipboard'));
   }
 
   void _copyLink() {
     Clipboard.setData(ClipboardData(text: _generatedLink));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.tr('share_copied_clipboard')),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    HapticFeedback.lightImpact();
+    MaamoraToast.success(context, context.tr('share_copied_clipboard'));
   }
 
   void _shareWhatsApp() {
     // Partage du CODE via un message texte
     // TODO: brancher url_launcher avec le lien WhatsApp
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.tr('ad_code_share', args: {'code': _generatedCode ?? ''}))),
+    MaamoraToast.info(
+      context,
+      context.tr('ad_code_share', args: {'code': _generatedCode ?? ''}),
     );
   }
 
@@ -221,23 +220,32 @@ class _AdminInviteAmbassadorScreenState
     return Scaffold(
       backgroundColor: _background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 20),
-              _buildForm(),
-              const SizedBox(height: 16),
-              _buildGenerateButton(),
-              if (_generatedCode != null) ...[
+        // Pull-to-refresh reloads the invite list (status computed on read).
+        child: RefreshIndicator(
+          color: _primary,
+          onRefresh: _fetchInvites,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MaamoraSpacing.lg,
+              vertical: MaamoraSpacing.lg,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
                 const SizedBox(height: 20),
-                _buildGeneratedLinkSection(),
+                _buildForm(),
+                const SizedBox(height: 16),
+                _buildGenerateButton(),
+                if (_generatedCode != null) ...[
+                  const SizedBox(height: 20),
+                  _buildGeneratedLinkSection(),
+                ],
+                const SizedBox(height: 24),
+                _buildPastInvitesSection(),
               ],
-              const SizedBox(height: 24),
-              _buildPastInvitesSection(),
-            ],
+            ),
           ),
         ),
       ),
@@ -259,10 +267,7 @@ class _AdminInviteAmbassadorScreenState
         const SizedBox(height: 4),
         Text(
           context.tr('ad_inv_sub'),
-          style: GoogleFonts.cairo(
-            fontSize: 13,
-            color: _onSurfaceVariant,
-          ),
+          style: GoogleFonts.cairo(fontSize: 13, color: _onSurfaceVariant),
         ),
       ],
     );
@@ -348,8 +353,11 @@ class _AdminInviteAmbassadorScreenState
                       ),
                     ),
                   ),
-                  const Icon(Icons.calendar_today_rounded,
-                      size: 18, color: _onSurfaceVariant),
+                  const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 18,
+                    color: _onSurfaceVariant,
+                  ),
                 ],
               ),
             ),
@@ -370,20 +378,24 @@ class _AdminInviteAmbassadorScreenState
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2),
+                  color: MaamoraColors.onPrimary,
+                  strokeWidth: 2,
+                ),
               )
-            : const Icon(Icons.link, color: Colors.white, size: 20),
+            : const Icon(Icons.link, color: MaamoraColors.onPrimary, size: 20),
         label: Text(
-          _isGenerating ? context.tr('ad_generating') : context.tr('ad_gen_btn'),
+          _isGenerating
+              ? context.tr('ad_generating')
+              : context.tr('ad_gen_btn'),
           style: GoogleFonts.cairo(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: MaamoraColors.onPrimary,
           ),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: _primary,
-          foregroundColor: Colors.white,
+          foregroundColor: MaamoraColors.onPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -407,13 +419,15 @@ class _AdminInviteAmbassadorScreenState
           Row(
             children: [
               const Icon(Icons.check_circle_rounded, color: _primary, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                context.tr('ad_code_generated'),
-                style: GoogleFonts.cairo(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: _primary,
+              const SizedBox(width: MaamoraSpacing.sm),
+              Flexible(
+                child: Text(
+                  context.tr('ad_code_generated'),
+                  style: GoogleFonts.cairo(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: MaamoraColors.primaryText,
+                  ),
                 ),
               ),
             ],
@@ -448,8 +462,11 @@ class _AdminInviteAmbassadorScreenState
                       color: _orangeLight,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.content_copy_outlined,
-                        color: _primary, size: 18),
+                    child: const Icon(
+                      Icons.content_copy_outlined,
+                      color: _primary,
+                      size: 18,
+                    ),
                   ),
                 ),
               ],
@@ -479,8 +496,11 @@ class _AdminInviteAmbassadorScreenState
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: _copyLink,
-                  child: const Icon(Icons.content_copy_outlined,
-                      color: _onSurfaceVariant, size: 16),
+                  child: const Icon(
+                    Icons.content_copy_outlined,
+                    color: _onSurfaceVariant,
+                    size: 16,
+                  ),
                 ),
               ],
             ),
@@ -532,8 +552,11 @@ class _AdminInviteAmbassadorScreenState
             if (!_isLoadingInvites)
               GestureDetector(
                 onTap: _fetchInvites,
-                child: const Icon(Icons.refresh_rounded,
-                    size: 20, color: _onSurfaceVariant),
+                child: const Icon(
+                  Icons.refresh_rounded,
+                  size: 20,
+                  color: _onSurfaceVariant,
+                ),
               ),
           ],
         ),
@@ -547,50 +570,22 @@ class _AdminInviteAmbassadorScreenState
         if (_isLoadingInvites)
           const AppSkeletonList(count: 3)
         else if (_invitesError != null)
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.red.shade200),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 18),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    _invitesError!,
-                    style: GoogleFonts.cairo(
-                        fontSize: 13, color: Colors.red.shade700),
-                  ),
-                ),
-              ],
-            ),
-          )
+          MaamoraErrorState(title: _invitesError!, onRetry: _fetchInvites)
         else if (_invites.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const Icon(Icons.mail_outline_rounded,
-                      size: 40, color: _onSurfaceVariant),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.tr('ad_inv_empty'),
-                    style: GoogleFonts.cairo(
-                        fontSize: 13, color: _onSurfaceVariant),
-                  ),
-                ],
-              ),
-            ),
+          MaamoraEmptyState(
+            icon: Icons.mail_outline_rounded,
+            title: context.tr('ad_inv_empty'),
           )
         else
-          ..._invites.map((inv) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _InviteCodeRow(invite: inv),
-              )),
+          // Order from _fetchInvites is kept as-is (active codes first).
+          ..._invites.map(
+            (inv) => Padding(
+              padding: const EdgeInsetsDirectional.only(
+                bottom: MaamoraSpacing.sm,
+              ),
+              child: _InviteCodeRow(invite: inv),
+            ),
+          ),
       ],
     );
   }
@@ -620,7 +615,10 @@ class _ActionButton extends StatelessWidget {
       return OutlinedButton.icon(
         onPressed: onTap,
         icon: Icon(icon, size: 16),
-        label: Text(label, style: GoogleFonts.cairo(fontWeight: FontWeight.w700)),
+        label: Text(
+          label,
+          style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
+        ),
         style: OutlinedButton.styleFrom(
           foregroundColor: resolvedColor,
           side: BorderSide(color: resolvedColor),
@@ -633,17 +631,17 @@ class _ActionButton extends StatelessWidget {
     }
     return ElevatedButton.icon(
       onPressed: onTap,
-      icon: Icon(icon, color: Colors.white, size: 16),
+      icon: Icon(icon, color: MaamoraColors.onPrimary, size: 16),
       label: Text(
         label,
         style: GoogleFonts.cairo(
           fontWeight: FontWeight.w700,
-          color: Colors.white,
+          color: MaamoraColors.onPrimary,
         ),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: resolvedColor,
-        foregroundColor: Colors.white,
+        foregroundColor: MaamoraColors.onPrimary,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -655,8 +653,24 @@ class _ActionButton extends StatelessWidget {
 String _formatDate(BuildContext context, DateTime dt) {
   final now = DateTime.now();
   final diff = now.difference(dt);
-  if (diff.inDays == 0) return context.tr('common_today_time', args: {'time': '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}'});
-  if (diff.inDays == 1) return context.tr('ad_yesterday', args: {'time': '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}'});
+  if (diff.inDays == 0) {
+    return context.tr(
+      'common_today_time',
+      args: {
+        'time':
+            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
+      },
+    );
+  }
+  if (diff.inDays == 1) {
+    return context.tr(
+      'ad_yesterday',
+      args: {
+        'time':
+            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
+      },
+    );
+  }
   return '${dt.day}/${dt.month}/${dt.year}';
 }
 
@@ -666,89 +680,100 @@ class _InviteCodeRow extends StatelessWidget {
 
   void _copyCode(BuildContext context) {
     Clipboard.setData(ClipboardData(text: invite.code));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              context.tr('ad_code_copied', args: {'code': invite.code}),
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-        backgroundColor: _primary,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    HapticFeedback.lightImpact();
+    MaamoraToast.success(
+      context,
+      context.tr('ad_code_copied', args: {'code': invite.code}),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => _copyCode(context),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: _surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _cardBorder),
-        ),
-        child: Row(
-          children: [
-            // Code
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
+    return Material(
+      color: _surface,
+      borderRadius: MaamoraRadius.inputR,
+      child: InkWell(
+        onTap: () => _copyCode(context),
+        borderRadius: MaamoraRadius.inputR,
+        child: Container(
+          padding: const EdgeInsets.all(MaamoraSpacing.lg),
+          decoration: BoxDecoration(
+            borderRadius: MaamoraRadius.inputR,
+            border: Border.all(color: _cardBorder),
+          ),
+          child: Row(
+            children: [
+              // Code
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            invite.code,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textDirection: TextDirection.ltr,
+                            style: GoogleFonts.cairo(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: MaamoraColors.primaryText,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: MaamoraSpacing.sm),
+                        const ExcludeSemantics(
+                          child: Icon(
+                            Icons.content_copy_outlined,
+                            size: 14,
+                            color: _onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      context.tr(
+                        'ad_created_date',
+                        args: {'date': _formatDate(context, invite.createdAt)},
+                      ),
+                      style: GoogleFonts.cairo(
+                        fontSize: 11,
+                        color: _onSurfaceVariant,
+                      ),
+                    ),
+                    if (invite.expiresAt != null)
                       Text(
-                        invite.code,
+                        context.tr(
+                          'ad_expires_date',
+                          args: {
+                            'date':
+                                '${invite.expiresAt!.day}/${invite.expiresAt!.month}/${invite.expiresAt!.year}',
+                          },
+                        ),
                         style: GoogleFonts.cairo(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: _primary,
+                          fontSize: 11,
+                          color: _onSurfaceVariant,
+                        ),
+                      )
+                    else
+                      Text(
+                        context.tr('ad_no_expiry'),
+                        style: GoogleFonts.cairo(
+                          fontSize: 11,
+                          color: _onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.content_copy_outlined, size: 14, color: _onSurfaceVariant),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    context.tr('ad_created_date', args: {'date': _formatDate(context, invite.createdAt)}),
-                    style: GoogleFonts.cairo(
-                      fontSize: 11,
-                      color: _onSurfaceVariant,
-                    ),
-                  ),
-                  if (invite.expiresAt != null)
-                    Text(
-                      context.tr('ad_expires_date', args: {'date': '${invite.expiresAt!.day}/${invite.expiresAt!.month}/${invite.expiresAt!.year}'}),
-                      style: GoogleFonts.cairo(
-                        fontSize: 11,
-                        color: _onSurfaceVariant,
-                      ),
-                    )
-                  else
-                    Text(
-                      context.tr('ad_no_expiry'),
-                      style: GoogleFonts.cairo(
-                        fontSize: 11,
-                        color: _onSurfaceVariant,
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            AdminStatusBadge(status: invite.status),
-          ],
+              const SizedBox(width: MaamoraSpacing.md),
+              AdminStatusBadge(status: invite.status),
+            ],
+          ),
         ),
       ),
     );

@@ -10,9 +10,8 @@ import '../../../shared/navigation/app_routes.dart';
 import '../../../design_system/design_system.dart';
 import '../../../core/l10n/app_strings.dart';
 
-const Color _primary = MaamoraColors.primary;
-const Color _background = Colors.white;
-const Color _surface = Colors.white;
+const Color _background = MaamoraColors.scaffold;
+const Color _surface = MaamoraColors.surface;
 const Color _onBackground = MaamoraColors.textPrimary;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;
 const Color _cardBorder = MaamoraColors.border;
@@ -26,7 +25,10 @@ class AdminProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
-      appBar: SharedAppBar(pageTitle: context.tr('ad_profile_title'), profileEnabled: false),
+      appBar: SharedAppBar(
+        pageTitle: context.tr('ad_profile_title'),
+        profileEnabled: false,
+      ),
       body: const SafeArea(child: AdminProfileContent()),
     );
   }
@@ -107,16 +109,13 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
         ),
         content: Text(
           context.tr('ad_logout_confirm'),
-          style: GoogleFonts.cairo(
-            fontSize: 14,
-            color: _onSurfaceVariant,
-          ),
+          style: GoogleFonts.cairo(fontSize: 14, color: _onSurfaceVariant),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
-              'Annuler',
+              ctx.tr('common_cancel'),
               style: GoogleFonts.cairo(
                 color: _onSurfaceVariant,
                 fontWeight: FontWeight.w600,
@@ -130,14 +129,14 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: _errorColor,
-              foregroundColor: Colors.white,
+              foregroundColor: MaamoraColors.onPrimary,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
             child: Text(
-              'Déconnexion',
+              ctx.tr('profile_logout'),
               style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
             ),
           ),
@@ -161,12 +160,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
     } catch (e) {
       debugPrint('[AdminProfile] logout error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.tr('ad_logout_failed')),
-            backgroundColor: _errorColor,
-          ),
-        );
+        MaamoraToast.error(context, context.tr('ad_logout_failed'));
       }
     }
   }
@@ -174,35 +168,15 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.all(48),
-        child: AppLoader(),
-      );
+      return const Padding(padding: EdgeInsets.all(48), child: AppLoader());
     }
 
     if (_errorMessage != null) {
       return Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline_rounded, color: _errorColor, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              _errorMessage!,
-              style: GoogleFonts.cairo(color: _onBackground),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _fetchAdminData,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primary,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Réessayer'),
-            ),
-          ],
+        padding: const EdgeInsets.all(MaamoraSpacing.screen),
+        child: MaamoraErrorState(
+          title: _errorMessage!,
+          onRetry: _fetchAdminData,
         ),
       );
     }
@@ -230,7 +204,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
           ),
           const SizedBox(height: 16),
           Text(
-            _fullName ?? 'Admin',
+            _fullName ?? context.tr('ad_role_admin'),
             style: GoogleFonts.cairo(
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -256,7 +230,9 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  _isActive ? 'Actif' : 'Inactif',
+                  _isActive
+                      ? context.tr('ad_active')
+                      : context.tr('ad_inactive'),
                   style: GoogleFonts.cairo(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -280,7 +256,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Informations',
+                  context.tr('ad_profile_info'),
                   style: GoogleFonts.cairo(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -290,7 +266,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
                 const Divider(color: MaamoraColors.surfaceLow, height: 24),
                 _InfoRow(
                   icon: Icons.email_outlined,
-                  label: 'Email',
+                  label: context.tr('ad_email'),
                   value: _email ?? context.tr('ad_not_set'),
                 ),
                 const SizedBox(height: 12),
@@ -299,7 +275,7 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
                   label: context.tr('ad_created_on'),
                   value: _createdAt != null
                       ? _createdAt!.substring(0, 10)
-                      : 'Inconnu',
+                      : context.tr('common_na'),
                 ),
               ],
             ),
@@ -337,8 +313,6 @@ class _AdminProfileContentState extends State<AdminProfileContent> {
   }
 }
 
-
-
 class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -361,10 +335,7 @@ class _InfoRow extends StatelessWidget {
           children: [
             Text(
               label,
-              style: GoogleFonts.cairo(
-                fontSize: 12,
-                color: _onSurfaceVariant,
-              ),
+              style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant),
             ),
             const SizedBox(height: 2),
             Text(

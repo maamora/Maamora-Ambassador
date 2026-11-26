@@ -17,7 +17,7 @@ import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = MaamoraColors.primary;
-const Color _surface = Colors.white;
+const Color _surface = MaamoraColors.surface;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;
 
 /// Admin navigation shell with 4 bottom-nav tabs that match the screenshots:
@@ -31,7 +31,8 @@ class AdminNavigationScreen extends ConsumerStatefulWidget {
   const AdminNavigationScreen({super.key});
 
   @override
-  ConsumerState<AdminNavigationScreen> createState() => _AdminNavigationScreenState();
+  ConsumerState<AdminNavigationScreen> createState() =>
+      _AdminNavigationScreenState();
 }
 
 class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
@@ -82,7 +83,9 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
       case 2:
         return context.tr('ad_full_groups');
       case 3:
-        return _settingsSubTab == 0 ? context.tr('ad_comm_title') : context.tr('ad_log_title');
+        return _settingsSubTab == 0
+            ? context.tr('ad_comm_title')
+            : context.tr('ad_log_title');
       default:
         return 'Admin';
     }
@@ -128,8 +131,10 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
             expand: false,
             builder: (ctx, scrollController) => Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                color: MaamoraColors.surface,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(MaamoraRadius.sheet),
+                ),
               ),
               child: Column(
                 children: [
@@ -158,7 +163,8 @@ class _AdminNavigationScreenState extends ConsumerState<AdminNavigationScreen> {
       bottomNavigationBar: _AdminBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
-        pendingAmbassadors: ref.watch(pendingAmbassadorsCountProvider).value ?? 0,
+        pendingAmbassadors:
+            ref.watch(pendingAmbassadorsCountProvider).value ?? 0,
         pendingGroups: ref.watch(adminGroupsProvider).pendingCommissionCount,
       ),
     );
@@ -178,15 +184,21 @@ class _AmbassadorsTabWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pendingAmbassadorsCount = ref.watch(pendingAmbassadorsCountProvider).value ?? 0;
+    final pendingAmbassadorsCount =
+        ref.watch(pendingAmbassadorsCountProvider).value ?? 0;
 
     return Column(
       children: [
         // Sub-tab bar
         Container(
-          color: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
+          color: MaamoraColors.surface,
+          padding: const EdgeInsets.symmetric(
+            horizontal: MaamoraSpacing.lg,
+            vertical: MaamoraSpacing.sm,
+          ),
+          child: Wrap(
+            spacing: MaamoraSpacing.sm,
+            runSpacing: MaamoraSpacing.sm,
             children: [
               _SubTabChip(
                 label: context.tr('ad_pending'),
@@ -194,7 +206,6 @@ class _AmbassadorsTabWrapper extends ConsumerWidget {
                 badge: pendingAmbassadorsCount,
                 onTap: () => onSubTabChanged(0),
               ),
-              const SizedBox(width: 8),
               _SubTabChip(
                 label: context.tr('ad_filter_all'),
                 isActive: currentSubTab == 1,
@@ -230,16 +241,20 @@ class _SettingsTabWrapper extends StatelessWidget {
     return Column(
       children: [
         Container(
-          color: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
+          color: MaamoraColors.surface,
+          padding: const EdgeInsets.symmetric(
+            horizontal: MaamoraSpacing.lg,
+            vertical: MaamoraSpacing.sm,
+          ),
+          child: Wrap(
+            spacing: MaamoraSpacing.sm,
+            runSpacing: MaamoraSpacing.sm,
             children: [
               _SubTabChip(
                 label: context.tr('ad_tab_commissions'),
                 isActive: currentSubTab == 0,
                 onTap: () => onSubTabChanged(0),
               ),
-              const SizedBox(width: 8),
               _SubTabChip(
                 label: context.tr('ad_log_title'),
                 isActive: currentSubTab == 1,
@@ -276,48 +291,50 @@ class _SubTabChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive ? _primary : MaamoraColors.surfaceLow,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.cairo(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: isActive ? Colors.white : _onSurfaceVariant,
+    final count = badge ?? 0;
+    return Semantics(
+      button: true,
+      selected: isActive,
+      label: count > 0 ? '$label, $count' : label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: MaamoraMotion.reduced(context)
+              ? Duration.zero
+              : MaamoraDurations.fast,
+          constraints: const BoxConstraints(minHeight: 40),
+          padding: const EdgeInsets.symmetric(
+            horizontal: MaamoraSpacing.lg,
+            vertical: MaamoraSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: isActive ? _primary : MaamoraColors.surfaceLow,
+            borderRadius: BorderRadius.circular(MaamoraRadius.chip),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: isActive ? MaamoraColors.onPrimary : _onSurfaceVariant,
+                ),
               ),
-            ),
-            if (badge != null && badge! > 0) ...[
-              const SizedBox(width: 4),
-              Container(
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? Colors.white.withValues(alpha: 0.3)
+              if (count > 0) ...[
+                const SizedBox(width: MaamoraSpacing.xs + 2),
+                _CountBadge(
+                  count: count,
+                  background: isActive
+                      ? MaamoraColors.onPrimary.withValues(alpha: 0.3)
                       : _primary,
-                  shape: BoxShape.circle,
                 ),
-                alignment: Alignment.center,
-                child: Text(
-                  '$badge',
-                  style: GoogleFonts.cairo(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: isActive ? Colors.white : Colors.white,
-                  ),
-                ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -346,7 +363,7 @@ class _AdminBottomNavBar extends StatelessWidget {
         color: _surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
+            color: MaamoraColors.shadowInk.withValues(alpha: 0.07),
             blurRadius: 16,
             offset: const Offset(0, -2),
           ),
@@ -358,32 +375,32 @@ class _AdminBottomNavBar extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-            _AdminNavItem(
-              icon: Icons.grid_view_rounded,
-              label: context.tr('ad_nav_apps'),
-              isActive: currentIndex == 0,
-              onTap: () => onTap(0),
-            ),
-            _AdminNavItem(
-              icon: Icons.people_rounded,
-              label: context.tr('ad_nav_amb'),
-              isActive: currentIndex == 1,
-              badge: pendingAmbassadors,
-              onTap: () => onTap(1),
-            ),
-            _AdminNavItem(
-              icon: Icons.inventory_2_outlined,
-              label: context.tr('ad_nav_groups'),
-              isActive: currentIndex == 2,
-              badge: pendingGroups,
-              onTap: () => onTap(2),
-            ),
-            _AdminNavItem(
-              icon: Icons.account_balance_wallet_outlined,
-              label: context.tr('ad_nav_fin'),
-              isActive: currentIndex == 3,
-              onTap: () => onTap(3),
-            ),
+              _AdminNavItem(
+                icon: Icons.grid_view_rounded,
+                label: context.tr('ad_nav_apps'),
+                isActive: currentIndex == 0,
+                onTap: () => onTap(0),
+              ),
+              _AdminNavItem(
+                icon: Icons.people_rounded,
+                label: context.tr('ad_nav_amb'),
+                isActive: currentIndex == 1,
+                badge: pendingAmbassadors,
+                onTap: () => onTap(1),
+              ),
+              _AdminNavItem(
+                icon: Icons.inventory_2_outlined,
+                label: context.tr('ad_nav_groups'),
+                isActive: currentIndex == 2,
+                badge: pendingGroups,
+                onTap: () => onTap(2),
+              ),
+              _AdminNavItem(
+                icon: Icons.account_balance_wallet_outlined,
+                label: context.tr('ad_nav_fin'),
+                isActive: currentIndex == 3,
+                onTap: () => onTap(3),
+              ),
             ],
           ),
         ),
@@ -409,58 +426,84 @@ class _AdminNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 72,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  icon,
-                  color: isActive ? _primary : _onSurfaceVariant,
-                  size: 24,
-                ),
-                if (badge != null && badge! > 0)
-                  PositionedDirectional(
-                    top: -4,
-                    end: -6,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: const BoxDecoration(
-                        color: _primary,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '$badge',
-                        style: GoogleFonts.cairo(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+    final count = badge ?? 0;
+    return Semantics(
+      button: true,
+      selected: isActive,
+      label: count > 0 ? '$label, $count' : label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          width: 72,
+          height: 52,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    icon,
+                    color: isActive ? _primary : _onSurfaceVariant,
+                    size: 24,
                   ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.cairo(
-                color: isActive ? _primary : _onSurfaceVariant,
-                fontSize: 10.5,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  if (count > 0)
+                    PositionedDirectional(
+                      top: -6,
+                      end: -10,
+                      child: _CountBadge(count: count, background: _primary),
+                    ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.cairo(
+                  // Small active label → AA orange companion.
+                  color: isActive
+                      ? MaamoraColors.primaryText
+                      : _onSurfaceVariant,
+                  fontSize: 10.5,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Count pill: a circle for 1 digit, grows for 2+ digits (never clipped).
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.count, required this.background});
+
+  final int count;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+      padding: const EdgeInsets.symmetric(horizontal: MaamoraSpacing.xs),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(MaamoraRadius.chip),
+        border: Border.all(color: MaamoraColors.surface, width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '$count',
+        style: GoogleFonts.cairo(
+          fontSize: 10,
+          height: 1.2,
+          fontWeight: FontWeight.w800,
+          color: MaamoraColors.onPrimary,
         ),
       ),
     );

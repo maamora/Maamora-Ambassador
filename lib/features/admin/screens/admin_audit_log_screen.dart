@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../design_system/design_system.dart';
@@ -7,8 +6,8 @@ import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = MaamoraColors.primary;
-const Color _background = Colors.white;
-const Color _surface = Colors.white;
+const Color _background = MaamoraColors.scaffold;
+const Color _surface = MaamoraColors.surface;
 const Color _onBackground = MaamoraColors.textPrimary;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;
 const Color _cardBorder = MaamoraColors.border;
@@ -34,18 +33,23 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
   Map<String, String> _targetNames = {};
 
   Future<void> _fetchLogs() async {
+    // Read before any await (no BuildContext across async gaps).
+    final fallbackAmb = context.tr('ad_fallback_amb');
+    final fallbackGroup = context.tr('ad_fallback_group');
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
-    
+
     try {
       final response = await Supabase.instance.client
           .from('admin_audit_log')
-          .select('id, action, target_type, target_id, metadata, created_at, admins(full_name)')
+          .select(
+            'id, action, target_type, target_id, metadata, created_at, admins(full_name)',
+          )
           .order('created_at', ascending: false)
           .limit(50);
-          
+
       // Fetch target names
       final ambassadorIds = <String>{};
       final groupIds = <String>{};
@@ -65,7 +69,7 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
             .select('id, full_name')
             .inFilter('id', ambassadorIds.toList());
         for (final a in ambResp) {
-          newNames[a['id']] = a['full_name'] as String? ?? 'Ambassadeur';
+          newNames[a['id']] = a['full_name'] as String? ?? fallbackAmb;
         }
       }
       if (groupIds.isNotEmpty) {
@@ -74,7 +78,7 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
             .select('id, product_name')
             .inFilter('id', groupIds.toList());
         for (final g in grpResp) {
-          newNames[g['id']] = g['product_name'] as String? ?? 'Groupe';
+          newNames[g['id']] = g['product_name'] as String? ?? fallbackGroup;
         }
       }
 
@@ -104,48 +108,67 @@ class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
-            Expanded(
-              child: _buildBody(),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
     );
   }
-  
+
   Widget _buildBody() {
     if (_isLoading) {
-      return const AppLoader();
+      return const SingleChildScrollView(
+        padding: EdgeInsets.all(MaamoraSpacing.lg),
+        child: MaamoraSkeletonList(count: 6, trailing: false),
+      );
     }
-    
+
     if (_errorMessage != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Padding(
+          padding: const EdgeInsets.all(MaamoraSpacing.screen),
+          child: MaamoraErrorState(title: _errorMessage!, onRetry: _fetchLogs),
+        ),
+      );
+    }
+
+    if (_logs.isEmpty) {
+      return RefreshIndicator(
+        color: _primary,
+        onRefresh: _fetchLogs,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(MaamoraSpacing.lg),
           children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 16),
-            Text(_errorMessage!, style: GoogleFonts.cairo()),
-            TextButton(onPressed: _fetchLogs, child: Text(context.tr('common_retry')))
+            MaamoraEmptyState(
+              icon: Icons.history_rounded,
+              title: context.tr('ad_log_empty'),
+            ),
           ],
         ),
       );
     }
-    
-    if (_logs.isEmpty) {
-      return Center(child: Text(context.tr('ad_log_empty')));
-    }
 
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: _logs.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (context, i) {
-        final entry = _logs[i];
-        final targetId = entry['target_id'] as String?;
-        final targetName = targetId != null ? _targetNames[targetId] : null;
-        return _AuditEntryRow(entryData: entry, targetName: targetName);
-      },
+    // Chronological order from the query is kept as-is.
+    return RefreshIndicator(
+      color: _primary,
+      onRefresh: _fetchLogs,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(
+          horizontal: MaamoraSpacing.lg,
+          vertical: MaamoraSpacing.md,
+        ),
+        itemCount: _logs.length,
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: MaamoraSpacing.sm),
+        itemBuilder: (context, i) {
+          final entry = _logs[i];
+          final targetId = entry['target_id'] as String?;
+          final targetName = targetId != null ? _targetNames[targetId] : null;
+          return _AuditEntryRow(entryData: entry, targetName: targetName);
+        },
+      ),
     );
   }
 
@@ -185,18 +208,31 @@ class _AuditEntryRow extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Détails', style: GoogleFonts.cairo(fontWeight: FontWeight.w700)),
+        title: Text(
+          context.tr('ad_details'),
+          style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: metadata.entries.map((e) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text('${e.key}: ${e.value}', style: GoogleFonts.cairo(fontSize: 14)),
-            )).toList(),
+            children: metadata.entries
+                .map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      '${e.key}: ${e.value}',
+                      style: GoogleFonts.cairo(fontSize: 14),
+                    ),
+                  ),
+                )
+                .toList(),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fermer'))
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.tr('ad_close')),
+          ),
         ],
       ),
     );
@@ -205,14 +241,15 @@ class _AuditEntryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Parse data
-    final action = entryData['action'] as String? ?? context.tr('ad_act_unknown');
+    final action =
+        entryData['action'] as String? ?? context.tr('ad_act_unknown');
     final targetType = entryData['target_type'] as String? ?? '';
     final metadata = entryData['metadata'] as Map<String, dynamic>? ?? {};
-    
+
     // Map icons and readable action names based on action code
     IconData icon = Icons.info_outline;
     String actionLabel = action;
-    
+
     if (action == 'set_ambassador_status' || action == 'accept_ambassador') {
       if (metadata['status'] == 'active' || action == 'accept_ambassador') {
         icon = Icons.person_add_rounded;
@@ -243,7 +280,7 @@ class _AuditEntryRow extends StatelessWidget {
       icon = Icons.payments_rounded;
       actionLabel = context.tr('ad_act_payment');
     }
-    
+
     String target = targetType;
     if (targetType == 'ambassador' && targetName != null) {
       target = '👤 $targetName';
@@ -252,37 +289,49 @@ class _AuditEntryRow extends StatelessWidget {
     } else if (targetType == 'invite_code') {
       target = context.tr('ad_target_invite');
     }
-    
+
     String detailText = '';
-    
+
     // Formatting details according to mapping
     if (action == 'set_ambassador_status') {
       if (metadata['status'] == 'active') {
         detailText = context.tr('ad_act_status_changed');
-      } else if (metadata['status'] == 'rejected' || metadata['status'] == 'paused') {
+      } else if (metadata['status'] == 'rejected' ||
+          metadata['status'] == 'paused') {
         detailText = '${context.tr('ad_reason_col')} ${metadata['reason']}';
       }
     } else if (action == 'assign_commission') {
-      detailText = context.tr('ad_commission_done', args: {'n': '${metadata['amount'] ?? metadata['montant']}'});
+      detailText = context.tr(
+        'ad_commission_done',
+        args: {'n': '${metadata['amount'] ?? metadata['montant']}'},
+      );
     } else if (action == 'create_invite_code') {
-      detailText = '${context.tr('ad_city_col')} ${metadata['city']} • ${context.tr('ad_expires_col')} ${metadata['expires_at']}';
+      detailText =
+          '${context.tr('ad_city_col')} ${metadata['city']} • ${context.tr('ad_expires_col')} ${metadata['expires_at']}';
     } else if (action == 'revoke_invite_code') {
       detailText = '${context.tr('ad_code_col')} ${metadata['code']}';
     } else if (action == 'admin_set_group_members') {
       detailText = '${metadata['old_count']} → ${metadata['new_count']}';
     } else if (action == 'create_payout') {
-      if (metadata.containsKey('method')) detailText += '${context.tr('ad_method_col')} ${metadata['method']} ';
-      if (metadata.containsKey('reference') && metadata['reference'] != null) detailText += '${context.tr('ad_ref_col')} ${metadata['reference']} ';
-      if (metadata.containsKey('amount')) detailText += '${context.tr('ad_amount_col')} ${metadata['amount']} DH';
+      if (metadata.containsKey('method')) {
+        detailText += '${context.tr('ad_method_col')} ${metadata['method']} ';
+      }
+      if (metadata.containsKey('reference') && metadata['reference'] != null) {
+        detailText += '${context.tr('ad_ref_col')} ${metadata['reference']} ';
+      }
+      if (metadata.containsKey('amount')) {
+        detailText += '${context.tr('ad_amount_col')} ${metadata['amount']} DH';
+      }
     }
-    
+
     detailText = detailText.trim();
 
     String formattedDate = '';
     if (entryData['created_at'] != null) {
       final date = DateTime.tryParse(entryData['created_at']);
       if (date != null) {
-         formattedDate = "${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+        formattedDate =
+            "${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
       }
     }
 
@@ -330,7 +379,11 @@ class _AuditEntryRow extends StatelessWidget {
                         onTap: () => _showInfoDialog(context, metadata),
                         child: const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 6),
-                          child: Icon(Icons.info_outline, size: 16, color: _primary),
+                          child: Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color: _primary,
+                          ),
                         ),
                       ),
                     Text(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/admin_status_badge.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,8 +7,8 @@ import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = MaamoraColors.primary;
-const Color _background = Colors.white;
-const Color _surface = Colors.white;
+const Color _background = MaamoraColors.scaffold;
+const Color _surface = MaamoraColors.surface;
 const Color _onBackground = MaamoraColors.textPrimary;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;
 const Color _cardBorder = MaamoraColors.border;
@@ -48,7 +47,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
           .from('payouts')
           .select('*, ambassadors(full_name)')
           .order('created_at', ascending: false);
-          
+
       // Fetch commissions for the totals
       final commissionsResponse = await client
           .from('commissions')
@@ -90,9 +89,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(_totalPaid, _totalPending),
-            Expanded(
-              child: _buildBody(),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
@@ -101,34 +98,54 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const AppLoader();
+      return const SingleChildScrollView(
+        padding: EdgeInsets.all(MaamoraSpacing.lg),
+        child: MaamoraSkeletonList(count: 4),
+      );
     }
     if (_errorMessage != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 16),
-            Text(_errorMessage!, style: GoogleFonts.cairo()),
-            TextButton(onPressed: _fetchData, child: const Text('Réessayer'))
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(MaamoraSpacing.screen),
+          child: MaamoraErrorState(title: _errorMessage!, onRetry: _fetchData),
         ),
       );
     }
 
     if (_payouts.isEmpty) {
-      return Center(child: Text(context.tr('ad_pay_empty')));
+      return RefreshIndicator(
+        color: _primary,
+        onRefresh: _fetchData,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(MaamoraSpacing.lg),
+          children: [
+            MaamoraEmptyState(
+              icon: MaamoraIcons.payments,
+              title: context.tr('ad_pay_empty'),
+            ),
+          ],
+        ),
+      );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: _payouts.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 10),
-      itemBuilder: (context, i) {
-        final p = _payouts[i];
-        return _PayoutRow(payoutData: p);
-      },
+    return RefreshIndicator(
+      color: _primary,
+      onRefresh: _fetchData,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(
+          horizontal: MaamoraSpacing.lg,
+          vertical: MaamoraSpacing.md,
+        ),
+        itemCount: _payouts.length,
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: MaamoraSpacing.sm),
+        itemBuilder: (context, i) {
+          final p = _payouts[i];
+          return _PayoutRow(payoutData: p);
+        },
+      ),
     );
   }
 
@@ -151,7 +168,7 @@ class _AdminCommissionsScreenState extends State<AdminCommissionsScreen> {
             children: [
               Expanded(
                 child: _SummaryChip(
-                  label: 'Payées',
+                  label: context.tr('ad_paid_total'),
                   value: '${totalPaid.toStringAsFixed(0)} DH',
                   color: MaamoraColors.success,
                   bgColor: MaamoraColors.successSoft,
@@ -202,12 +219,18 @@ class _SummaryChip extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.cairo(
-                fontSize: 11, fontWeight: FontWeight.w600, color: color),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
           Text(
             value,
             style: GoogleFonts.cairo(
-                fontSize: 17, fontWeight: FontWeight.w800, color: color),
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -223,24 +246,36 @@ class _PayoutRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ambassadorName = payoutData['ambassadors'] != null ? payoutData['ambassadors']['full_name'] ?? 'Inconnu' : 'Inconnu';
+    final ambassadorName =
+        (payoutData['ambassadors'] != null
+            ? payoutData['ambassadors']['full_name'] as String?
+            : null) ??
+        context.tr('ad_unknown_name');
     final parts = ambassadorName.split(' ');
     String initials = '';
-    if (parts.isNotEmpty && parts[0].isNotEmpty) initials += parts[0][0].toUpperCase();
-    if (parts.length > 1 && parts[1].isNotEmpty) initials += parts[1][0].toUpperCase();
+    if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      initials += parts[0][0].toUpperCase();
+    }
+    if (parts.length > 1 && parts[1].isNotEmpty) {
+      initials += parts[1][0].toUpperCase();
+    }
 
-    final method = payoutData['method'] == 'bank' ? context.tr('wallet_tx_bank') : context.tr('wallet_tx_cash');
-    final ref = payoutData['reference'] != null ? ' - ${payoutData['reference']}' : '';
+    final method = payoutData['method'] == 'bank'
+        ? context.tr('wallet_tx_bank')
+        : context.tr('wallet_tx_cash');
+    final ref = payoutData['reference'] != null
+        ? ' - ${payoutData['reference']}'
+        : '';
     final details = '$method$ref';
-    
+
     final amount = (payoutData['amount'] as num?)?.toDouble() ?? 0.0;
     final status = payoutData['status'] as String? ?? 'pending';
-    
+
     String formattedDate = '';
     if (payoutData['created_at'] != null) {
       final date = DateTime.tryParse(payoutData['created_at']);
       if (date != null) {
-         formattedDate = "${date.day}/${date.month}/${date.year}";
+        formattedDate = "${date.day}/${date.month}/${date.year}";
       }
     }
 
@@ -250,13 +285,7 @@ class _PayoutRow extends StatelessWidget {
         color: _surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _cardBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: MaamoraShadows.soft,
       ),
       child: Row(
         children: [

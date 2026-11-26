@@ -6,8 +6,8 @@ import '../../../core/l10n/app_strings.dart';
 // ── Design tokens (match project palette) ─────────────────────────────────
 const Color _primary = MaamoraColors.primary;
 const Color _secondary = MaamoraColors.textPrimary;
-const Color _background = Colors.white;
-const Color _surface = Colors.white;
+const Color _background = MaamoraColors.scaffold;
+const Color _surface = MaamoraColors.surface;
 const Color _onBackground = MaamoraColors.textPrimary;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;
 const Color _cardBorder = MaamoraColors.border;
@@ -58,12 +58,15 @@ class AdminDashboardScreen extends StatelessWidget {
       backgroundColor: _background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: MaamoraSpacing.lg,
+            vertical: MaamoraSpacing.lg,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(context),
-              const SizedBox(height: 20),
+              const SizedBox(height: MaamoraSpacing.screen),
               _buildStatsGrid(context),
               const SizedBox(height: 24),
               _buildQuickActions(context),
@@ -114,15 +117,20 @@ class AdminDashboardScreen extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.admin_panel_settings_rounded,
-                  color: Colors.white, size: 13),
-              const SizedBox(width: 4),
+              const ExcludeSemantics(
+                child: Icon(
+                  Icons.admin_panel_settings_rounded,
+                  color: MaamoraColors.onPrimary,
+                  size: 14,
+                ),
+              ),
+              const SizedBox(width: MaamoraSpacing.xs),
               Text(
-                'Admin',
+                context.tr('ad_role_admin'),
                 style: GoogleFonts.cairo(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: MaamoraColors.onPrimary,
                 ),
               ),
             ],
@@ -137,7 +145,7 @@ class AdminDashboardScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Résumé',
+          context.tr('ad_dash_summary'),
           style: GoogleFonts.cairo(
             fontSize: 17,
             fontWeight: FontWeight.w800,
@@ -145,13 +153,18 @@ class AdminDashboardScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        GridView.count(
+        // Fixed row height that grows with the user's text size (no
+        // overflow at textScaler 1.3, unlike a fixed aspect ratio).
+        GridView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.3,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: MaamoraSpacing.md,
+            crossAxisSpacing: MaamoraSpacing.md,
+            mainAxisExtent:
+                124 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
+          ),
           children: _mockStats(context).map((stat) {
             return _DashStatCard(stat: stat, onTap: () {});
           }).toList(),
@@ -179,7 +192,7 @@ class AdminDashboardScreen extends StatelessWidget {
           subtitle: context.tr('ad_generate_link'),
           onTap: () => onNavigateTo?.call('invites'),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: MaamoraSpacing.sm),
         _QuickActionRow(
           icon: Icons.person_search_rounded,
           label: context.tr('ad_pending_apps'),
@@ -187,7 +200,7 @@ class AdminDashboardScreen extends StatelessWidget {
           badgeCount: 3,
           onTap: () => onNavigateTo?.call('pending_ambassadors'),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: MaamoraSpacing.sm),
         _QuickActionRow(
           icon: Icons.inventory_2_outlined,
           label: context.tr('ad_full_groups'),
@@ -195,14 +208,14 @@ class AdminDashboardScreen extends StatelessWidget {
           badgeCount: 7,
           onTap: () => onNavigateTo?.call('groups'),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: MaamoraSpacing.sm),
         _QuickActionRow(
           icon: Icons.payments_outlined,
           label: context.tr('ad_comm_title'),
           subtitle: context.tr('ad_see_history'),
           onTap: () => onNavigateTo?.call('commissions'),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: MaamoraSpacing.sm),
         _QuickActionRow(
           icon: Icons.history_rounded,
           label: context.tr('ad_log_title'),
@@ -240,61 +253,62 @@ class _DashStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: _surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _cardBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: stat.iconBg,
-                borderRadius: BorderRadius.circular(10),
+    // One reader node: "3, Candidatures en attente".
+    return MergeSemantics(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(MaamoraSpacing.lg),
+          decoration: BoxDecoration(
+            color: _surface,
+            borderRadius: MaamoraRadius.cardSmR,
+            border: Border.all(color: _cardBorder),
+            boxShadow: MaamoraShadows.soft,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: stat.iconBg,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: ExcludeSemantics(
+                  child: Icon(stat.icon, color: stat.iconColor, size: 18),
+                ),
               ),
-              alignment: Alignment.center,
-              child: Icon(stat.icon, color: stat.iconColor, size: 18),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  stat.value,
-                  style: GoogleFonts.cairo(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: _onBackground,
-                    height: 1.0,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    stat.value,
+                    style: GoogleFonts.cairo(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: _onBackground,
+                      height: 1.0,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  stat.label,
-                  style: GoogleFonts.cairo(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: _onSurfaceVariant,
-                    height: 1.3,
+                  const SizedBox(height: 2),
+                  Text(
+                    stat.label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.cairo(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: _onSurfaceVariant,
+                      height: 1.3,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -318,74 +332,94 @@ class _QuickActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: _surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _cardBorder),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: _orangeLight,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              alignment: Alignment.center,
-              child: Icon(icon, color: _primary, size: 18),
+    return Semantics(
+      button: true,
+      child: Material(
+        color: _surface,
+        borderRadius: MaamoraRadius.inputR,
+        child: InkWell(
+          borderRadius: MaamoraRadius.inputR,
+          onTap: onTap,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 56),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MaamoraSpacing.lg,
+              vertical: MaamoraSpacing.md,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.cairo(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: _onBackground,
-                    ),
+            decoration: BoxDecoration(
+              borderRadius: MaamoraRadius.inputR,
+              border: Border.all(color: _cardBorder),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: _orangeLight,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.cairo(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: _onSurfaceVariant,
+                  alignment: Alignment.center,
+                  child: ExcludeSemantics(
+                    child: Icon(icon, color: _primary, size: 18),
+                  ),
+                ),
+                const SizedBox(width: MaamoraSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: GoogleFonts.cairo(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: _onBackground,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.cairo(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: _onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (badgeCount != null) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$badgeCount',
+                      style: GoogleFonts.cairo(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: MaamoraColors.onPrimary,
+                      ),
                     ),
                   ),
                 ],
-              ),
-            ),
-            if (badgeCount != null) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '$badgeCount',
-                  style: GoogleFonts.cairo(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                const SizedBox(width: MaamoraSpacing.sm),
+                const ExcludeSemantics(
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: _onSurfaceVariant,
+                    size: 20,
                   ),
                 ),
-              ),
-            ],
-            const SizedBox(width: 8),
-            const Icon(Icons.chevron_right_rounded,
-                color: _onSurfaceVariant, size: 20),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );

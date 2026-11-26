@@ -4,7 +4,7 @@ import '../../../shared/widgets/shared_app_bar.dart';
 import '../../../shared/widgets/design_kit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 import '../widgets/admin_status_badge.dart';
 import '../../../models/models.dart';
@@ -13,8 +13,8 @@ import '../../../core/l10n/app_strings.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = MaamoraColors.primary;
-const Color _background = Colors.white;
-const Color _surface = Colors.white;
+const Color _background = MaamoraColors.scaffold;
+const Color _surface = MaamoraColors.surface;
 const Color _onBackground = MaamoraColors.textPrimary;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;
 const Color _cardBorder = MaamoraColors.border;
@@ -26,10 +26,12 @@ class AdminAmbassadorDetailsScreen extends StatefulWidget {
   const AdminAmbassadorDetailsScreen({super.key, required this.ambassadorId});
 
   @override
-  State<AdminAmbassadorDetailsScreen> createState() => _AdminAmbassadorDetailsScreenState();
+  State<AdminAmbassadorDetailsScreen> createState() =>
+      _AdminAmbassadorDetailsScreenState();
 }
 
-class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScreen> {
+class _AdminAmbassadorDetailsScreenState
+    extends State<AdminAmbassadorDetailsScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -95,7 +97,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
           .select('*, product_name')
           .eq('ambassador_id', widget.ambassadorId)
           .order('created_at', ascending: false);
-      
+
       setState(() {
         _ambassador = ambassador;
         _parentAmbassadorName = parentName;
@@ -118,26 +120,76 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator(color: _primary)),
+        builder: (_) =>
+            const Center(child: CircularProgressIndicator(color: _primary)),
       );
-      
-      await Supabase.instance.client.rpc('admin_set_ambassador_status', params: {
-        'p_ambassador_id': widget.ambassadorId,
-        'p_status': newStatus,
-        'p_reason': reason,
-      });
-      
+
+      await Supabase.instance.client.rpc(
+        'admin_set_ambassador_status',
+        params: {
+          'p_ambassador_id': widget.ambassadorId,
+          'p_status': newStatus,
+          'p_reason': reason,
+        },
+      );
+
       if (mounted) {
         Navigator.pop(context);
         _fetchDetails();
       }
     } catch (e) {
       if (mounted) Navigator.pop(context);
-      if (mounted) _showError(context.tr('ad_status_err', args: {'e': e.toString()}));
+      if (mounted) {
+        _showError(context.tr('ad_status_err', args: {'e': e.toString()}));
+      }
     }
   }
 
+  Future<bool> _confirm(
+    String title,
+    String body,
+    Color color,
+    String confirmLabel,
+  ) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _surface,
+        shape: RoundedRectangleBorder(borderRadius: MaamoraRadius.cardR),
+        title: Text(
+          title,
+          style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        content: body.isEmpty ? null : Text(body, style: GoogleFonts.cairo()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              ctx.tr('common_cancel'),
+              style: GoogleFonts.cairo(color: _onSurfaceVariant),
+            ),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: color),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(confirmLabel),
+          ),
+        ],
+      ),
+    );
+    return ok == true;
+  }
+
   Future<void> _handleAccept() async {
+    final name = _ambassador?.fullName ?? '';
+    if (!await _confirm(
+      context.tr('ad_accept_confirm_title'),
+      context.tr('ad_accept_confirm_body', args: {'name': name}),
+      _successColor,
+      context.tr('ad_accept_btn'),
+    )) {
+      return;
+    }
     await _changeStatus('active');
   }
 
@@ -156,6 +208,15 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
   }
 
   Future<void> _handleReactivate() async {
+    final name = _ambassador?.fullName ?? '';
+    if (!await _confirm(
+      context.tr('ad_reactivate_confirm', args: {'name': name}),
+      '',
+      _successColor,
+      context.tr('ad_reactivate'),
+    )) {
+      return;
+    }
     await _changeStatus('active');
   }
 
@@ -165,25 +226,41 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: _surface,
-        title: Text(title, style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(
+          title,
+          style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         content: TextField(
           controller: tc,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
             hintText: context.tr('ad_reason_hint'),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            border: OutlineInputBorder(borderRadius: MaamoraRadius.inputR),
           ),
           maxLines: 3,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, null),
-            child: Text('Annuler', style: GoogleFonts.cairo(color: _onSurfaceVariant)),
+            child: Text(
+              ctx.tr('common_cancel'),
+              style: GoogleFonts.cairo(color: _onSurfaceVariant),
+            ),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, tc.text.trim()),
-            style: ElevatedButton.styleFrom(backgroundColor: _errorColor, foregroundColor: Colors.white),
-            child: const Text('Confirmer'),
-          )
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: tc,
+            builder: (_, value, _) => ElevatedButton(
+              onPressed: value.text.trim().isEmpty
+                  ? null
+                  : () => Navigator.pop(ctx, tc.text.trim()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _errorColor,
+                foregroundColor: MaamoraColors.onPrimary,
+              ),
+              child: Text(ctx.tr('common_confirm')),
+            ),
+          ),
         ],
       ),
     );
@@ -200,33 +277,65 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
           builder: (context, setStateModal) {
             return AlertDialog(
               backgroundColor: _surface,
-              title: Text(context.tr('ad_wallet_pay'), style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18)),
+              title: Text(
+                context.tr('ad_wallet_pay'),
+                style: GoogleFonts.cairo(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(context.tr('ad_wallet_amount', args: {'n': _walletBalance.toStringAsFixed(2)}), style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+                  Text(
+                    context.tr(
+                      'ad_wallet_amount',
+                      args: {'n': _walletBalance.toStringAsFixed(2)},
+                    ),
+                    style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 16),
-                  Text(context.tr('ad_method_lbl'), style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
+                  Text(
+                    context.tr('ad_method_lbl'),
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      color: _onSurfaceVariant,
+                    ),
+                  ),
                   DropdownButton<String>(
                     value: method,
                     isExpanded: true,
                     items: [
-                      DropdownMenuItem(value: 'bank', child: Text(context.tr('profile_payout_bank'))),
-                      DropdownMenuItem(value: 'cash_pickup', child: Text(context.tr('wallet_tx_cash'))),
+                      DropdownMenuItem(
+                        value: 'bank',
+                        child: Text(context.tr('profile_payout_bank')),
+                      ),
+                      DropdownMenuItem(
+                        value: 'cash_pickup',
+                        child: Text(context.tr('wallet_tx_cash')),
+                      ),
                     ],
                     onChanged: (v) {
                       if (v != null) setStateModal(() => method = v);
                     },
                   ),
                   const SizedBox(height: 16),
-                  Text(context.tr('ad_ref_lbl'), style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
+                  Text(
+                    context.tr('ad_ref_lbl'),
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      color: _onSurfaceVariant,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: tcRef,
                     decoration: InputDecoration(
                       hintText: context.tr('ad_ref_hint'),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ],
@@ -234,18 +343,24 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: Text('Annuler', style: GoogleFonts.cairo(color: _onSurfaceVariant)),
+                  child: Text(
+                    ctx.tr('common_cancel'),
+                    style: GoogleFonts.cairo(color: _onSurfaceVariant),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(ctx, true),
-                  style: ElevatedButton.styleFrom(backgroundColor: _successColor, foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _successColor,
+                    foregroundColor: MaamoraColors.onPrimary,
+                  ),
                   child: Text(context.tr('ad_pay_validate')),
-                )
+                ),
               ],
             );
-          }
+          },
         );
-      }
+      },
     );
 
     if (result == true) {
@@ -254,31 +369,35 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (_) => const Center(child: CircularProgressIndicator(color: _primary)),
+          builder: (_) =>
+              const Center(child: CircularProgressIndicator(color: _primary)),
         );
-        
-        await Supabase.instance.client.rpc('admin_create_payout', params: {
-          'p_ambassador_id': widget.ambassadorId,
-          'p_method': method,
-          'p_reference': tcRef.text.trim(),
-        });
-        
+
+        await Supabase.instance.client.rpc(
+          'admin_create_payout',
+          params: {
+            'p_ambassador_id': widget.ambassadorId,
+            'p_method': method,
+            'p_reference': tcRef.text.trim(),
+          },
+        );
+
         if (mounted) {
           Navigator.pop(context); // close loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.tr('ad_pay_saved'))),
-          );
+          MaamoraToast.success(context, context.tr('ad_pay_saved'));
           _fetchDetails(); // refresh balance
         }
       } catch (e) {
         if (mounted) Navigator.pop(context);
-        if (mounted) _showError(context.tr('ad_pay_err', args: {'e': e.toString()}));
+        if (mounted) {
+          _showError(context.tr('ad_pay_err', args: {'e': e.toString()}));
+        }
       }
     }
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg, style: const TextStyle(color: Colors.white)), backgroundColor: _errorColor));
+    MaamoraToast.error(context, msg);
   }
 
   @override
@@ -287,56 +406,77 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       backgroundColor: _background,
       appBar: SharedAppBar(
         pageTitle: context.tr('ad_det_title'),
-        onAvatarTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AdminProfileScreen()),
-        ),
+        onAvatarTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AdminProfileScreen())),
       ),
       body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
-    if (_isLoading) return const AppLoader();
-    if (_errorMessage != null) {
-      return Center(
+    if (_isLoading) {
+      return const SingleChildScrollView(
+        padding: EdgeInsets.all(MaamoraSpacing.lg),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: _errorColor, size: 48),
-            const SizedBox(height: 16),
-            Text(_errorMessage!, style: GoogleFonts.cairo()),
-            TextButton(onPressed: _fetchDetails, child: const Text('Réessayer'))
+            MaamoraSkeletonHero(height: 180),
+            SizedBox(height: MaamoraSpacing.lg),
+            MaamoraSkeletonList(count: 3),
           ],
         ),
       );
     }
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(MaamoraSpacing.screen),
+          child: MaamoraErrorState(
+            title: _errorMessage!,
+            onRetry: _fetchDetails,
+          ),
+        ),
+      );
+    }
 
-    if (_ambassador == null) return Center(child: Text(context.tr('ad_det_not_found')));
+    if (_ambassador == null) {
+      return Center(child: Text(context.tr('ad_det_not_found')));
+    }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeaderCard(),
-          const SizedBox(height: 16),
-          if (_ambassador!.status != AmbassadorStatus.rejected) _buildActionsCard(),
-          const SizedBox(height: 16),
-          _buildCommissionsSection(),
-          const SizedBox(height: 16),
-          _buildGroupsSection(),
-        ],
+    return RefreshIndicator(
+      color: _primary,
+      onRefresh: _fetchDetails,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(MaamoraSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeaderCard(),
+            const SizedBox(height: MaamoraSpacing.lg),
+            if (_ambassador!.status != AmbassadorStatus.rejected)
+              _buildActionsCard(),
+            const SizedBox(height: MaamoraSpacing.xl),
+            _buildCommissionsSection(),
+            const SizedBox(height: MaamoraSpacing.xl),
+            _buildGroupsSection(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildHeaderCard() {
     final a = _ambassador!;
-    
+
     final parts = a.fullName.split(' ');
     String initials = '';
-    if (parts.isNotEmpty && parts[0].isNotEmpty) initials += parts[0][0].toUpperCase();
-    if (parts.length > 1 && parts[1].isNotEmpty) initials += parts[1][0].toUpperCase();
+    if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      initials += parts[0][0].toUpperCase();
+    }
+    if (parts.length > 1 && parts[1].isNotEmpty) {
+      initials += parts[1][0].toUpperCase();
+    }
 
     String joinedDate = context.tr('common_na');
     if (a.activatedAt != null) {
@@ -349,9 +489,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
         color: _surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _cardBorder),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
+        boxShadow: MaamoraShadows.soft,
       ),
       child: Column(
         children: [
@@ -362,7 +500,11 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                 backgroundColor: _cardBorder,
                 child: Text(
                   initials,
-                  style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w800, color: _onSurfaceVariant),
+                  style: GoogleFonts.cairo(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: _onSurfaceVariant,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -370,55 +512,112 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(a.fullName, style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w700, color: _onBackground)),
+                    Text(
+                      a.fullName,
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: _onBackground,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         AdminStatusBadge(status: a.status.value),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: _levelColor(a.level).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            a.level.label,
-                            style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: _levelColor(a.level)),
+                            a.level.trLabel(context),
+                            style: GoogleFonts.cairo(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: _levelColor(a.level),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(height: 20),
-          _buildInfoRow(Icons.phone_rounded, 'Téléphone', a.phone),
+          _buildInfoRow(
+            Icons.phone_rounded,
+            context.tr('ad_phone'),
+            a.phone,
+            ltr: true,
+          ),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.location_on_outlined, 'Ville', a.city),
+          _buildInfoRow(
+            Icons.location_on_outlined,
+            context.tr('ad_city'),
+            a.city,
+          ),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.calendar_today_rounded, context.tr('ad_date_joined'), joinedDate),
+          _buildInfoRow(
+            Icons.calendar_today_rounded,
+            context.tr('ad_date_joined'),
+            joinedDate,
+          ),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.people_alt_rounded, context.tr('ad_members_validated'), '${a.totalValidatedMembers}'),
+          _buildInfoRow(
+            Icons.people_alt_rounded,
+            context.tr('ad_members_validated'),
+            '${a.totalValidatedMembers}',
+          ),
           if (_parentAmbassadorName != null) ...[
             const SizedBox(height: 12),
-            _buildInfoRow(Icons.person_add_rounded, context.tr('ad_invited_by'), _parentAmbassadorName!),
-          ]
+            _buildInfoRow(
+              Icons.person_add_rounded,
+              context.tr('ad_invited_by'),
+              _parentAmbassadorName!,
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    bool ltr = false,
+  }) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: _onSurfaceVariant),
-        const SizedBox(width: 8),
-        Text(label, style: GoogleFonts.cairo(fontSize: 13, color: _onSurfaceVariant)),
-        const Spacer(),
-        Text(value, style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w600, color: _onBackground)),
+        ExcludeSemantics(child: Icon(icon, size: 16, color: _onSurfaceVariant)),
+        const SizedBox(width: MaamoraSpacing.sm),
+        Text(
+          label,
+          style: GoogleFonts.cairo(fontSize: 13, color: _onSurfaceVariant),
+        ),
+        const SizedBox(width: MaamoraSpacing.md),
+        // Long values never push the row off-screen.
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            textDirection: ltr ? TextDirection.ltr : null,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.cairo(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _onBackground,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -435,23 +634,46 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(context.tr('ad_actions'), style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            context.tr('ad_actions'),
+            style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 10,
             runSpacing: 10,
             children: [
               if (a.status == AmbassadorStatus.pending) ...[
-                _ActionBtn(label: 'Accepter', icon: Icons.check, color: _successColor, onTap: _handleAccept),
-                _ActionBtn(label: 'Refuser', icon: Icons.close, color: _errorColor, onTap: _handleReject),
+                _ActionBtn(
+                  label: context.tr('ad_accept_btn'),
+                  icon: Icons.check,
+                  color: _successColor,
+                  onTap: _handleAccept,
+                ),
+                _ActionBtn(
+                  label: context.tr('ad_reject'),
+                  icon: Icons.close,
+                  color: _errorColor,
+                  onTap: _handleReject,
+                ),
               ],
               if (a.status == AmbassadorStatus.active)
-                _ActionBtn(label: 'Suspendre', icon: Icons.pause, color: _primary, onTap: _handleSuspend),
+                _ActionBtn(
+                  label: context.tr('ad_suspend'),
+                  icon: Icons.pause,
+                  color: MaamoraColors.primaryText,
+                  onTap: _handleSuspend,
+                ),
               if (a.status == AmbassadorStatus.paused)
-                _ActionBtn(label: 'Réactiver', icon: Icons.play_arrow, color: _successColor, onTap: _handleReactivate),
+                _ActionBtn(
+                  label: context.tr('ad_reactivate'),
+                  icon: Icons.play_arrow,
+                  color: _successColor,
+                  onTap: _handleReactivate,
+                ),
             ],
           ),
-          
+
           if (_walletBalance > 0) ...[
             const Divider(height: 32),
             Row(
@@ -460,8 +682,21 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(context.tr('ad_balance'), style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
-                    Text('${_walletBalance.toStringAsFixed(2)} DH', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: _successColor)),
+                    Text(
+                      context.tr('ad_balance'),
+                      style: GoogleFonts.cairo(
+                        fontSize: 12,
+                        color: _onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      '${_walletBalance.toStringAsFixed(2)} DH',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _successColor,
+                      ),
+                    ),
                   ],
                 ),
                 ElevatedButton.icon(
@@ -470,27 +705,42 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                   label: Text(context.tr('ad_wallet_pay')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _successColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    foregroundColor: MaamoraColors.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ],
-            )
+            ),
           ] else if (a.status != AmbassadorStatus.pending) ...[
-             const Divider(height: 32),
-             Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(context.tr('ad_balance'), style: GoogleFonts.cairo(fontSize: 12, color: _onSurfaceVariant)),
-                      Text('0.00 DH', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: _onBackground)),
-                    ],
-                  ),
-                ],
-              )
-          ]
+            const Divider(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.tr('ad_balance'),
+                      style: GoogleFonts.cairo(
+                        fontSize: 12,
+                        color: _onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      '0.00 DH',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _onBackground,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -500,22 +750,42 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(context.tr('ad_comm_history'), style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(
+          context.tr('ad_comm_history'),
+          style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 12),
         if (_commissions.isEmpty)
-          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(context.tr('ad_comm_empty'), style: GoogleFonts.cairo(color: _onSurfaceVariant)))),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                context.tr('ad_comm_empty'),
+                style: GoogleFonts.cairo(color: _onSurfaceVariant),
+              ),
+            ),
+          ),
         ..._commissions.map((c) {
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: _surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: _cardBorder)),
+            decoration: BoxDecoration(
+              color: _surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _cardBorder),
+            ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: _background, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: _background,
+                    shape: BoxShape.circle,
+                  ),
                   child: Icon(
-                    c.source == CommissionSource.recruitBonus ? Icons.person_add : Icons.shopping_bag,
+                    c.source == CommissionSource.recruitBonus
+                        ? Icons.person_add
+                        : Icons.shopping_bag,
                     size: 16,
                     color: _primary,
                   ),
@@ -525,15 +795,39 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(c.dealGroupName ?? (c.source == CommissionSource.recruitBonus ? context.tr('ad_bonus_referral') : 'Commission'), style: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 13)),
-                      Text(c.createdAt != null ? DateFormat('dd/MM/yy HH:mm').format(c.createdAt!) : '', style: GoogleFonts.cairo(fontSize: 11, color: _onSurfaceVariant)),
+                      Text(
+                        c.dealGroupName ??
+                            (c.source == CommissionSource.recruitBonus
+                                ? context.tr('ad_bonus_referral')
+                                : 'Commission'),
+                        style: GoogleFonts.cairo(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        c.createdAt != null
+                            ? DateFormat('dd/MM/yy HH:mm').format(c.createdAt!)
+                            : '',
+                        style: GoogleFonts.cairo(
+                          fontSize: 11,
+                          color: _onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('+${c.amount.toStringAsFixed(2)} DH', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 13, color: _successColor)),
+                    Text(
+                      '+${c.amount.toStringAsFixed(2)} DH',
+                      style: GoogleFonts.cairo(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: _successColor,
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     _buildCommissionBadge(c.status),
                   ],
@@ -541,7 +835,7 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
               ],
             ),
           );
-        })
+        }),
       ],
     );
   }
@@ -551,29 +845,39 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     String label;
     switch (status) {
       case CommissionStatus.pending:
-        color = Colors.orange;
-        label = context.tr('ad_pending');
+        color = MaamoraColors.warningDeep;
+        label = context.tr('wallet_st_pending');
         break;
       case CommissionStatus.payable:
-        color = _primary;
-        label = 'Payable';
+        color = MaamoraColors.primaryText;
+        label = context.tr('wallet_st_payable');
         break;
       case CommissionStatus.paid:
         color = _successColor;
-        label = 'Payé';
+        label = context.tr('wallet_st_paid');
         break;
       case CommissionStatus.voided:
         color = _errorColor;
-        label = 'Annulé';
+        label = context.tr('wallet_st_voided');
         break;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MaamoraSpacing.sm,
+        vertical: 2,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(MaamoraRadius.chip),
       ),
-      child: Text(label, style: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+      child: Text(
+        label,
+        style: GoogleFonts.cairo(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
     );
   }
 
@@ -581,10 +885,16 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(context.tr('ad_groups_created'), style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(
+          context.tr('ad_groups_created'),
+          style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 12),
         if (_dealGroups.isEmpty)
-          Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(context.tr('ad_groups_created_empty'), style: GoogleFonts.cairo(color: _onSurfaceVariant)))),
+          MaamoraEmptyState(
+            icon: MaamoraIcons.users,
+            title: context.tr('ad_groups_created_empty'),
+          ),
         ..._dealGroups.map((g) {
           final title = g['product_name'] ?? context.tr('ad_group_unknown');
           final members = g['members_count'] ?? 0;
@@ -594,23 +904,44 @@ class _AdminAmbassadorDetailsScreenState extends State<AdminAmbassadorDetailsScr
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: _surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: _cardBorder)),
+            decoration: BoxDecoration(
+              color: _surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _cardBorder),
+            ),
             child: Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 13)),
-                      Text(context.tr('ad_members_fract', args: {'a': '$members', 'b': '$maxMembers'}), style: GoogleFonts.cairo(fontSize: 11, color: _onSurfaceVariant)),
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.cairo(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        context.tr(
+                          'ad_members_fract',
+                          args: {'a': '$members', 'b': '$maxMembers'},
+                        ),
+                        style: GoogleFonts.cairo(
+                          fontSize: 11,
+                          color: _onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                Text(status.toString().toUpperCase(), style: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.bold, color: _primary)),
+                AdminStatusBadge(status: status.toString()),
               ],
             ),
           );
-        })
+        }),
       ],
     );
   }
@@ -635,7 +966,12 @@ class _ActionBtn extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const _ActionBtn({required this.label, required this.icon, required this.color, required this.onTap});
+  const _ActionBtn({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -647,7 +983,8 @@ class _ActionBtn extends StatelessWidget {
         backgroundColor: color.withValues(alpha: 0.1),
         foregroundColor: color,
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        minimumSize: const Size(0, 44),
+        shape: RoundedRectangleBorder(borderRadius: MaamoraRadius.inputR),
       ),
     );
   }

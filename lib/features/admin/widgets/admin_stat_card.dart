@@ -4,7 +4,7 @@ import '../../../design_system/design_system.dart';
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const Color _primary = MaamoraColors.primary;
-const Color _surface = Colors.white;
+const Color _surface = MaamoraColors.surface;
 const Color _onBackground = MaamoraColors.textPrimary;
 const Color _onSurfaceVariant = MaamoraColors.textSecondary;
 const Color _cardBorder = MaamoraColors.border;
@@ -44,13 +44,7 @@ class AdminStatCard extends StatelessWidget {
           color: _surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: _cardBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          boxShadow: MaamoraShadows.soft,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,8 +91,11 @@ class AdminStatCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 2),
-                  const Icon(Icons.arrow_forward_rounded,
-                      size: 12, color: _primary),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 12,
+                    color: _primary,
+                  ),
                 ],
               ),
             ],
