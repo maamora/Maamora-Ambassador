@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/l10n/app_strings.dart';
 import '../../design_system/design_system.dart';
@@ -44,22 +45,25 @@ class _SharedBottomNavBarState extends State<SharedBottomNavBar> {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).padding.bottom;
 
-    return SizedBox(
-      height: 84 + bottom,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: MaamoraColors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [
-            BoxShadow(
-              color: MaamoraColors.shadowInk.withValues(alpha: 0.10),
-              blurRadius: 24,
-              offset: const Offset(0, -6),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(bottom: bottom),
+    // Material 3 navigation bar, Maamora style: icon + label for every
+    // destination (icon-only tabs were hard to read), the selected one sits
+    // on a soft orange pill that grows in when tapped.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: MaamoraColors.surface,
+        border: const Border(top: BorderSide(color: MaamoraColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: MaamoraColors.shadowInk.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottom),
+        child: SizedBox(
+          height: 68,
           child: Row(
             children: [
               _tab(
@@ -93,8 +97,6 @@ class _SharedBottomNavBarState extends State<SharedBottomNavBar> {
     );
   }
 
-  /// Icon-only tab. Active: soft orange squircle + filled orange glyph.
-  /// Inactive: quiet slate outline icon on transparent background.
   Widget _tab(
     int index,
     IconData icon,
@@ -102,7 +104,8 @@ class _SharedBottomNavBarState extends State<SharedBottomNavBar> {
     String label,
   ) {
     final active = widget.currentIndex == index;
-    // Icon-only visually, but never nameless for TalkBack / VoiceOver.
+    final reduced = MaamoraMotion.reduced(context);
+    final duration = reduced ? Duration.zero : MaamoraDurations.normal;
     return Expanded(
       child: Semantics(
         button: true,
@@ -110,21 +113,24 @@ class _SharedBottomNavBarState extends State<SharedBottomNavBar> {
         label: label,
         excludeSemantics: true,
         onTap: () => _onTap(index),
-        child: Tooltip(
-          message: label,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => _onTap(index),
-            child: Center(
-              child: Container(
-                width: 58,
-                height: 58,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _onTap(index),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Pill indicator: grows from the icon's width when selected.
+              AnimatedContainer(
+                duration: duration,
+                curve: MaamoraMotion.standard,
+                width: active ? 60 : 32,
+                height: 32,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: active
                       ? MaamoraColors.primarySoft
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(18),
+                      : MaamoraColors.primarySoft.withValues(alpha: 0),
+                  borderRadius: BorderRadius.circular(MaamoraRadius.chip),
                 ),
                 child: _AnimatedNavIcon(
                   outline: icon,
@@ -132,7 +138,25 @@ class _SharedBottomNavBarState extends State<SharedBottomNavBar> {
                   active: active,
                 ),
               ),
-            ),
+              const SizedBox(height: MaamoraSpacing.xs),
+              AnimatedDefaultTextStyle(
+                duration: duration,
+                style: GoogleFonts.cairo(
+                  fontSize: 12,
+                  height: 1.2,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                  color: active
+                      ? MaamoraColors.primaryText
+                      : MaamoraColors.textSecondary,
+                ),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -164,13 +188,13 @@ class _AnimatedNavIcon extends StatelessWidget {
       builder: (context, t, child) {
         final tc = t.clamp(0.0, 1.0);
         return Transform.scale(
-          scale: 1.0 + 0.15 * tc,
+          scale: 1.0 + 0.08 * tc,
           child: Stack(
             alignment: Alignment.center,
             children: [
               Icon(
                 outline,
-                size: 26,
+                size: 22,
                 color: Color.lerp(
                   MaamoraColors.textSecondary,
                   MaamoraColors.primary,
@@ -185,7 +209,7 @@ class _AnimatedNavIcon extends StatelessWidget {
       child: MaamoraFilledIcon(
         glyph: glyph,
         color: MaamoraColors.primary,
-        size: 26,
+        size: 22,
       ),
     );
   }
